@@ -41,7 +41,7 @@ class SettingsActivity: Activity() {
         val change=object:SeekBar.OnSeekBarChangeListener{override fun onProgressChanged(s:SeekBar?,p:Int,u:Boolean){labels()};override fun onStartTrackingTouch(s:SeekBar?){};override fun onStopTrackingTouch(s:SeekBar?){}}
         frequency.setOnSeekBarChangeListener(change);duration.setOnSeekBarChangeListener(change);labels()
         root.addView(Button(this).apply{text="OUVIR BIP SELECIONADO";setOnClickListener{audio.previewTone(tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80,sound.progress/100f)}})
-        root.addView(Button(this).apply{text="TESTAR CÂMERA USB NATIVA — ARM 32 BITS";setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})
+        root.addView(Button(this).apply{text="AUTORIZAR CÂMERA USB — LIVE / IA / REC";setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})
         root.addView(title("Duração dos clipes: 1, 3 ou 5 minutos"))
         val segments = intArrayOf(1,3,5)
         val segmentSelector = Spinner(this)

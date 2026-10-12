@@ -1,0 +1,1010 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.7.3">
+
+    <issue
+        id="InlinedApi"
+        severity="Warning"
+        message="Field requires API level 28 (current min is 24): `android.hardware.camera2.CameraMetadata#INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL`"
+        category="Correctness"
+        priority="6"
+        summary="Using inlined constants on older versions"
+        explanation="This check scans through all the Android API field references in the application and flags certain constants, such as static final integers and Strings, which were introduced in later versions. These will actually be copied into the class files rather than being referenced, which means that the value is available even when running on older devices. In some cases that&apos;s fine, and in other cases it can result in a runtime crash or incorrect behavior. It depends on the context, so consider the code carefully and decide whether it&apos;s safe and can be suppressed or whether the code needs to be guarded.&#xA;&#xA;If you really want to use this API and don&apos;t need to support older devices just set the `minSdkVersion` in your `build.gradle` or `AndroidManifest.xml` files.&#xA;&#xA;If your code is **deliberately** accessing newer APIs, and you have ensured (e.g. with conditional execution) that this code will only ever be called on a supported platform, then you can annotate your class or method with the `@TargetApi` annotation specifying the local minimum SDK to apply, such as `@TargetApi(11)`, such that this check considers 11 rather than your manifest file&apos;s minimum SDK as the required API level."
+        errorLine1="                manager.getCameraCharacteristics(id).get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL"
+        errorLine2="                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="581"
+            column="114"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="  &lt;activity android:name=&quot;.MainActivity&quot; android:screenOrientation=&quot;landscape&quot; android:exported=&quot;true&quot;>"
+        errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="20"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="  &lt;activity android:name=&quot;.SettingsActivity&quot; android:screenOrientation=&quot;landscape&quot; android:exported=&quot;false&quot;/>"
+        errorLine2="                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="23"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="  &lt;activity android:name=&quot;.NativeUsbActivity&quot; android:screenOrientation=&quot;landscape&quot; android:exported=&quot;false&quot;/>"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="24"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="  &lt;activity android:name=&quot;.PremiumSectionActivity&quot; android:screenOrientation=&quot;landscape&quot; android:exported=&quot;false&quot;/>"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="25"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        severity="Warning"
+        message="Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed."
+        category="Correctness"
+        priority="2"
+        summary="Using discouraged APIs"
+        explanation="Discouraged APIs are allowed and are not deprecated, but they may be unfit for common use (e.g. due to slow performance or subtle behavior)."
+        errorLine1="  &lt;activity android:name=&quot;.PremiumMenuActivity&quot; android:screenOrientation=&quot;landscape&quot; android:exported=&quot;false&quot;/>"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="26"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="ChromeOsAbiSupport"
+        severity="Warning"
+        message="Missing x86_64 ABI support for ChromeOS"
+        category="Correctness:Chrome OS"
+        priority="4"
+        summary="Missing ABI Support for ChromeOS"
+        explanation="To properly support ChromeOS, your Android application should have an x86 and/or x86_64 binary as part of the build configuration. To fix the issue, ensure your files are properly optimized for ARM; the binary translator will then ensure compatibility with x86. Alternatively, add an `abiSplit` for x86 within your `build.gradle` file and create the required x86 dependencies."
+        url="https://developer.android.com/ndk/guides/abis"
+        urls="https://developer.android.com/ndk/guides/abis"
+        errorLine1="  if(k2000Native) ndk { abiFilters += &quot;armeabi-v7a&quot; }"
+        errorLine2="                                      ~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/build.gradle.kts"
+            line="11"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="DataExtractionRules"
+        severity="Warning"
+        message="The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
+        category="Security"
+        priority="3"
+        summary="Missing data extraction rules"
+        explanation="Before Android 12, the attributes `android:allowBackup` and `android:fullBackupContent` were used to configure all forms of backup, including cloud backups, device-to-device transfers and adb backup.&#xA;&#xA;In Android 12 and higher, these attributes have been deprecated and will only apply to cloud backups. You should instead use the attribute `android:dataExtractionRules`, specifying an `@xml` resource that configures which files to back up, for cloud backups and for device-to-device transfers, separately. If your `minSdkVersion` supports older versions, you&apos;ll still want to specify an `android:fullBackupContent` resource if the default behavior is not right for your app."
+        url="https://developer.android.com/about/versions/12/backup-restore#xml-changes"
+        urls="https://developer.android.com/about/versions/12/backup-restore#xml-changes,https://goo.gle/DataExtractionRules"
+        errorLine1=" &lt;application android:label=&quot;DashCam ADAS PRO&quot; android:theme=&quot;@android:style/Theme.Material.NoActionBar&quot; android:allowBackup=&quot;false&quot; android:usesCleartextTraffic=&quot;false&quot;>"
+        errorLine2="                                                                                                                              ~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="14"
+            column="127"/>
+    </issue>
+
+    <issue
+        id="DrawAllocation"
+        severity="Warning"
+        message="Avoid object allocations during draw/layout operations (preallocate and reuse instead)"
+        category="Performance"
+        priority="9"
+        summary="Memory allocations within drawing code"
+        explanation="You should avoid allocating objects during a drawing or layout operation. These are called frequently, so a smooth UI can be interrupted by garbage collection pauses caused by the object allocations.&#xA;&#xA;The way this is generally handled is to allocate the needed objects up front and to reuse them for each drawing operation.&#xA;&#xA;Some methods allocate memory on your behalf (such as `Bitmap.create`), and these should be handled in the same way."
+        errorLine1="        val destination=FloatArray(6)"
+        errorLine2="                        ~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/CameraPreviewView.kt"
+            line="21"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="DrawAllocation"
+        severity="Warning"
+        message="Avoid object allocations during draw/layout operations (preallocate and reuse instead)"
+        category="Performance"
+        priority="9"
+        summary="Memory allocations within drawing code"
+        explanation="You should avoid allocating objects during a drawing or layout operation. These are called frequently, so a smooth UI can be interrupted by garbage collection pauses caused by the object allocations.&#xA;&#xA;The way this is generally handled is to allocate the needed objects up front and to reuse them for each drawing operation.&#xA;&#xA;Some methods allocate memory on your behalf (such as `Bitmap.create`), and these should be handled in the same way."
+        errorLine1="        val matrix=Matrix().apply{setPolyToPoly(source,0,destination,0,3)}"
+        errorLine2="                   ~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/CameraPreviewView.kt"
+            line="23"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="DrawAllocation"
+        severity="Warning"
+        message="Avoid object allocations during draw/layout operations (preallocate and reuse instead)"
+        category="Performance"
+        priority="9"
+        summary="Memory allocations within drawing code"
+        explanation="You should avoid allocating objects during a drawing or layout operation. These are called frequently, so a smooth UI can be interrupted by garbage collection pauses caused by the object allocations.&#xA;&#xA;The way this is generally handled is to allocate the needed objects up front and to reuse them for each drawing operation.&#xA;&#xA;Some methods allocate memory on your behalf (such as `Bitmap.create`), and these should be handled in the same way."
+        errorLine1="            val path = Path()"
+        errorLine2="                       ~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/LaneAssistView.kt"
+            line="23"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="DrawAllocation"
+        severity="Warning"
+        message="Avoid object allocations during draw/layout operations (preallocate and reuse instead)"
+        category="Performance"
+        priority="9"
+        summary="Memory allocations within drawing code"
+        explanation="You should avoid allocating objects during a drawing or layout operation. These are called frequently, so a smooth UI can be interrupted by garbage collection pauses caused by the object allocations.&#xA;&#xA;The way this is generally handled is to allocate the needed objects up front and to reuse them for each drawing operation.&#xA;&#xA;Some methods allocate memory on your behalf (such as `Bitmap.create`), and these should be handled in the same way."
+        errorLine1="            val path=Path()"
+        errorLine2="                     ~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/RiskOverlayView.kt"
+            line="30"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UsableSpace"
+        severity="Warning"
+        message="Consider also using `StorageManager#getAllocatableBytes` and `allocateBytes` which will consider clearable cached data"
+        category="Performance"
+        priority="3"
+        summary="Using getUsableSpace()"
+        explanation="When you need to allocate disk space for large files, consider using the new `allocateBytes(FileDescriptor, long)` API, which will automatically clear cached files belonging to other apps (as needed) to meet your request.&#xA;&#xA;When deciding if the device has enough disk space to hold your new data, call `getAllocatableBytes(UUID)` instead of using `getUsableSpace()`, since the former will consider any cached data that the system is willing to clear on your behalf.&#xA;&#xA;Note that these methods require API level 26. If your app is running on older devices, you will probably need to use both APIs, conditionally switching on `Build.VERSION.SDK_INT`. Lint only looks in the same compilation unit to see if you are already using both APIs, so if it warns even though you are already using the new API, consider moving the calls to the same file or suppressing the warning."
+        errorLine1="        require(folder.usableSpace>100*1024L*1024L){&quot;Espaço insuficiente&quot;}"
+        errorLine2="                       ~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
+            line="308"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="MissingApplicationIcon"
+        severity="Warning"
+        message="Should explicitly set `android:icon`, there is no default"
+        category="Usability:Icons"
+        priority="5"
+        summary="Missing application icon"
+        explanation="You should set an icon for the application as whole because there is no default. This attribute must be set as a reference to a drawable resource containing the image (for example `@drawable/icon`)."
+        url="https://developer.android.com/studio/publish/preparing#publishing-configure"
+        urls="https://developer.android.com/studio/publish/preparing#publishing-configure"
+        errorLine1=" &lt;application android:label=&quot;DashCam ADAS PRO&quot; android:theme=&quot;@android:style/Theme.Material.NoActionBar&quot; android:allowBackup=&quot;false&quot; android:usesCleartextTraffic=&quot;false&quot;>"
+        errorLine2="  ~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/AndroidManifest.xml"
+            line="14"
+            column="3"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        severity="Warning"
+        message="`onTouch` lambda should call `View#performClick` when a click is detected"
+        category="Accessibility"
+        priority="6"
+        summary="Accessibility in Custom Views"
+        explanation="If a `View` that overrides `onTouchEvent` or uses an `OnTouchListener` does not also implement `performClick` and call it when clicks are detected, the `View` may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in `View#performClick` as some accessibility services invoke `performClick` when a click action should occur."
+        errorLine1="        laneOverlay = RiskOverlayView(this).apply { preview=texture;setOnTouchListener { _, _ -> false } }"
+        errorLine2="                                                                                       ~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="320"
+            column="88"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        severity="Warning"
+        message="Custom view ``CameraPreviewView`` has `setOnTouchListener` called on it but does not override `performClick`"
+        category="Accessibility"
+        priority="6"
+        summary="Accessibility in Custom Views"
+        explanation="If a `View` that overrides `onTouchEvent` or uses an `OnTouchListener` does not also implement `performClick` and call it when clicks are detected, the `View` may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in `View#performClick` as some accessibility services invoke `performClick` when a click action should occur."
+        errorLine1="        texture.setOnTouchListener { _, event -> detector.onTouchEvent(event) }"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="339"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        severity="Warning"
+        message="`onTouch` lambda should call `View#performClick` when a click is detected"
+        category="Accessibility"
+        priority="6"
+        summary="Accessibility in Custom Views"
+        explanation="If a `View` that overrides `onTouchEvent` or uses an `OnTouchListener` does not also implement `performClick` and call it when clicks are detected, the `View` may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in `View#performClick` as some accessibility services invoke `performClick` when a click action should occur."
+        errorLine1="        texture.setOnTouchListener { _, event -> detector.onTouchEvent(event) }"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="339"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        severity="Warning"
+        message="Custom view `MenuSurface` overrides `onTouchEvent` but not `performClick`"
+        category="Accessibility"
+        priority="6"
+        summary="Accessibility in Custom Views"
+        explanation="If a `View` that overrides `onTouchEvent` or uses an `OnTouchListener` does not also implement `performClick` and call it when clicks are detected, the `View` may not handle accessibility actions properly. Logic handling the click actions should ideally be placed in `View#performClick` as some accessibility services invoke `performClick` when a click action should occur."
+        errorLine1="  override fun onTouchEvent(event: MotionEvent): Boolean {"
+        errorLine2="               ~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumMenuActivity.kt"
+            line="43"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            text = &quot;$message\n${error.javaClass.simpleName}: ${error.message ?: &quot;sem detalhes&quot;}\nVerifique logcat: DashCamStartup&quot;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="150"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            text = &quot;$message\n${error.javaClass.simpleName}: ${error.message ?: &quot;sem detalhes&quot;}\nVerifique logcat: DashCamStartup&quot;"
+        errorLine2="                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="150"
+            column="98"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if (::gpsRec.isInitialized) gpsRec.text = &quot;GPS &quot; + (if (lastGps != null) &quot;OK&quot; else &quot;--&quot;) + &quot; · &quot; + (if (recording) &quot;● REC&quot; else &quot;REC OFF&quot;)"
+        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="190"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if (::gpsRec.isInitialized) gpsRec.text = &quot;GPS &quot; + (if (lastGps != null) &quot;OK&quot; else &quot;--&quot;) + &quot; · &quot; + (if (recording) &quot;● REC&quot; else &quot;REC OFF&quot;)"
+        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="190"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if (::gpsRec.isInitialized) gpsRec.text = &quot;GPS &quot; + (if (lastGps != null) &quot;OK&quot; else &quot;--&quot;) + &quot; · &quot; + (if (recording) &quot;● REC&quot; else &quot;REC OFF&quot;)"
+        errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="190"
+            column="51"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if (::gpsRec.isInitialized) gpsRec.text = &quot;GPS &quot; + (if (lastGps != null) &quot;OK&quot; else &quot;--&quot;) + &quot; · &quot; + (if (recording) &quot;● REC&quot; else &quot;REC OFF&quot;)"
+        errorLine2="                                                   ~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="190"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            text = &quot;REC&quot;; textSize = 12f; isEnabled = false"
+        errorLine2="                    ~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="431"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            alertMessage.text = &quot;$title\n$detail&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="478"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        box.addView(TextView(this).apply{text=&quot;CALIBRAÇÃO EXPERIMENTAL — veículo parado e câmera alinhada. Informe medidas reais. Alarmes exigem GPS válido e detecções confiáveis; não substituem atenção ao conduzir.&quot;})"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="615"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Number formatting does not take into account locale settings. Consider using `String.format` instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            return EditText(this).apply{inputType=android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL;setText(value.toString());box.addView(this)}"
+        errorLine2="                                                                                                                                                      ~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="618"
+            column="151"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        wrapper.addView(TextView(this).apply {text=&quot;Limite (km/h)&quot;});wrapper.addView(limit)"
+        errorLine2="                                                    ~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="667"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        wrapper.addView(TextView(this).apply {text=&quot;Tipo&quot;});wrapper.addView(type)"
+        errorLine2="                                                    ~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="668"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="            else status.text=&quot;Permissão USB negada; selecione novamente para tentar&quot;"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="25"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(TextView(this).apply{text=&quot;CÂMERA USB — K2000N ARM32&quot;;textSize=22f;setTextColor(Color.CYAN)})"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="31"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(TextView(this).apply{text=&quot;Autorize a câmera e abra a LIVE para rede neural de faixas/veículos e REC. A mudança de fonte finaliza eventual clipe Camera2. Compatibilidade USB precisa de teste nesta central.&quot;;textSize=17f;setTextColor(Color.WHITE)})"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="32"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        status=TextView(this).apply{text=&quot;Selecione sua câmera USB&quot;;setTextColor(Color.CYAN)}"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="33"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply{text=&quot;SELECIONAR E AUTORIZAR USB&quot;;setOnClickListener{choose()}})"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="35"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply{text=&quot;VOLTAR&quot;;setOnClickListener{finish()}})"
+        errorLine2="                                              ~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="36"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27){status.text=&quot;Use o APK ARM32 no Android 7/8 para o driver enviado&quot;;return}"
+        errorLine2="                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="41"
+            column="88"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        if(devices.isEmpty()){status.text=&quot;Nenhuma câmera USB candidata conectada&quot;;return}"
+        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="44"
+            column="44"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        status.text=&quot;Aguardando autorização USB do Android&quot;"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt"
+            line="57"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="   text=&quot;TESTE • ${label.uppercase()}\n$voice&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt"
+            line="80"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="   text=&quot;TESTE • ${label.uppercase()}\n$voice&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt"
+            line="80"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="42"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="104"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                                                                                               ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="128"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                          ~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                                               ~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="80"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                                                                        ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="105"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        fun labels(){frequencyLabel.text=&quot;Frequência: ${frequency.progress+400} Hz&quot;;durationLabel.text=&quot;Duração de cada tom: ${duration.progress+80} ms&quot;}"
+        errorLine2="                                                                                                                                                    ~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="40"
+            column="149"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply{text=&quot;OUVIR BIP SELECIONADO&quot;;setOnClickListener{audio.previewTone(tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80,sound.progress/100f)}})"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="43"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply{text=&quot;AUTORIZAR CÂMERA USB — LIVE / IA / REC&quot;;setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})"
+        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="44"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply {text=&quot;TESTAR AVISO (com música tocando)&quot;;setOnClickListener {audio.announce(&quot;Teste de áudio ADAS sem interromper a multimídia&quot;,true)}})"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="52"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply {text=&quot;SALVAR LIMITES ADAS&quot;;setOnClickListener {"
+        errorLine2="                                               ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="76"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        root.addView(Button(this).apply {text=&quot;SALVAR&quot;;setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress,tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80);getSharedPreferences(&quot;camera&quot;,MODE_PRIVATE).edit().putInt(&quot;segment&quot;,segments[segmentSelector.selectedItemPosition]).putInt(&quot;controls_timeout&quot;,timeouts[timeoutSelector.selectedItemPosition]).putInt(&quot;storage_mb&quot;,storageLimits[storageSelector.selectedItemPosition]).apply();Toast.makeText(this@SettingsActivity,&quot;Preferências salvas&quot;,Toast.LENGTH_SHORT).show();finish()}})"
+        errorLine2="                                               ~~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt"
+            line="89"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="RtlHardcoded"
+        severity="Warning"
+        message="Use &quot;`Gravity.START`&quot; instead of &quot;`Gravity.LEFT`&quot; to ensure correct behavior in right-to-left locales"
+        category="Internationalization:Bidirectional Text"
+        priority="5"
+        summary="Using left/right instead of start/end attributes"
+        explanation="Using `Gravity#LEFT` and `Gravity#RIGHT` can lead to problems when a layout is rendered in locales where text flows from right to left. Use `Gravity#START` and `Gravity#END` instead. Similarly, in XML `gravity` and `layout_gravity` attributes, use `start` rather than `left`.&#xA;&#xA;For XML attributes such as paddingLeft and `layout_marginLeft`, use `paddingStart` and `layout_marginStart`. **NOTE**: If your `minSdkVersion` is less than 17, you should add **both** the older left/right attributes **as well as** the new start/end attributes. On older platforms, where RTL is not supported and the start/end attributes are unknown and therefore ignored, you need the older left/right attributes. There is a separate lint check which catches that type of error.&#xA;&#xA;(Note: For `Gravity#LEFT` and `Gravity#START`, you can use these constants even when targeting older platforms, because the `start` bitmask is a superset of the `left` bitmask. Therefore, you can use `gravity=&quot;start&quot;` rather than `gravity=&quot;left|start&quot;`.)"
+        errorLine1="            Gravity.TOP or Gravity.LEFT).apply {"
+        errorLine2="                                   ~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="371"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="RtlHardcoded"
+        severity="Warning"
+        message="Use &quot;`Gravity.END`&quot; instead of &quot;`Gravity.RIGHT`&quot; to ensure correct behavior in right-to-left locales"
+        category="Internationalization:Bidirectional Text"
+        priority="5"
+        summary="Using left/right instead of start/end attributes"
+        explanation="Using `Gravity#LEFT` and `Gravity#RIGHT` can lead to problems when a layout is rendered in locales where text flows from right to left. Use `Gravity#START` and `Gravity#END` instead. Similarly, in XML `gravity` and `layout_gravity` attributes, use `start` rather than `left`.&#xA;&#xA;For XML attributes such as paddingLeft and `layout_marginLeft`, use `paddingStart` and `layout_marginStart`. **NOTE**: If your `minSdkVersion` is less than 17, you should add **both** the older left/right attributes **as well as** the new start/end attributes. On older platforms, where RTL is not supported and the start/end attributes are unknown and therefore ignored, you need the older left/right attributes. There is a separate lint check which catches that type of error.&#xA;&#xA;(Note: For `Gravity#LEFT` and `Gravity#START`, you can use these constants even when targeting older platforms, because the `start` bitmask is a superset of the `left` bitmask. Therefore, you can use `gravity=&quot;start&quot;` rather than `gravity=&quot;left|start&quot;`.)"
+        errorLine1="            Gravity.TOP or Gravity.RIGHT).apply { setMargins(0, dp(8), dp(10), 0) })"
+        errorLine2="                                   ~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="376"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="RtlHardcoded"
+        severity="Warning"
+        message="Use &quot;`Gravity.START`&quot; instead of &quot;`Gravity.LEFT`&quot; to ensure correct behavior in right-to-left locales"
+        category="Internationalization:Bidirectional Text"
+        priority="5"
+        summary="Using left/right instead of start/end attributes"
+        explanation="Using `Gravity#LEFT` and `Gravity#RIGHT` can lead to problems when a layout is rendered in locales where text flows from right to left. Use `Gravity#START` and `Gravity#END` instead. Similarly, in XML `gravity` and `layout_gravity` attributes, use `start` rather than `left`.&#xA;&#xA;For XML attributes such as paddingLeft and `layout_marginLeft`, use `paddingStart` and `layout_marginStart`. **NOTE**: If your `minSdkVersion` is less than 17, you should add **both** the older left/right attributes **as well as** the new start/end attributes. On older platforms, where RTL is not supported and the start/end attributes are unknown and therefore ignored, you need the older left/right attributes. There is a separate lint check which catches that type of error.&#xA;&#xA;(Note: For `Gravity#LEFT` and `Gravity#START`, you can use these constants even when targeting older platforms, because the `start` bitmask is a superset of the `left` bitmask. Therefore, you can use `gravity=&quot;start&quot;` rather than `gravity=&quot;left|start&quot;`.)"
+        errorLine1="            Gravity.BOTTOM or Gravity.LEFT).apply { setMargins(dp(10), 0, 0, dp(10)) })"
+        errorLine2="                                      ~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="384"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="RtlHardcoded"
+        severity="Warning"
+        message="Use &quot;`Gravity.END`&quot; instead of &quot;`Gravity.RIGHT`&quot; to ensure correct behavior in right-to-left locales"
+        category="Internationalization:Bidirectional Text"
+        priority="5"
+        summary="Using left/right instead of start/end attributes"
+        explanation="Using `Gravity#LEFT` and `Gravity#RIGHT` can lead to problems when a layout is rendered in locales where text flows from right to left. Use `Gravity#START` and `Gravity#END` instead. Similarly, in XML `gravity` and `layout_gravity` attributes, use `start` rather than `left`.&#xA;&#xA;For XML attributes such as paddingLeft and `layout_marginLeft`, use `paddingStart` and `layout_marginStart`. **NOTE**: If your `minSdkVersion` is less than 17, you should add **both** the older left/right attributes **as well as** the new start/end attributes. On older platforms, where RTL is not supported and the start/end attributes are unknown and therefore ignored, you need the older left/right attributes. There is a separate lint check which catches that type of error.&#xA;&#xA;(Note: For `Gravity#LEFT` and `Gravity#START`, you can use these constants even when targeting older platforms, because the `start` bitmask is a superset of the `left` bitmask. Therefore, you can use `gravity=&quot;start&quot;` rather than `gravity=&quot;left|start&quot;`.)"
+        errorLine1="            Gravity.BOTTOM or Gravity.RIGHT).apply { setMargins(0, 0, dp(10), dp(10)) })"
+        errorLine2="                                      ~~~~~">
+        <location
+            file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt"
+            line="387"
+            column="39"/>
+    </issue>
+
+</issues>

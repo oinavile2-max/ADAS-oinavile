@@ -49,7 +49,7 @@ class PremiumSectionActivity:Activity() {
  private fun note(parent:LinearLayout,s:String){parent.addView(text(s,16f,Color.rgb(169,192,213)))}
  private fun detectionPage(p:LinearLayout,section:String){
   if(section=="ADAS") {
-   note(p,"LDW e FCW experimentais analisam quadros reais. Os alertas dependem de calibração, GPS válido e confiança. Calibre com o veículo parado; funcionamento exige validação neste equipamento.")
+   note(p,"Redes neurais locais detectam faixas/área dirigível e veículos. Camera2 e USB autorizado no APK ARM32 alimentam a mesma LIVE e gravação em serviço. Alertas LDW/FCW são experimentais e exigem calibração, GPS válido e resultados recentes.")
    item(p,"ABRIR LIVE — CALIBRAR NO BOTÃO ADAS") {startActivity(Intent(this,MainActivity::class.java))}
    note(p,"Reconhecimento com alertas de pedestres e ciclistas ainda não integrado.")
    return
@@ -125,8 +125,8 @@ class PremiumSectionActivity:Activity() {
   usb.deviceList.values.forEach{note(p,"USB VID=${it.vendorId} PID=${it.productId} • ${it.deviceName}")}
   item(p,"SELECIONAR CÂMERA / GRAVAR") {startActivity(Intent(this,MainActivity::class.java))}
   item(p,"CONFIGURAR ÁUDIO E PADRÕES DE BIP") {startActivity(Intent(this,SettingsActivity::class.java))}
-  if(BuildConfig.K2000_NATIVE)item(p,"TESTAR PRÉVIA USB NATIVA") {startActivity(Intent(this,NativeUsbActivity::class.java))}
-  note(p,if(BuildConfig.K2000_NATIVE)"Biblioteca do UCarDVR incluída neste APK ARM32. A prévia USB está em teste; gravação e ADAS USB ainda não integrados." else "Para testar o driver do UCarDVR enviado, use o APK K2000N ARM32 na central Android 7/8.")
+  if(BuildConfig.K2000_NATIVE)item(p,"AUTORIZAR USB — ABRIR LIVE COM IA") {startActivity(Intent(this,NativeUsbActivity::class.java))}
+  note(p,if(BuildConfig.K2000_NATIVE)"USB integrado ao serviço de captura, rede neural e REC. Compatibilidade EGL/encoder precisa de teste físico nesta central." else "Para o driver USB enviado, use o APK K2000N ARM32 na central Android 7/8.")
  }
  override fun onDestroy(){activeBanner?.dismiss();bannerHandler.removeCallbacksAndMessages(null);audio.release();super.onDestroy()}
 }

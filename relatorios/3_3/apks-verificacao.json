@@ -1,0 +1,49 @@
+[
+  {
+    "apk": "DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk",
+    "bytes": 66911160,
+    "signature_verified": true,
+    "zipalign_verified": true,
+    "zip_integrity_verified": true,
+    "host_test_libraries_absent": true,
+    "arm64_elf": [
+      {
+        "library": "lib/arm64-v8a/libonnxruntime.so",
+        "load_alignment_bytes": [
+          16384,
+          16384,
+          16384
+        ],
+        "compatible_16kb": true
+      },
+      {
+        "library": "lib/arm64-v8a/libonnxruntime4j_jni.so",
+        "load_alignment_bytes": [
+          4096,
+          4096
+        ],
+        "compatible_16kb": false
+      },
+      {
+        "library": "lib/arm64-v8a/libtensorflowlite_jni.so",
+        "load_alignment_bytes": [
+          16384,
+          16384,
+          16384
+        ],
+        "compatible_16kb": true
+      }
+    ],
+    "android_16kb_support": "not supported by ONNX Runtime JNI ARM64 1.20.0"
+  },
+  {
+    "apk": "DashCam_ADAS_PRO_3_3_NEURAL_K2000N_ARM32_DEBUG.apk",
+    "bytes": 37685075,
+    "signature_verified": true,
+    "zipalign_verified": true,
+    "zip_integrity_verified": true,
+    "host_test_libraries_absent": true,
+    "arm64_elf": [],
+    "android_16kb_support": "not applicable: ARM32-only profile"
+  }
+]

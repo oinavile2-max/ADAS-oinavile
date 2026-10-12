@@ -26,6 +26,8 @@ with zipfile.ZipFile(args.apk) as apk:
         assert not any(n.endswith('/libmycamera.so') for n in apk.namelist())
         assert {'armeabi-v7a','arm64-v8a'}<=abis, abis
     assert hashlib.sha256(apk.read('assets/vehicles_ssd_mobilenet_v2.tflite')).hexdigest()=='42fb3d70ffb7bb37dd518f730f7be784b831c2078f30c497d0019cc2e987fa26'
+    assert hashlib.sha256(apk.read('assets/road_lanes_yolop_320.onnx')).hexdigest()=='f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe'
+    assert 'assets/MODEL_LICENSE_YOLOP_MIT.txt' in apk.namelist()
     with tempfile.TemporaryDirectory(prefix='dashcam-jni-') as directory:
         listings=[]
         for n in apk.namelist():
@@ -45,4 +47,4 @@ for method in expected:
 for name,required in callbacks.items():
     actual=methods('MyCamera$'+name)
     for method,signature in required.items(): assert actual[method][0]==signature,(name,method)
-print(json.dumps({'apk':args.apk.name,'native_profile':args.native,'abis':sorted(abis),'jni_methods_verified':len(expected),'callback_methods_verified':sum(len(m) for m in callbacks.values()),'model_sha256_verified':True,'native_runtime_tested':False},indent=2))
+print(json.dumps({'apk':args.apk.name,'native_profile':args.native,'abis':sorted(abis),'jni_methods_verified':len(expected),'callback_methods_verified':sum(len(m) for m in callbacks.values()),'model_sha256_verified':True,'lane_model_sha256_verified':True,'native_runtime_tested':False},indent=2))

@@ -1,0 +1,10 @@
+{
+  "adb_devices": [],
+  "android_hardware_tests_executed": false,
+  "physical_gps_validated": false,
+  "usb_driver_capture_validated": false,
+  "egl_encoder_validated": false,
+  "background_recording_validated": false,
+  "ui_and_audio_validated": false,
+  "reason": "No Android device connected to this cloud environment."
+}

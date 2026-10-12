@@ -1,0 +1,15 @@
+{
+  "apk": "DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk",
+  "native_profile": false,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "jni_methods_verified": 25,
+  "callback_methods_verified": 23,
+  "model_sha256_verified": true,
+  "lane_model_sha256_verified": true,
+  "native_runtime_tested": false
+}

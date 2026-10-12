@@ -1,0 +1,13 @@
+{
+  "source_commit": "8d8f68df318c71f01d6f813c024df646c7d1978f",
+  "source_sha256": "86d6e8b6dfdef195c061e9bcad82d9487bb5ee1ac4a1cf9a3dc4736657a07369",
+  "derived_sha256": "f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe",
+  "derived_bytes": 22144259,
+  "maximum_output_difference": [
+    0.0,
+    0.0
+  ],
+  "median_host_ms": 76.04443300078856,
+  "p95_host_ms": 80.90335469942147,
+  "runtime": "onnxruntime 1.20.1 CPU 2 threads; host, not Android"
+}

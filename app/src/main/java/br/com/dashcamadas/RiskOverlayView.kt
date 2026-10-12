@@ -6,7 +6,7 @@ import android.os.SystemClock
 import android.view.View
 import br.com.dashcamadas.vision.*
 
-data class VisionFrame(val bitmap:Bitmap,val lanes:Lanes,val vehicles:List<Vehicle>,val risk:RiskResult,val timestampMs:Long)
+data class VisionFrame(val bitmap:Bitmap,val lanes:Lanes,val vehicles:List<Vehicle>,val risk:RiskResult,val timestampMs:Long,val laneNetworkActive:Boolean=false,val vehicleNetworkActive:Boolean=false,val inferenceMs:Long=0,val lanePixels:Int=0,val roadPixels:Int=0)
 class RiskOverlayView(context:Context):View(context) {
     var showLanes=true
     var preview:CameraPreviewView?=null
@@ -46,7 +46,8 @@ class RiskOverlayView(context:Context):View(context) {
         val ldw=frame.risk.phases[Risk.LEFT_DEPARTURE]
         val fcw=frame.risk.phases[Risk.COLLISION]
         fun label(value:Phase?)=when(value){Phase.UNAVAILABLE->"indisponível";Phase.CANDIDATE->"confirmando";Phase.RISK->"RISCO";Phase.RECOVERY->"recuperação";else->"monitorando"}
-        val caption="LDW ${label(ldw)}  |  FCW ${label(fcw)}"
+        val neural=if(!frame.laneNetworkActive)"IA de faixas indisponível" else if(frame.inferenceMs>500)"IA lenta: alarmes suspensos" else "IA ativa · ${frame.inferenceMs} ms"
+        val caption="$neural · LDW ${label(ldw)} | FCW ${label(fcw)}"
         val margin=8*resources.displayMetrics.density
         paint.color=Color.argb(190,4,12,22)
         val top=56*resources.displayMetrics.density

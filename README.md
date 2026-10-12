@@ -1,38 +1,50 @@
-# DashCam ADAS PRO — 3.2 experimental
+# DashCam ADAS PRO — 3.3 neural experimental
 
-Android: minSdk 24 (Android 7.0+), targetSdk/compileSdk 35. Compilação: JDK 17, Gradle 8.9, SDK Platform 35 e Build Tools 35.0.0.
+Redes neurais locais para **faixas/área dirigível** (YOLOP) e **veículos** (SSD MobileNet). Processamento no Android, sem internet e sem aprendizagem automática durante a condução.
 
 ## Downloads
 
-- [Código-fonte completo em ZIP](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
-- [APK K2000N ARM32 de teste](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_2_K2000N_ARM32_DEBUG.apk): inclui a biblioteca do APK fornecido; prévia USB nativa habilitada no Android 7/8 (API 24–27), sem validação física.
-- [APK genérico de teste](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_2_GENERIC_DEBUG.apk): tablets/celulares, Camera2, ARM32/ARM64/x86; sem o driver legado.
+- [APK K2000N ARM32 — neural / USB / REC](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_K2000N_ARM32_DEBUG.apk)
+- [APK genérico — celular/tablet/emulador](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
+- [Código-fonte completo](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 
-Ambos são APKs debug assinados, não versões comerciais validadas. Instale somente o perfil adequado ao aparelho. A versão informada da K2000N foi Android 7.1; processador/câmera/VID/PID ainda não confirmados. Consulte o diagnóstico do aparelho no aplicativo.
+APKs debug assinados. minSdk 24, targetSdk/compileSdk 35. Driver do APK fornecido habilitado somente no perfil ARM32 e Android 7/8 (API 24–27); compatibilidade real ainda precisa de teste na K2000N informada como Android 7.1.
 
-## O que mudou
+O APK genérico exige páginas de memória de 4 KB: a ponte JNI ARM64 do ONNX Runtime 1.20.0 não suporta dispositivos configurados com páginas de 16 KB. Essa restrição não se aplica ao perfil ARM32 da K2000N Android 7.1.
 
-As faixas usam contraste em várias larguras, coerência direcional, rejeição de textura e consenso quadrático. Curvas para ambos os lados, inclusive com ambas as bordas curvando na mesma direção, são aceitas. O traçado só aparece após confirmação temporal e dentro dos pixels observados. A ausência de uma borda não cria uma faixa artificial. Câmera vertical suspende ADAS até corrigir a orientação.
+## Usar
 
-Áudio: bip suave, duplo, triplo, ascendente, descendente e alternado, com frequência base, duração e volume ajustáveis. Abra **CONFIG → CONFIG → CONFIGURAR ÁUDIO E PADRÕES DE BIP**, escolha um padrão e pressione **OUVIR BIP SELECIONADO**; **SALVAR** mantém a escolha. MIX não solicita foco de áudio. Mistura com rádio FM depende do firmware e ainda precisa de teste.
+1. Na K2000N, instale o APK ARM32. Abra **CONFIG → CONFIG → AUTORIZAR USB — ABRIR LIVE COM IA**, selecione a câmera e conceda a autorização USB do Android. Também pode selecionar a fonte no botão CÂMERA da LIVE. O APK genérico usa Camera2.
+2. Confira a orientação em **GIRAR / ESPELHAR**. A rede exige imagem da estrada orientada horizontalmente.
+3. Com o veículo parado, calibre pelo botão **ADAS**, usando medidas reais. Detecções podem aparecer sem GPS; os alertas LDW/FCW exigem GPS válido, calibração e resultados recentes.
+4. A indicação **IA ativa** corresponde a inferências realmente executadas. Se a análise exceder 500 ms, o app avisa e suspende os alertas dependentes desse resultado.
+5. Use **REC** para gravar. O serviço mantém captura, análise e codificação ao sair da Activity. Continuidade em segundo plano/tela apagada depende do sistema e do hardware e ainda precisa de teste físico.
+6. Em áudio, permanecem os seis padrões de bip, frequência, duração e volume ajustáveis, com prévia antes de salvar.
 
-Na K2000N ARM32, abra **TESTAR PRÉVIA USB NATIVA** na configuração, selecione a câmera e autorize o acesso USB. A sessão Camera2 será encerrada, finalizando eventual clipe, para iniciar esse teste. Esta tela usa a biblioteca copiada e o contrato JNI reconstruído; **não integra gravação/LDW/FCW ao USB do driver**. Esses recursos continuam no caminho Camera2. A prévia USB precisa de teste físico de compatibilidade.
+## Melhorias
 
-Os botões das páginas de testes agora têm altura mínima em dp e crescem com o texto. Insets reservam espaço para barras/cortes da tela, inclusive quando a barra reaparece.
+YOLOP produz máscaras neurais de faixas e área dirigível; curvas são ajustadas aos pixels observados, com confirmação temporal e suporte de estrada ao lado. Pontos de cada borda são escolhidos separadamente, preservando marcações tracejadas quando falta um trecho próximo da câmera. Trechos fora do quadro não são extrapolados para gerar alertas. Veículos fora da área dirigível têm a associação de risco restringida.
 
-## Compilar
+USB autorizado agora alimenta **o mesmo serviço** usado pela LIVE e pelos modelos. O driver entrega quadros RGBA a um ImageReader independente da tela. Um renderizador EGL do app envia esses quadros reais ao MediaRecorder/H.264; a gravação não depende de um modo de codificação não documentado do driver. Perda de quadros USB finaliza a gravação e suspende ADAS. Nenhuma dessas combinações EGL/driver/encoder foi validada fisicamente nesta nuvem.
 
-- Windows, genérico: `GERAR APK.bat`.
-- Windows, K2000N ARM32: `GERAR APK K2000N.bat`.
-- Linux/macOS, genérico: `./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.
-- Linux/macOS, ARM32: acrescente `-Pk2000Native=true` ao comando anterior.
+Resultados da IA são desenhados sobre o próprio quadro analisado, evitando caixas/faixas de um quadro antigo sobre outra imagem. Quadros uniformes e saídas inválidas não fornecem evidência de faixas. Os pesos têm checksum verificado no carregamento.
 
-A compilação Windows não foi executada nesta nuvem. Os comandos Gradle foram executados com JDK 17 e SDK 35. Não altere targetSdk para 28 para tentar carregar uma biblioteca de arquitetura incompatível.
+## Compilar e verificar
 
-## Evidências e limites
+JDK 17, Gradle 8.9, Android Platform 35 e Build Tools 35.0.0.
 
-54 testes JVM aprovados. Nenhum Android físico conectado; GPS, câmera, áudio/FM, interface e driver nativo permanecem sem validação física. No vídeo real: 82 quadros, 40 com candidatos a faixa, **zero pares de faixas confirmados**, três candidatos a veículos. Não há anotações de referência, GPS ou calibração; não foi medida precisão e o vídeo ainda não valida LDW operacional.
+- Genérico: `./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.
+- ARM32: acrescente `-Pk2000Native=true` ao comando.
+- Windows: `GERAR APK.bat` ou `GERAR APK K2000N.bat`. Execução Windows não realizada nesta nuvem.
 
-Veja [RELATORIO_TECNICO.md](RELATORIO_TECNICO.md), [MATRIZ_REQUISITOS.md](MATRIZ_REQUISITOS.md), `relatorios/3_2` e [proveniência da biblioteca](referencias_nativas/PROVENIENCIA.md). Os relatórios anteriores são históricos.
+Os testes JVM usam ONNX Runtime para computador apenas em testRuntimeOnly. O APK inclui exclusivamente o runtime Android. Bibliotecas JNI são comprimidas e extraídas na instalação, preservando ARM32/ARM64/x86/x86_64 no APK genérico.
 
-Modelo de veículos: Google Coral SSD, Apache-2.0, checksum e licença em `app/src/main/assets`. O APK enviado contém um binário de câmera sem licença geral de redistribuição declarada; direitos comerciais dessa biblioteca não foram verificados.
+## Evidências
+
+73 testes passaram, incluindo inferência real do modelo pelo mesmo RoadNeuralSession usado no app. Vídeo recebido: 82 execuções neurais, 66 quadros com candidatos a curvas e sete pares confirmados pelo critério interno; a versão 3.2 teve zero pares. Isso **não é medida de precisão**: não há marcações de referência, GPS ou calibração nesse vídeo. Nenhum risco crítico foi produzido sem esses dados.
+
+Veja [RELATORIO_TECNICO.md](RELATORIO_TECNICO.md), `relatorios/3_3`, [proveniência YOLOP](app/src/main/assets/MODEL_PROVENANCE_YOLOP.md) e [referência do driver](referencias_nativas/PROVENIENCIA.md). GPS, câmera, áudio/FM, interface, driver USB e gravação continuam sem validação física. Não houve aparelho conectado à nuvem.
+
+Teste físico preparado: `python3 build-tools/test_android_device.py --help`. Para USB, autorize a fonte na interface antes do teste e use --native-usb; --require-realtime exige o limite de 500 ms. O teste verifica avanço das duas redes em segundo plano e o MP4 real.
+
+YOLOP: licença MIT preservada. SSD: licença Apache-2.0 preservada. A licença comercial da biblioteca do APK fornecido não foi verificada. Placas, semáforos, pedestres e ciclistas com alertas completos continuam fora desta revisão.

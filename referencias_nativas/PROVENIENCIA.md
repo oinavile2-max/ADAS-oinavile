@@ -11,3 +11,7 @@ Biblioteca copiada sem alteração, ELF32 ARM, ABI armeabi-v7a; depende somente 
 `MyCamera.java` reproduz os 25 descritores JNI e callbacks necessários ao RegisterNatives. O adaptador é escrito neste projeto; nenhum classes.dex do outro aplicativo foi incorporado. Os comandos de prévia 6/7 e configuração 18 foram confirmados na enumeração original; API completa em jni-api.json.
 
 Prévia USB experimental disponível na tela de teste; não integra ainda gravação/LDW/FCW ao fluxo USB deste driver. A gravação/ADAS existentes usam Camera2. Não há teste físico da K2000N nem comprovação de compatibilidade com toda câmera UVC. O APK fornecido não contém licença geral de redistribuição da biblioteca; os direitos comerciais não foram verificados.
+
+## Estado 3.3
+
+A nota de prévia isolada acima descreve a revisão 3.2. Na 3.3, a biblioteca continua byte a byte igual, mas seu render de prévia type=0/ID=hash da Surface alimenta ImageReader RGBA do serviço. As duas redes analisam esses quadros e um EGL recordable próprio alimenta MediaRecorder. Não se utiliza um tipo de encoder presumido do SDK. O código de integração foi compilado; carregamento/render/gravação com a câmera física continuam não executados.

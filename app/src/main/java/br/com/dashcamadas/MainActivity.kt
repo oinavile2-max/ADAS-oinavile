@@ -21,7 +21,7 @@ import java.util.*
 
 /**
  * LIVE renders real frames from the independent foreground camera service.
- * Camera2/recording/ADAS ownership survives Activity pause; proprietary USB capture is not supplied.
+ * Camera2/native USB, recording and both neural models belong to the foreground service.
  */
 class MainActivity : Activity() {
     private lateinit var texture: CameraPreviewView
@@ -48,17 +48,23 @@ class MainActivity : Activity() {
                 texture.frame=null;laneOverlay.result=null;latestVision=null
                 cameraPlaceholder.visibility=View.VISIBLE
             }
+            if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;latestVision=null}
         }
         override fun onPreview(bitmap:android.graphics.Bitmap,timestampMs:Long) {
+            val analyzed=latestVision
+            if(analyzed!=null && SystemClock.elapsedRealtime()-analyzed.timestampMs<1200)return
             texture.timestampMs=timestampMs;texture.frame=bitmap
             laneOverlay.result=null
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
         }
         override fun onFrame(frame:VisionFrame) {
+            if(SystemClock.elapsedRealtime()-frame.timestampMs>1200 || (latestVision?.timestampMs ?: -1)>frame.timestampMs)return
             latestVision=frame
-            // Never draw older detector coordinates over a newer camera image.
-            if(frame.timestampMs==texture.timestampMs)laneOverlay.result=frame
+            // Display the analyzed bitmap with its own detections; no old boxes on a new image.
+            texture.timestampMs=frame.timestampMs;texture.frame=frame.bitmap;laneOverlay.result=frame
+            cameraPlaceholder.visibility=View.GONE
+            showStatus(if(!frame.laneNetworkActive)"Rede neural de faixas indisponível" else if(frame.inferenceMs>500)"IA ativa, ${frame.inferenceMs} ms — alarmes suspensos por atraso" else if(!frame.vehicleNetworkActive)"IA de faixas ativa · veículos indisponíveis" else "IA ativa · ${frame.inferenceMs} ms · faixas e veículos")
         }
         override fun onAlert(message:String){showPremiumAlert("ADAS",message,2)}
     }
@@ -113,7 +119,6 @@ class MainActivity : Activity() {
         } catch (t: Throwable) {
             Log.e("DashCamStartup", "CameraManager indisponível", t)
             showStatus("Serviço de câmera indisponível; interface ativa")
-            return
         }
         try {
             events = EventStore(this)
@@ -503,23 +508,36 @@ class MainActivity : Activity() {
 
     private fun chooseCamera() {
         try {
-            val ids = manager.cameraIdList
-            if(ids.isEmpty()){
+            val ids = availableCamera2Ids()
+            val usbIds=availableNativeUsb()
+            if(ids.isEmpty() && usbIds.isEmpty()){
                 showCompatibilityReport()
                 return
             }
-            val labels=ids.map { id ->
+            val cameraLabels=ids.map { id ->
                 val c=manager.getCameraCharacteristics(id)
                 val facing=c.get(CameraCharacteristics.LENS_FACING)
                 val level=c.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
                 "ID $id • " + when {level==CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "USB/EXTERNA";facing==CameraCharacteristics.LENS_FACING_BACK->"TRASEIRA TABLET";facing==CameraCharacteristics.LENS_FACING_FRONT->"FRONTAL TABLET";else->"OUTRA"}
             }
+            val all=ids.toList()+usbIds
+            val labels=cameraLabels+usbIds.map{"USB NATIVO • "+it.removePrefix("usb:")}
             AlertDialog.Builder(this).setTitle("Selecionar câmera disponível").setItems(labels.toTypedArray()){_,which->
-                selectedId=ids[which];openCamera(ids[which])
-                getSharedPreferences("camera",MODE_PRIVATE).edit().putString("preferred",ids[which]).apply()
+                val id=all[which]
+                if(id.startsWith("usb:"))startActivity(Intent(this,NativeUsbActivity::class.java).putExtra("device_name",id.removePrefix("usb:")))
+                else {selectedId=id;openCamera(id);getSharedPreferences("camera",MODE_PRIVATE).edit().putString("preferred",id).apply()}
             }.setNeutralButton("Diagnóstico") { _, _ -> showCompatibilityReport() }
                 .setNegativeButton("Cancelar",null).show()
         } catch(e:Exception){showStatus("Erro ao listar câmeras: ${e.message}")}
+    }
+    private fun availableCamera2Ids():Array<String>{
+        if(!::manager.isInitialized)return emptyArray()
+        return try{manager.cameraIdList}catch(e:Exception){Log.w("DashCamCamera","Camera2 indisponível",e);emptyArray()}
+    }
+    private fun availableNativeUsb():List<String>{
+        if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27)return emptyList()
+        val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
+        return usb.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass})}.map{"usb:"+it.deviceName}
     }
 
     private fun showCompatibilityReport() {
@@ -543,15 +561,22 @@ class MainActivity : Activity() {
             showStatus("Autorize a câmera antes de buscar dispositivos"); return
         }
         try {
-            val ids = manager.cameraIdList
+            val ids = availableCamera2Ids()
+            val preferred = getSharedPreferences("camera",MODE_PRIVATE).getString("preferred",null)
+            if(preferred!=null && preferred in availableNativeUsb()){
+                val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
+                val device=usb.deviceList.values.first{it.deviceName==preferred.removePrefix("usb:")}
+                if(!usb.hasPermission(device)){showStatus("Selecione a câmera USB e autorize o Android");return}
+                if(selectedId==preferred && captureState.connected && captureBound)return
+                openCamera(preferred);return
+            }
             if (ids.isEmpty()) {
                 selectedId = null
                 if (::record.isInitialized) record.isEnabled = false
-                showStatus("Nenhuma câmera Camera2; USB proprietário exige driver/integrador")
+                showStatus(if(availableNativeUsb().isNotEmpty())"Selecione USB pelo botão CÂMERA para autorizar e iniciar a IA" else "Nenhuma câmera disponível")
                 cameraPlaceholder.visibility = View.VISIBLE
                 return
             }
-            val preferred = getSharedPreferences("camera",MODE_PRIVATE).getString("preferred",null)
             val external = ids.firstOrNull { id ->
                 manager.getCameraCharacteristics(id).get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL
             }
@@ -568,8 +593,8 @@ class MainActivity : Activity() {
 
     private fun openCamera(id:String) {
         selectedId=id
-        val chars=manager.getCameraCharacteristics(id)
-        cameraFacing=chars.get(CameraCharacteristics.LENS_FACING) ?: CameraCharacteristics.LENS_FACING_BACK
+        if(id.startsWith("usb:"))cameraFacing=CameraCharacteristics.LENS_FACING_BACK
+        else {val chars=manager.getCameraCharacteristics(id);cameraFacing=chars.get(CameraCharacteristics.LENS_FACING) ?: CameraCharacteristics.LENS_FACING_BACK}
         loadOrientation(id)
         val display=when(windowManager.defaultDisplay.rotation){Surface.ROTATION_90->90;Surface.ROTATION_180->180;Surface.ROTATION_270->270;else->0}
         orientationPrefs().edit().putInt("display_rotation_$id",display).apply()
@@ -593,7 +618,7 @@ class MainActivity : Activity() {
             return EditText(this).apply{inputType=android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL;setText(value.toString());box.addView(this)}
         }
         val l=latestVision?.lanes?.left;val r=latestVision?.lanes?.right
-        val observed=if(l!=null && r!=null && minOf(l.confidence,r.confidence)>=.65f)(l.x(.93f)+r.x(.93f))/2 else prefs.getFloat("ego_$id",.5f)
+        val observed=if(l!=null && r!=null && minOf(l.confidence,r.confidence)>=.65f && l.yStart<=.93f && r.yStart<=.93f && l.yEnd>=.93f && r.yEnd>=.93f)(l.x(.93f)+r.x(.93f))/2 else prefs.getFloat("ego_$id",.5f)
         val center=field("Centro no quadro completo (0,15 a 0,85; confira montagem)",if(cameraMirror)1f-observed else observed)
         val vehicle=field("Largura real do veículo (metros)",prefs.getFloat("vehicle_width_$id",1.8f))
         val lane=field("Largura de referência da faixa (metros)",prefs.getFloat("lane_width_$id",3.5f))
@@ -621,10 +646,11 @@ class MainActivity : Activity() {
         } catch (e: Exception) { radarCallback.onLocation(null); showStatus("GPS indisponível: ${e.javaClass.simpleName}") }
     }
     override fun onStop() {
-        radarService?.callback = null
+        if(radarService?.callback===radarCallback)radarService?.callback = null
         radarService = null
         if (radarBound) { unbindService(radarConnection); radarBound=false }
-        captureService?.callback=null;captureService=null
+        if(captureService?.callback===captureCallback)captureService?.callback=null
+        captureService=null
         if(captureBound){unbindService(captureConnection);captureBound=false}
         latestVision=null;texture.frame=null;laneOverlay.result=null
         super.onStop()
@@ -662,7 +688,7 @@ class MainActivity : Activity() {
         super.onResume()
         revealControls()
         if(::speed.isInitialized)startGps()
-        if(::manager.isInitialized && checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED)scanCameras()
+        if(checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED)scanCameras()
     }
     override fun onDestroy() {handler.removeCallbacksAndMessages(null);if(::audioAlerts.isInitialized)audioAlerts.release();super.onDestroy()}
 }

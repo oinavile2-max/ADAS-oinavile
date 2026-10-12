@@ -22,7 +22,7 @@ import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** Sole Camera2/MediaRecorder owner. No capture session or output surface depends on LIVE. */
+/** Owns Camera2 or native USB, encoder and both neural models independently of LIVE. */
 class DashCamForegroundService:Service() {
     data class State(val connected:Boolean=false,val recording:Boolean=false,val cameraId:String="",val message:String="Câmera indisponível")
     interface Callback {
@@ -49,6 +49,13 @@ class DashCamForegroundService:Service() {
     private val previewPending=AtomicBoolean(false)
     private val engine=AdasEngine()
     @Volatile private var detector:VehicleDetector?=null
+    @Volatile private var laneNetwork:NeuralLaneDetector?=null
+    @Volatile private var laneInferences=0L
+    @Volatile private var vehicleInferences=0L
+    @Volatile private var inferenceMs=0L
+    @Volatile private var nativeFrames=0L
+    private var nativeCapture:NativeUsbCapture?=null
+    private var nativeVideoSink:RgbaVideoSink?=null
     private var camera:CameraDevice?=null
     private var session:CameraCaptureSession?=null
     private var reader:ImageReader?=null
@@ -66,6 +73,8 @@ class DashCamForegroundService:Service() {
     @Volatile private var running=false
     private var recoveryAttempts=0
     private var recoverAllowed=true
+    private var availabilityRegistered=false
+    private var captureStartDeadline=0L
     private val availability=object:CameraManager.AvailabilityCallback(){
         override fun onCameraAvailable(id:String){
             if(id==currentId && running && !closing && camera==null && !opening && recoverAllowed && recoveryAttempts<3){
@@ -83,7 +92,10 @@ class DashCamForegroundService:Service() {
         val value=JSONObject().put("camera_id",currentId).put("connected",state.connected).put("recording",isRecording)
             .put("processed_frames",processedFrames).put("recording_capture_frames",recordingFrames).put("completed_segments",completedSegments)
             .put("last_frame_elapsed_ms",lastFrame).put("observed_elapsed_ms",SystemClock.elapsedRealtime())
-            .put("last_completed_clip",lastCompletedClip).put("model_loaded",detector!=null).put("gps_speed_available",DrivingContext.speed()!=null)
+            .put("last_completed_clip",lastCompletedClip).put("model_loaded",detector!=null && laneNetwork!=null).put("gps_speed_available",DrivingContext.speed()!=null)
+            .put("lane_model_loaded",laneNetwork!=null).put("vehicle_model_loaded",detector!=null)
+            .put("lane_neural_inferences",laneInferences).put("vehicle_neural_inferences",vehicleInferences).put("last_inference_ms",inferenceMs)
+            .put("native_rgba_frames",nativeFrames).put("source_kind",if(currentId.startsWith("usb:"))"USB_NATIVE_RGBA" else "CAMERA2_YUV")
         try {File(filesDir,"capture-diagnostics.json").writeText(value.toString())}catch(e:Exception){android.util.Log.w("DashCamDiagnostics","Diagnóstico não salvo",e)}
     }
     private var audio:AlertAudio?=null
@@ -94,10 +106,14 @@ class DashCamForegroundService:Service() {
     private val segmentTimer=Runnable{ if(recordWanted) rotateSegment(false) }
     private val watchdog=object:Runnable {
         override fun run() {
+            if(running && opening.not() && !state.connected && captureStartDeadline>0 && SystemClock.elapsedRealtime()>=captureStartDeadline){
+                captureStartDeadline=0;recordWanted=false;closeCapture();publish(State(cameraId=currentId,message="Câmera sem quadros utilizáveis; confira compatibilidade do driver"))
+            }
             if(running && lastFrame>0 && SystemClock.elapsedRealtime()-lastFrame>1800) {
                 lastFrame=0
                 analysis.execute{engine.reset()}
-                publish(state.copy(message="Sem quadros reais; ADAS suspenso"))
+                if(nativeCapture!=null){recordWanted=false;closeCapture();publish(State(cameraId=currentId,message="USB sem quadros; gravação finalizada e ADAS suspenso"))}
+                else publish(state.copy(message="Sem quadros reais; ADAS suspenso"))
             }
             if(BuildConfig.DEBUG && running) {
                 val command=File(filesDir,"capture-test-command")
@@ -107,7 +123,7 @@ class DashCamForegroundService:Service() {
                     when(value){"START_RECORD"->startRecording();"STOP_RECORD"->stopRecording();"PROTECT"->protect()}
                 }
             }
-            if(running && camera!=null)holdCapturePower()
+            if(running && (camera!=null || nativeCapture!=null))holdCapturePower()
             diagnostics()
             if(!closing) cameraHandler.postDelayed(this,1000)
         }
@@ -117,11 +133,15 @@ class DashCamForegroundService:Service() {
         if(Build.VERSION.SDK_INT>=26) getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel(CHANNEL,"Câmera e gravação",NotificationManager.IMPORTANCE_LOW))
         audio=AlertAudio(this)
         analysis.execute {
+            try {laneNetwork=NeuralLaneDetector(this)}
+            catch(e:Exception){android.util.Log.e("DashCamModel","Rede de faixas indisponível",e)}
+            catch(e:LinkageError){android.util.Log.e("DashCamModel","Runtime neural de faixas incompatível",e)}
             try {detector=VehicleDetector(this)}
             catch(e:Exception){android.util.Log.e("DashCamModel","FCW indisponível: modelo não carregou",e)}
             catch(e:LinkageError){android.util.Log.e("DashCamModel","FCW indisponível neste runtime nativo",e)}
         }
-        manager.registerAvailabilityCallback(availability,cameraHandler)
+        try{manager.registerAvailabilityCallback(availability,cameraHandler);availabilityRegistered=true}
+        catch(e:Exception){android.util.Log.w("DashCamCamera","Camera2 indisponível; USB permanece independente",e)}
         cameraHandler.post(watchdog)
     }
     override fun onBind(intent:Intent):IBinder=binder
@@ -155,6 +175,7 @@ class DashCamForegroundService:Service() {
     @SuppressLint("MissingPermission")
     private fun open(id:String,preserveRecording:Boolean=false) {
         if(closing || !running || opening) return
+        if(id.startsWith("usb:")){openNative(id);return}
         if(camera!=null && currentId==id) {
             val before=analysisRotation;updateRotation(manager.getCameraCharacteristics(id))
             if(before!=analysisRotation) {getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply();analysis.execute{engine.reset()};if(isRecording)rotateSegment(false)}
@@ -188,6 +209,25 @@ class DashCamForegroundService:Service() {
             },cameraHandler)
         } catch(e:Exception){closeCapture();publish(State(cameraId=id,message="Captura indisponível: ${e.message}"))}
     }
+    private fun openNative(id:String){
+        if(currentId==id && nativeCapture!=null){updateNativeRotation();return}
+        closeCapture();recordWanted=false;currentId=id;opening=true
+        captureStartDeadline=SystemClock.elapsedRealtime()+10000
+        updateNativeRotation();videoSize=Size(640,360)
+        val epoch=generation
+        val capture=NativeUsbCapture(this,cameraHandler,{source->receive(source,epoch)},
+            {if(epoch==generation){opening=false;holdCapturePower();publish(State(cameraId=id,message="USB inicializada; aguardando imagem real"))}},
+            {message->if(epoch==generation){recordWanted=false;closeCapture();publish(State(cameraId=id,message=message+"; ADAS suspenso"))}})
+        nativeCapture=capture
+        try{capture.open(id.removePrefix("usb:"))}
+        catch(e:Exception){recordWanted=false;closeCapture();publish(State(cameraId=id,message="USB indisponível: ${e.message}"))}
+        catch(e:LinkageError){recordWanted=false;closeCapture();publish(State(cameraId=id,message="Biblioteca USB incompatível: ${e.message}"))}
+    }
+    private fun updateNativeRotation(){
+        val before=analysisRotation
+        analysisRotation=getSharedPreferences("camera_orientation",MODE_PRIVATE).getInt("rotation_$currentId",0).takeIf{it in listOf(0,90,180,270)} ?: 0
+        if(before!=analysisRotation){getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply();analysis.execute{engine.reset()}}
+    }
     private fun updateRotation(chars:CameraCharacteristics) {
         val prefs=getSharedPreferences("camera_orientation",MODE_PRIVATE)
         val override=prefs.getInt("rotation_$currentId",-1)
@@ -199,15 +239,16 @@ class DashCamForegroundService:Service() {
     fun orientationChanged(){cameraHandler.post{
         if(currentId.isNotEmpty()) {
             getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply()
-            updateRotation(manager.getCameraCharacteristics(currentId))
+            if(currentId.startsWith("usb:"))updateNativeRotation() else updateRotation(manager.getCameraCharacteristics(currentId))
             if(isRecording)rotateSegment(false)
         }
         analysis.execute{engine.reset()}
     }}
-    fun startRecording(){cameraHandler.post{if(camera==null){publish(state.copy(message="Câmera indisponível para gravar"));return@post};recordWanted=true;configure()}}
+    fun startRecording(){cameraHandler.post{if(!state.connected || (camera==null && nativeCapture==null)){publish(state.copy(message="Câmera indisponível para gravar"));return@post};recordWanted=true;configure()}}
     fun stopRecording(){cameraHandler.post{recordWanted=false;finishRecorder();configure()}}
     fun protect(){cameraHandler.post{if(!isRecording){publish(state.copy(message="Inicie uma gravação para proteger o clipe"));return@post};rotateSegment(true)}}
     private fun configure() {
+        if(nativeCapture!=null){configureNative();return}
         val device=camera ?: return
         val source=reader?.surface ?: return
         val attempt=++captureAttempt
@@ -240,6 +281,18 @@ class DashCamForegroundService:Service() {
             },cameraHandler)
         } catch(e:Exception){captureFailure(device,requestedRecording,"Gravação/captura indisponível: ${e.message}")}
     }
+    private fun configureNative(){
+        val capture=nativeCapture ?: return
+        if(!capture.ready)return
+        try{
+            if(recordWanted && !isRecording){
+                prepareRecorder();nativeVideoSink=RgbaVideoSink(recordSurface!!,videoSize.width,videoSize.height);recorder!!.start();isRecording=true
+                cameraHandler.postDelayed(segmentTimer,segmentMinutes()*60000L)
+            }
+            holdCapturePower()
+            publish(State(true,isRecording,currentId,if(isRecording)"● REC — USB em serviço" else "LIVE — USB em serviço"))
+        }catch(e:Exception){recordWanted=false;finishRecorder();publish(state.copy(recording=false,message="Gravação USB falhou: ${e.message}"))}
+    }
     private fun captureFailure(device:CameraDevice,requestedRecording:Boolean,message:String) {
         recordWanted=false;finishRecorder()
         publish(State(cameraId=currentId,message=message))
@@ -268,6 +321,7 @@ class DashCamForegroundService:Service() {
     private fun finishRecorder() {
         cameraHandler.removeCallbacks(segmentTimer)
         captureAttempt++
+        nativeVideoSink?.close();nativeVideoSink=null
         try{session?.stopRepeating();session?.abortCaptures()}catch(_:Exception){}
         session?.close();session=null
         val file=segment
@@ -307,9 +361,16 @@ class DashCamForegroundService:Service() {
         var analysisClaimed=false
         try {
             val now=SystemClock.elapsedRealtime()
+            if(currentId.startsWith("usb:") && epoch==generation){
+                nativeFrames++
+                if(isRecording)try{nativeVideoSink?.render(image,SystemClock.elapsedRealtimeNanos());recordingFrames++}
+                catch(e:Exception){recordWanted=false;finishRecorder();publish(state.copy(recording=false,message="Encoder USB falhou: ${e.message}"))}
+            }
             if(epoch!=generation || closing || now-lastFrame<(if(callback!=null) 200 else 400))return
             lastFrame=now
             val bitmap=convert(image)
+            captureStartDeadline=0
+            if(currentId.startsWith("usb:") && !state.connected)publish(State(true,isRecording,currentId,"LIVE — USB com quadros RGBA"))
             val rotation=analysisRotation
             val oriented=if(rotation==0) bitmap else Bitmap.createBitmap(bitmap,0,0,bitmap.width,bitmap.height,Matrix().apply{postRotate(rotation.toFloat())},true)
             if(oriented!==bitmap)bitmap.recycle()
@@ -323,19 +384,22 @@ class DashCamForegroundService:Service() {
             analysis.execute {
                 try {
                     if(epoch!=generation || closing)return@execute
-                    val small=Bitmap.createScaledBitmap(oriented,320,180,true)
-                    val pixels=IntArray(320*180);small.getPixels(pixels,0,320,0,0,320,180)
-                    if(small!==oriented)small.recycle()
+                    if(oriented.width<oriented.height){engine.reset();publish(state.copy(message="Gire a câmera para a estrada horizontal; ADAS suspenso"));return@execute}
+                    val masks=laneNetwork?.detect(oriented)
+                    if(masks!=null)laneInferences++
                     val vehicles=detector?.detect(oriented).orEmpty()
+                    if(detector!=null)vehicleInferences++
                     val prefs=getSharedPreferences("adas_calibration",MODE_PRIVATE)
                     val calibration=Calibration(prefs.getBoolean("enabled_$cameraId",false),prefs.getFloat("ego_$cameraId",.5f),prefs.getFloat("vehicle_width_$cameraId",1.8f),prefs.getFloat("lane_width_$cameraId",3.5f))
                     val settings=getSharedPreferences("adas_tuning",MODE_PRIVATE)
                     engine.configure(RiskTuning(settings.getFloat("ldw_kmh",30f).coerceIn(10f,100f)/3.6f,settings.getFloat("fcw_ttc",2.5f).coerceIn(1f,5f),settings.getLong("confirm_ms",900).coerceIn(300,2000),settings.getLong("cooldown_ms",10000).coerceIn(5000,60000)))
-                    if(oriented.width<oriented.height){engine.reset();publish(state.copy(message="Gire a câmera para a estrada horizontal; ADAS suspenso"));return@execute}
-                    val outcome=engine.processRgb(pixels,320,180,vehicles,now,if(SystemClock.elapsedRealtime()-now<=500) DrivingContext.speed() else null,calibration)
+                    val actualMask=masks ?: NeuralMasks(320,180,IntArray(320*180),BooleanArray(320*180),0,0)
+                    val observed=engine.observeNeural(actualMask,if(calibration.valid)calibration.egoX else .5f)
+                    inferenceMs=SystemClock.elapsedRealtime()-now
+                    val outcome=engine.evaluateNeural(actualMask,observed,vehicles,now,if(inferenceMs<=500) DrivingContext.speed() else null,calibration)
                     val laneResult=outcome.lanes
                     val evaluated=outcome.risk
-                    val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now)
+                    val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now,masks!=null,detector!=null,inferenceMs,actualMask.lanePixels,actualMask.roadPixels)
                     if(epoch!=generation || closing)return@execute
                     processedFrames++
                     for(kind in evaluated.newAlerts) {
@@ -345,7 +409,7 @@ class DashCamForegroundService:Service() {
                     }
                     val cb=callback
                     if(cb!=null && uiPending.compareAndSet(false,true))main.post{try{if(callback===cb && epoch==generation)cb.onFrame(frame)}finally{uiPending.set(false)}}
-                } catch(e:Exception){engine.reset();android.util.Log.e("DashCamVision","Análise suspensa",e)}
+                } catch(e:Exception){engine.reset();publish(state.copy(message="IA indisponível: ${e.message}"));android.util.Log.e("DashCamVision","Análise suspensa",e)}
                 finally{busy.set(false)}
             }
         } catch(e:Exception){if(analysisClaimed)busy.set(false);android.util.Log.e("DashCamFrame","Falha no quadro",e)}
@@ -353,23 +417,29 @@ class DashCamForegroundService:Service() {
     }
     private fun convert(image:Image):Bitmap {
         val crop=image.cropRect
+        if(image.format==PixelFormat.RGBA_8888){
+            val p=image.planes[0]
+            val pixels=RgbaConverter.rgb(crop.width(),crop.height(),crop.left,crop.top,p.buffer,p.rowStride,p.pixelStride)
+            return Bitmap.createBitmap(pixels,crop.width(),crop.height(),Bitmap.Config.ARGB_8888)
+        }
         val planes=image.planes.map{YuvConverter.Plane(it.buffer,it.rowStride,it.pixelStride)}
         val pixels=YuvConverter.rgb(crop.width(),crop.height(),crop.left,crop.top,planes[0],planes[1],planes[2])
         return Bitmap.createBitmap(pixels,crop.width(),crop.height(),Bitmap.Config.ARGB_8888)
     }
     private fun closeCapture() {
         generation++;opening=false
+        captureStartDeadline=0
         if(wakeLock.isHeld)wakeLock.release();wakeDeadline=0
-        finishRecorder();camera?.close();camera=null
+        finishRecorder();nativeCapture?.close();nativeCapture=null;camera?.close();camera=null
         reader?.setOnImageAvailableListener(null,null);reader?.close();reader=null
-        lastFrame=0;processedFrames=0;recordingFrames=0
+        lastFrame=0;processedFrames=0;recordingFrames=0;nativeFrames=0
         analysis.execute{engine.reset()}
     }
     override fun onUnbind(intent:Intent?):Boolean{callback=null;return super.onUnbind(intent)}
     override fun onDestroy() {
         closing=true;running=false;callback=null
-        manager.unregisterAvailabilityCallback(availability)
-        cameraHandler.post{recordWanted=false;closeCapture();cameraHandler.removeCallbacksAndMessages(null);worker.quitSafely();analysis.execute{detector?.close()};analysis.shutdown();evidence.shutdown()}
+        if(availabilityRegistered)manager.unregisterAvailabilityCallback(availability)
+        cameraHandler.post{recordWanted=false;closeCapture();cameraHandler.removeCallbacksAndMessages(null);worker.quitSafely();analysis.execute{detector?.close();laneNetwork?.close()};analysis.shutdown();evidence.shutdown()}
         audio?.release();audio=null
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()

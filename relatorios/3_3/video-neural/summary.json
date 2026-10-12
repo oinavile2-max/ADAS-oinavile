@@ -1,0 +1,18 @@
+{
+  "frames": 82,
+  "actual_lane_neural_executions": 82,
+  "vehicle_candidates": 3,
+  "frames_with_lane_pixels": 82,
+  "frames_with_road_pixels": 82,
+  "lane_candidate_frames": 66,
+  "confirmed_pair_frames": 7,
+  "neural_lane_plus_geometry_ms_median": 97.197,
+  "neural_lane_plus_geometry_ms_p95": 168.54500000000004,
+  "ssd_ms_median": 52.24559799989947,
+  "critical_risks": 0,
+  "reference_annotations": false,
+  "measured_gps_speed": false,
+  "calibration_available": false,
+  "runtime": "Java ONNX Runtime 1.20.0 CPU + shared Kotlin RoadNeuralSession/AdasEngine; host, not Android",
+  "video_sha256": "18d049c8eebf399185eec53234f2c79569c62f21ebff5f11af7527b14f21d2c9"
+}

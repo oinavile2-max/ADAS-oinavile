@@ -565,3 +565,15 @@ Os estados Pendente/Parcial do inventário completo acima continuam sendo estado
 | Referências nativas APK | Binário ARM32 copiado, contrato JNI reconstruído, perfil ARM32 e tela de prévia USB | Runtime/câmera física e licença comercial da biblioteca não verificados |
 | Captura/ADAS USB | Prévia nativa de teste | Gravação e LDW/FCW USB não integrados; caminho atual é Camera2 |
 | Interface nas capturas | Alturas em dp, texto expansível, insets reservados e estado ADAS reposicionado | Verificação visual em Android real |
+
+
+## Revisão 3.3 — rede neural ativa e fonte USB
+
+| Requisito | Implementação atual | Validação restante |
+|---|---|---|
+| Rede neural de faixas | YOLOP pré-treinado executado no Android e no teste compartilhado; máscaras de faixas/área dirigível | Precisão/recall e desempenho na central |
+| Faixas tracejadas/curvas | Âncoras por lado, suporte apenas observado e estrada adjacente; sete pares no vídeo | Anotações de referência, calibração física e condução |
+| USB alimentando IA | ImageReader RGBA do driver para os mesmos modelos no serviço | Compatibilidade física com VID/PID da K2000N |
+| Gravação USB independente da LIVE | EGL recordable do app para MediaRecorder/H264, segmentos e encerramento por perda de quadros | Arquivo real e continuidade/tela apagada na central |
+| Ativação/saúde da IA | Contadores de inferência real, mensagens de indisponibilidade/atraso e suspensão por limite de 500 ms | Latência/temperatura/RAM em ARM32 |
+| Validação | 73 testes, incluindo modelo neural real; 82 quadros do vídeo | Android real continua sem aparelho conectado |
