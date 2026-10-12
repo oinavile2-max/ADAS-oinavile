@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /** Owns Camera2 or native USB, encoder and both neural models independently of LIVE. */
 class DashCamForegroundService:Service() {
-    data class State(val connected:Boolean=false,val recording:Boolean=false,val cameraId:String="",val message:String="Câmera indisponível")
+    data class State(val connected:Boolean=false,val recording:Boolean=false,val cameraId:String="",val message:String="Câmera indisponível",val videoWidth:Int=0,val videoHeight:Int=0)
     interface Callback {
         fun onState(state:State)
         fun onPreview(bitmap:Bitmap,timestampMs:Long)
@@ -166,9 +166,10 @@ class DashCamForegroundService:Service() {
             .addAction(Notification.Action.Builder(null,"Encerrar câmera",stop).build()).build()
     }
     private fun publish(value:State) {
-        state=value
+        val snapshot=value.copy(videoWidth=if(value.connected)videoSize.width else 0,videoHeight=if(value.connected)videoSize.height else 0)
+        state=snapshot
         main.post {
-            if(state==value) callback?.onState(value)
+            if(state==snapshot) callback?.onState(snapshot)
             if(running) getSystemService(NotificationManager::class.java).notify(72,notification(state.message))
         }
     }

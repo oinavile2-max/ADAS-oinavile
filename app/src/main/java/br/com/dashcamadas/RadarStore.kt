@@ -37,7 +37,11 @@ class RadarStore(context: Context) {
     }
 }
 
-class RadarMonitor(private val store: RadarStore, private val alert: (String) -> Unit) {
+data class RadarAlert(val radar: RadarPoint, val distanceMeters: Int) {
+    val spokenMessage get() = "Radar cadastrado de ${radar.limit} quilômetros por hora a $distanceMeters metros"
+}
+
+class RadarMonitor(private val store: RadarStore, private val alert: (RadarAlert) -> Unit) {
     private val lastAlert = mutableMapOf<String,Long>()
     fun onLocation(location: Location) {
         if (location.accuracy > 80f || !location.hasSpeed()) return
@@ -57,7 +61,7 @@ class RadarMonitor(private val store: RadarStore, private val alert: (String) ->
             }
             if (now - (lastAlert[radar.id] ?: 0L) > 120_000L) {
                 lastAlert[radar.id] = now
-                alert("Radar cadastrado de ${radar.limit} quilômetros por hora a ${distance.toInt()} metros")
+                alert(RadarAlert(radar, distance.toInt()))
             }
         }
     }

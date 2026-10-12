@@ -1,5 +1,7 @@
 # DashCam ADAS PRO — 3.3 neural experimental
 
+**Branch de prévia visual, sem build:** a interface Android foi atualizada a partir das imagens, mas não foi compilada nesta etapa. Veja [prévia dos popups](design/preview/LEIA-ME.md). Os APKs e o ZIP de fonte nos downloads abaixo pertencem à entrega 3.3 anterior à alteração visual; os 73 testes citados também correspondem àquela entrega.
+
 Redes neurais locais para **faixas/área dirigível** (YOLOP) e **veículos** (SSD MobileNet). Processamento no Android, sem internet e sem aprendizagem automática durante a condução.
 
 ## Downloads

@@ -12,7 +12,7 @@ import android.os.*
 class RadarForegroundService : Service(), LocationListener {
     interface Callback {
         fun onLocation(location: Location?)
-        fun onAlert(message: String)
+        fun onAlert(alert: RadarAlert)
     }
     inner class LocalBinder : Binder() { val service: RadarForegroundService get() = this@RadarForegroundService }
     private val binder = LocalBinder()
@@ -55,10 +55,10 @@ class RadarForegroundService : Service(), LocationListener {
             if(manager==null) {
                 audio=AlertAudio(this)
                 val events=EventStore(this)
-                monitor=RadarMonitor(RadarStore(this)) { message ->
-                    audio?.announce(message)
-                    events.add("RADAR GPS",message,"GPS / BANCO LOCAL")
-                    callback?.onAlert(message)
+                monitor=RadarMonitor(RadarStore(this)) { alert ->
+                    audio?.announce(alert.spokenMessage)
+                    events.add("RADAR GPS",alert.spokenMessage,"GPS / BANCO LOCAL")
+                    callback?.onAlert(alert)
                 }
                 manager=getSystemService(LocationManager::class.java)
                 val provider=if(fine) LocationManager.GPS_PROVIDER else LocationManager.NETWORK_PROVIDER

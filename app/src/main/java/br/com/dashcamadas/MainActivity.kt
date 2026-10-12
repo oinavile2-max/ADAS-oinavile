@@ -28,7 +28,13 @@ class MainActivity : Activity() {
     private lateinit var laneOverlay: RiskOverlayView
     private var laneEnabled = true
     private lateinit var status: TextView
-    private lateinit var speed: TextView
+    private lateinit var hud: LiveHudView
+    private lateinit var dashboardScene: ReferenceDashboardLayout
+    private lateinit var headerSurface: DashboardHeaderView
+    private lateinit var qualityTag: TextView
+    private lateinit var auxiliaryPreview: CameraPreviewView
+    private lateinit var auxiliaryOverlay: RiskOverlayView
+    private lateinit var auxiliaryPlaceholder: TextView
     private lateinit var record: Button
     private lateinit var manager: CameraManager
     private val handler=Handler(Looper.getMainLooper())
@@ -41,20 +47,26 @@ class MainActivity : Activity() {
     private val captureCallback=object:DashCamForegroundService.Callback {
         override fun onState(state:DashCamForegroundService.State) {
             captureState=state;recording=state.recording
-            record.text=if(recording) "STOP" else "REC"
+            record.isSelected=recording
+            record.background.invalidateSelf()
+            record.contentDescription=if(recording) "Parar gravação" else "Iniciar gravação"
             record.isEnabled=state.connected
             updateHud();showStatus(state.message)
             if(!state.connected || state.message.startsWith("Sem quadros")) {
                 texture.frame=null;laneOverlay.result=null;latestVision=null
+                auxiliaryPreview.frame=null;auxiliaryOverlay.result=null
+                auxiliaryPlaceholder.visibility=View.VISIBLE
                 cameraPlaceholder.visibility=View.VISIBLE
             }
-            if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;latestVision=null}
+            if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;auxiliaryOverlay.result=null;latestVision=null}
         }
         override fun onPreview(bitmap:android.graphics.Bitmap,timestampMs:Long) {
             val analyzed=latestVision
             if(analyzed!=null && SystemClock.elapsedRealtime()-analyzed.timestampMs<1200)return
             texture.timestampMs=timestampMs;texture.frame=bitmap
             laneOverlay.result=null
+            auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryOverlay.result=null
+            auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
         }
@@ -63,10 +75,14 @@ class MainActivity : Activity() {
             latestVision=frame
             // Display the analyzed bitmap with its own detections; no old boxes on a new image.
             texture.timestampMs=frame.timestampMs;texture.frame=frame.bitmap;laneOverlay.result=frame
+            auxiliaryPreview.timestampMs=frame.timestampMs;auxiliaryPreview.frame=frame.bitmap;auxiliaryOverlay.result=frame
+            auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
+            updateCameraTransform()
             showStatus(if(!frame.laneNetworkActive)"Rede neural de faixas indisponível" else if(frame.inferenceMs>500)"IA ativa, ${frame.inferenceMs} ms — alarmes suspensos por atraso" else if(!frame.vehicleNetworkActive)"IA de faixas ativa · veículos indisponíveis" else "IA ativa · ${frame.inferenceMs} ms · faixas e veículos")
+            updateHud()
         }
-        override fun onAlert(message:String){showPremiumAlert("ADAS",message,2)}
+        override fun onAlert(message:String){showPremiumAlert(EventPresentation.adas(message))}
     }
     private val captureConnection=object:android.content.ServiceConnection {
         override fun onServiceConnected(name:android.content.ComponentName,binder:IBinder) {
@@ -89,9 +105,8 @@ class MainActivity : Activity() {
         override fun onLocation(location: android.location.Location?) {
             lastGps = location
             updateHud()
-            speed.text = if (location?.hasSpeed() == true) "%.0f km/h".format(Locale.US,location.speed*3.6f) else "-- km/h"
         }
-        override fun onAlert(message: String) { showStatus(message);showPremiumAlert("RADAR GPS",message,1) }
+        override fun onAlert(alert: RadarAlert) { showStatus(alert.spokenMessage);showPremiumAlert(EventPresentation.radar(alert)) }
     }
     private val radarConnection = object : android.content.ServiceConnection {
         override fun onServiceConnected(name: android.content.ComponentName, binder: IBinder) {
@@ -154,18 +169,19 @@ class MainActivity : Activity() {
         SafeInsets.apply(this)
     }
 
-    private lateinit var alertBanner: TextView
     private lateinit var cameraPlaceholder: TextView
-    private lateinit var headerBar: LinearLayout
-    private lateinit var sidePanel: LinearLayout
-    private lateinit var footerBar: LinearLayout
+    private lateinit var headerBar: ViewGroup
+    private lateinit var sidePanel: ViewGroup
+    private lateinit var footerBar: ViewGroup
     private lateinit var statusBar: TextView
     private var cameraFullscreen = false
     private var cameraFill = false
     private var cameraMirror = false
     private var controlsHidden = false
     private var touchRevealedControls = false
-    private lateinit var gpsRec: TextView
+    private val hudTick = object : Runnable {
+        override fun run() { updateHud();handler.postDelayed(this,1000L) }
+    }
     private val hideControls = Runnable {
         if (!cameraFullscreen && ::footerBar.isInitialized) {
             controlsHidden = true
@@ -187,14 +203,27 @@ class MainActivity : Activity() {
         return super.dispatchTouchEvent(event)
     }
     private fun updateHud() {
-        if (::gpsRec.isInitialized) gpsRec.text = "GPS " + (if (lastGps != null) "OK" else "--") + " · " + (if (recording) "● REC" else "REC OFF")
+        if (!::hud.isInitialized) return
+        val speedMs=DrivingContext.speed()
+        val video=if(!captureState.connected)"VÍDEO --" else when {
+            captureState.videoHeight>=2160 -> "4K"
+            captureState.videoHeight>=1080 -> "FULL HD"
+            captureState.videoHeight>=720 -> "HD"
+            captureState.videoHeight>0 -> "${captureState.videoHeight}P"
+            else -> "VÍDEO --"
+        }
+        hud.update(speedMs?.times(3.6f),speedMs!=null,video,recording,latestVision)
+        qualityTag.text=video
+        headerSurface.usbConnected=captureState.connected && captureState.cameraId.startsWith("usb:")
+        headerSurface.wifiConnected=try {
+            val connectivity=getSystemService(android.net.ConnectivityManager::class.java)
+            connectivity?.let { manager->manager.getNetworkCapabilities(manager.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)==true } ?: false
+        } catch (_: Exception) { false }
+        headerSurface.invalidate()
     }
     private var cameraFacing = CameraCharacteristics.LENS_FACING_BACK
     private var cameraRotationOverride = -1 // -1 = automática; 0/90/180/270 = manual
-    private lateinit var fullButton: TextView
-    private lateinit var alertIcon: TextView
-    private lateinit var alertMessage: TextView
-    private lateinit var alertContainer: LinearLayout
+    private lateinit var alertPopup: EventPopupView
     private fun orientationPrefs() = getSharedPreferences("camera_orientation", MODE_PRIVATE)
     private fun loadOrientation(id: String) {
         cameraRotationOverride = orientationPrefs().getInt("rotation_$id", -1)
@@ -214,6 +243,7 @@ class MainActivity : Activity() {
         if(!::texture.isInitialized)return
         texture.fill=cameraFill;texture.mirror=cameraMirror;texture.invalidate()
         if(::laneOverlay.isInitialized)laneOverlay.invalidate()
+        if(::auxiliaryPreview.isInitialized){auxiliaryPreview.fill=true;auxiliaryPreview.mirror=cameraMirror;auxiliaryPreview.invalidate();auxiliaryOverlay.invalidate()}
     }
 
     private fun toggleFullscreen() {
@@ -224,7 +254,8 @@ class MainActivity : Activity() {
         statusBar.visibility = if (cameraFullscreen) View.GONE else View.VISIBLE
         // Tela cheia prioriza o preenchimento, sempre sem distorção.
         // FULL preserves the camera FIT/FILL preference.
-        if (::fullButton.isInitialized) fullButton.text = if (cameraFullscreen) "SAIR ⛶" else "⛶ FULL"
+        hud.visibility=if(cameraFullscreen)View.GONE else View.VISIBLE
+        dashboardScene.fullscreenView=if(cameraFullscreen)texture.parent as View else null
         revealControls()
         texture.post { updateCameraTransform() }
     }
@@ -232,13 +263,6 @@ class MainActivity : Activity() {
     private var bannerTask: Runnable? = null
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
-    private fun panel(fill: Int, stroke: Int, radius: Int = 14): GradientDrawable =
-        GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(fill, Color.rgb(6, 15, 28))).apply {
-            cornerRadius = dp(radius).toFloat()
-            setStroke(dp(1), stroke)
-        }
-
     private fun uiText(value: String, size: Float, color: Int = Color.WHITE): TextView =
         TextView(this).apply {
             text = value; textSize = size; setTextColor(color)
@@ -246,239 +270,138 @@ class MainActivity : Activity() {
             typeface = Typeface.create("sans-serif", Typeface.NORMAL)
         }
 
-    private fun navButton(title: String, action: () -> Unit): TextView =
-        uiText(title, 12f).apply {
-            gravity = Gravity.CENTER
-            background = panel(Color.rgb(23, 38, 58), Color.rgb(65, 102, 137), 10)
-            setOnClickListener { action() }
-        }
-
-    private fun premiumTile(label: String, active: Boolean, action: () -> Unit): TextView =
-        uiText(label, 12f, if (active) Color.WHITE else Color.rgb(221, 233, 247)).apply {
-            gravity = Gravity.CENTER
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            val top = if (active) Color.rgb(15, 110, 188) else Color.rgb(48, 62, 79)
-            val bottom = if (active) Color.rgb(5, 37, 85) else Color.rgb(9, 20, 36)
-            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(top, bottom)).apply {
-                cornerRadius = dp(12).toFloat()
-                setStroke(dp(if (active) 2 else 1),
-                    if (active) Color.rgb(58, 208, 255) else Color.rgb(86, 107, 133))
-            }
-            setOnClickListener { action() }
-        }
-
     private fun buildUi() {
-        window.decorView.systemUiVisibility =
-            View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        val cyan = Color.rgb(46, 195, 255)
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(2, 10, 23))
-            setPadding(dp(12), dp(7), dp(12), dp(9))
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        val visuals=PremiumVisuals(this)
+        val root=ReferenceDashboardLayout(this).apply { setBackgroundColor(Color.rgb(2,8,17)) }
+        dashboardScene=root
+        val header=ReferenceDashboardLayout(this,1679f,120f)
+        headerBar=header
+        headerSurface=DashboardHeaderView(this,visuals)
+        header.place(headerSurface,0f,0f,1679f,120f)
+        record=Button(this).apply {
+            text="";isEnabled=false;setPadding(0,0,0,0)
+            background=PremiumIconDrawable(visuals,"lens",true){recording}
+            contentDescription="Iniciar gravação"
+            setOnClickListener { if(recording)stopRecording() else startRecording() }
+            setOnLongClickListener { protectCurrentClip();true }
         }
-        // HUD: clear hierarchy, short labels and truthful sensor status.
-        val header = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(Color.rgb(18, 34, 53), Color.rgb(3, 12, 27))).apply {
-                cornerRadius = dp(14).toFloat()
-                setStroke(dp(1), Color.rgb(38, 95, 141))
+        header.place(record,38f,27f,57f,57f)
+        root.place(header,0f,0f,1679f,120f)
+
+        fun cameraPanel(referenceWidth:Float):ReferenceDashboardLayout {
+            val view=ReferenceDashboardLayout(this,referenceWidth,623f)
+            view.clipToOutline=true
+            view.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->
+                view.background=GradientDrawable().apply { setColor(Color.rgb(5,16,29));cornerRadius=24f*view.width/referenceWidth }
             }
-            setPadding(dp(12), 0, dp(8), 0)
+            return view
         }
-        headerBar = header
-        header.addView(uiText("◉  DashCam ADAS PRO", 19f, Color.WHITE).apply {
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-        }, LinearLayout.LayoutParams(0, -1, 1f))
-        speed = uiText("-- km/h", 21f, cyan).apply {
-            gravity = Gravity.CENTER
-            typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+        fun border(view:ReferenceDashboardLayout,referenceWidth:Float) {
+            val edge=View(this)
+            view.place(edge,0f,0f,referenceWidth,623f)
+            edge.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->
+                edge.background=GradientDrawable().apply { setColor(Color.TRANSPARENT);cornerRadius=24f*edge.width/referenceWidth;setStroke((2.8f*edge.width/referenceWidth).toInt().coerceAtLeast(1),PremiumVisuals.CYAN) }
+            }
         }
-        header.addView(speed, LinearLayout.LayoutParams(dp(112), -1))
-        gpsRec = uiText("GPS -- · REC OFF", 11f, Color.rgb(170, 212, 236))
-        header.addView(gpsRec,
-            LinearLayout.LayoutParams(dp(94), -1))
-        header.addView(premiumTile("⚙", false) {
-            startActivity(Intent(this, PremiumMenuActivity::class.java))
-        }, LinearLayout.LayoutParams(dp(48), dp(42)))
-        root.addView(header, LinearLayout.LayoutParams(-1, dp(57)))
-
-        val liveRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        val cameraFrame = FrameLayout(this).apply {
-            background = panel(Color.rgb(6, 18, 35), cyan)
-            setPadding(dp(2), dp(2), dp(2), dp(2))
-        }
-        // TextureView rejeita qualquer background drawable (inclusive setBackgroundColor).
-        // A cor e a borda pertencem ao FrameLayout pai, nunca à superfície de vídeo.
-        texture = CameraPreviewView(this)
-        cameraFrame.addView(texture, FrameLayout.LayoutParams(-1, -1))
-        laneOverlay = RiskOverlayView(this).apply { preview=texture;setOnTouchListener { _, _ -> false } }
-        cameraFrame.addView(laneOverlay, FrameLayout.LayoutParams(-1, -1))
-        texture.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCameraTransform() }
-        val detector = android.view.GestureDetector(this,
-            object : android.view.GestureDetector.SimpleOnGestureListener() {
-                override fun onDown(e: android.view.MotionEvent): Boolean = true
-                override fun onSingleTapConfirmed(e: android.view.MotionEvent): Boolean {
-                    if (touchRevealedControls) { touchRevealedControls = false; return true }
-                    cameraFill = !cameraFill
-                    selectedId?.let { orientationPrefs().edit().putBoolean("fill_$it", cameraFill).apply() }
-                    updateCameraTransform()
-                    showStatus(if (cameraFill) "Câmera: preencher" else "Câmera: ajustar")
-                    return true
-                }
-                override fun onDoubleTap(e: android.view.MotionEvent): Boolean {
-                    toggleFullscreen()
-                    return true
-                }
-            })
-        texture.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
-
-        cameraPlaceholder = uiText("◉\nCÂMERA INDISPONÍVEL\nConecte uma câmera compatível", 15f,
-            Color.rgb(177, 204, 224)).apply {
-            gravity = Gravity.CENTER
-            setBackgroundColor(Color.rgb(5, 16, 29))
-        }
-        cameraFrame.addView(cameraPlaceholder, FrameLayout.LayoutParams(-1, -1))
-
-        // Transparent premium alert, inside the camera rather than a blocking Android dialog.
-        alertContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(12), dp(7), dp(12), dp(7))
-            visibility = View.GONE
-            elevation = dp(8).toFloat()
-        }
-        alertIcon = uiText("⚠", 29f, Color.WHITE).apply { gravity = Gravity.CENTER }
-        alertMessage = uiText("", 16f, Color.WHITE).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-        }
-        alertContainer.addView(alertIcon, LinearLayout.LayoutParams(dp(56), -1))
-        alertContainer.addView(alertMessage, LinearLayout.LayoutParams(0, -1, 1f))
-        cameraFrame.addView(alertContainer,
-            FrameLayout.LayoutParams(-1, dp(84), Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
-                setMargins(dp(105), dp(52), dp(105), 0)
-            })
-        val cameraTag = uiText("  ● LIVE", 11f, cyan).apply {
-            background = panel(Color.rgb(10, 26, 44), Color.rgb(39, 110, 153), 7)
-        }
-        cameraFrame.addView(cameraTag, FrameLayout.LayoutParams(dp(80), dp(29),
-            Gravity.TOP or Gravity.LEFT).apply {
-            setMargins(dp(12), dp(12), 0, 0)
+        val cameraFrame=cameraPanel(1195f)
+        texture=CameraPreviewView(this)
+        cameraFrame.place(texture,0f,0f,1195f,623f)
+        laneOverlay=RiskOverlayView(this).apply { preview=texture;showCaption=false;setOnTouchListener { _,_->false } }
+        cameraFrame.place(laneOverlay,0f,0f,1195f,623f)
+        texture.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ -> updateCameraTransform() }
+        val detector=android.view.GestureDetector(this,object:android.view.GestureDetector.SimpleOnGestureListener(){
+            override fun onDown(e:MotionEvent)=true
+            override fun onSingleTapConfirmed(e:MotionEvent):Boolean {
+                if(touchRevealedControls){touchRevealedControls=false;return true}
+                cameraFill=!cameraFill
+                selectedId?.let { orientationPrefs().edit().putBoolean("fill_$it",cameraFill).apply() }
+                updateCameraTransform();showStatus(if(cameraFill)"Câmera: preencher" else "Câmera: ajustar");return true
+            }
+            override fun onDoubleTap(e:MotionEvent):Boolean { toggleFullscreen();return true }
+            override fun onLongPress(e:MotionEvent) { showCameraControls() }
         })
-        fullButton = premiumTile("⛶ FULL", false) { toggleFullscreen() }
-        cameraFrame.addView(fullButton, FrameLayout.LayoutParams(dp(94), dp(36),
-            Gravity.TOP or Gravity.RIGHT).apply { setMargins(0, dp(8), dp(10), 0) })
-        val laneButton = premiumTile("FAIXAS BETA", false) {
-            laneEnabled = !laneEnabled
-            laneOverlay.showLanes=laneEnabled
-            laneOverlay.invalidate()
-            showStatus(if (laneEnabled) "Faixas experimentais ativadas" else "Faixas desativadas")
+        texture.setOnTouchListener { _,event->detector.onTouchEvent(event) }
+        cameraPlaceholder=uiText("CÂMERA INDISPONÍVEL\nSelecione uma câmera compatível",15f,Color.rgb(177,204,224)).apply { gravity=Gravity.CENTER;setBackgroundColor(Color.rgb(5,16,29)) }
+        cameraFrame.place(cameraPlaceholder,0f,0f,1195f,623f)
+        cameraPlaceholder.setOnClickListener { chooseCamera() }
+        qualityTag=uiText("VÍDEO --",20f,Color.rgb(255,208,106)).apply {
+            gravity=Gravity.CENTER;typeface=Typeface.create("sans-serif-condensed",Typeface.BOLD)
+            background=GradientDrawable().apply { setColor(Color.argb(235,6,16,26));cornerRadius=dp(8).toFloat() }
+            setOnClickListener { showCameraControls() }
         }
-        cameraFrame.addView(laneButton, FrameLayout.LayoutParams(dp(150), dp(36),
-            Gravity.BOTTOM or Gravity.LEFT).apply { setMargins(dp(10), 0, 0, dp(10)) })
-        val rotationButton = premiumTile("⟳ GIRAR", false) { cycleCameraRotation() }
-        cameraFrame.addView(rotationButton, FrameLayout.LayoutParams(dp(94), dp(36),
-            Gravity.BOTTOM or Gravity.RIGHT).apply { setMargins(0, 0, dp(10), dp(10)) })
-        val mirrorButton = premiumTile("ESPELHAR", false) {
-            cameraMirror = !cameraMirror
-            selectedId?.let { orientationPrefs().edit().putBoolean("mirror_$it", cameraMirror).apply() }
-            updateCameraTransform()
-        }
-        cameraFrame.addView(mirrorButton, FrameLayout.LayoutParams(dp(110), dp(36), Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dp(8) })
-        liveRow.addView(cameraFrame, LinearLayout.LayoutParams(0, -1, 3.25f))
+        qualityTag.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->qualityTag.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,40f*qualityTag.width/177f) }
+        cameraFrame.place(qualityTag,24f,20f,177f,63f)
+        alertPopup=EventPopupView(this,visuals).apply { visibility=View.GONE }
+        cameraFrame.place(alertPopup,408f,68f,752f,194f)
+        border(cameraFrame,1195f)
+        root.place(cameraFrame,29f,120f,1195f,623f)
 
-        // No fake secondary camera: clearly show unsupported feed until actual ADAS exists.
-        val side = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            background = panel(Color.rgb(10, 31, 54), cyan)
-            setPadding(dp(6), dp(6), dp(6), dp(6))
+        val side=cameraPanel(402f)
+        sidePanel=side
+        // This is an ADAS view of the actual primary frame, not a fabricated second camera.
+        auxiliaryPreview=CameraPreviewView(this).apply { fill=true }
+        side.place(auxiliaryPreview,0f,0f,402f,623f)
+        auxiliaryOverlay=RiskOverlayView(this).apply { preview=auxiliaryPreview;showCaption=false }
+        side.place(auxiliaryOverlay,0f,0f,402f,623f)
+        auxiliaryPlaceholder=uiText("ADAS\nCÂMERA INDISPONÍVEL",12f,Color.rgb(149,177,198)).apply { gravity=Gravity.CENTER;setBackgroundColor(Color.rgb(5,16,29)) }
+        side.place(auxiliaryPlaceholder,0f,0f,402f,623f)
+        val cameraButton=Button(this).apply {
+            text="";setPadding(0,0,0,0);background=PremiumIconDrawable(visuals,"camera",true)
+            contentDescription="Controles e seleção de câmera";setOnClickListener { showCameraControls() }
         }
-        side.addView(uiText("◈  ADAS", 13f, cyan).apply { gravity = Gravity.CENTER },
-            LinearLayout.LayoutParams(-1, dp(38)))
-        side.addView(uiText("VÍDEO AUXILIAR\nINDISPONÍVEL", 12f,
-            Color.rgb(162, 195, 216)).apply {
-            gravity = Gravity.CENTER
-        }, LinearLayout.LayoutParams(-1, 0, 1f))
-        side.addView(premiumTile("CÂMERA", false) { chooseCamera() },
-            LinearLayout.LayoutParams(-1, dp(43)))
-        liveRow.addView(side, LinearLayout.LayoutParams(0, -1, 1.0f).apply {
-            leftMargin = dp(9)
-        })
-        sidePanel = side
-        root.addView(liveRow, LinearLayout.LayoutParams(-1, 0, 1f).apply {
-            topMargin = dp(9)
-        })
+        side.place(cameraButton,313f,14f,72f,72f)
+        border(side,402f)
+        root.place(side,1247f,120f,402f,623f)
 
-        status = uiText("Câmera: verificando disponibilidade", 10f, Color.rgb(149, 180, 204))
-        statusBar = status
-        root.addView(status, LinearLayout.LayoutParams(-1, dp(25)))
+        hud=LiveHudView(this,visuals)
+        root.place(hud,583f,8f,514f,146f)
+        hud.setOnClickListener { calibrateAdas() }
+        val pages=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
+        repeat(3){index->pages.addView(View(this).apply { background=GradientDrawable().apply { setColor(if(index==0)Color.rgb(0,219,255) else Color.rgb(53,88,120));cornerRadius=dp(3).toFloat() } },LinearLayout.LayoutParams(0,-1,1f).apply { if(index<2)rightMargin=dp(8) })}
+        root.place(pages,785f,767f,104f,7f)
+        status=uiText("Câmera: verificando disponibilidade",10f,Color.rgb(149,180,204))
+        statusBar=status
+        root.place(status,29f,778f,1620f,22f)
 
-        val controls = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+        val controls=ReferenceDashboardLayout(this,1679f,89f)
+        fun add(label:String,icon:String,x:Float,w:Float,active:Boolean=false,action:()->Unit){
+            val tile=PremiumNavigationView(this,visuals,label,icon,active).apply { setOnClickListener { action() } }
+            controls.place(tile,x,0f,w,89f)
         }
-        fun add(label: String, weight: Float = 1f, active: Boolean = false, action: () -> Unit) {
-            controls.addView(premiumTile(label, active, action),
-                LinearLayout.LayoutParams(0, dp(57), weight).apply { rightMargin = dp(6) })
-        }
-        record = Button(this).apply {
-            text = "REC"; textSize = 12f; isEnabled = false
-            setTextColor(Color.WHITE)
-            background = panel(Color.rgb(100, 26, 39), Color.rgb(255, 79, 99), 11)
-            setOnClickListener { if (recording) stopRecording() else startRecording() }
-        }
-        add("LIVE", active = true) { chooseCamera() }
-        add("ADAS") { calibrateAdas() }
-        add("RADARES") { listRadars() }
-        add("MÍDIA") { showStatus("Clipes disponíveis no armazenamento do aplicativo") }
-        add("EVENTOS") { protectCurrentClip() }
-        add("CONFIG") { startActivity(Intent(this, PremiumMenuActivity::class.java)) }
-        controls.addView(record, LinearLayout.LayoutParams(0, dp(57), 0.72f))
-        root.addView(controls)
-        footerBar = controls
-        setContentView(root)
-        SafeInsets.apply(this)
-        revealControls()
+        add("LIVE","play",29f,258f,true){chooseCamera()}
+        add("ADAS","car",312f,238f){calibrateAdas()}
+        add("RADARES","radar_wave",575f,252f){listRadars()}
+        add("MÍDIA","media",851f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","MIDIA"))}
+        add("EVENTOS","folder",1128f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","EVENTOS"))}
+        add("CONFIG","gear",1405f,244f){startActivity(Intent(this,PremiumMenuActivity::class.java))}
+        footerBar=controls
+        root.place(controls,0f,805f,1679f,89f)
+        setContentView(root);SafeInsets.apply(this,immersive=true);revealControls()
     }
 
-    /** Banner integrado à LIVE; não usa AlertDialog nem apresenta simulações como detecção real. */
-    private fun showPremiumAlert(title: String, detail: String, severity: Int) {
+    private fun showCameraControls(){
+        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia")
+        AlertDialog.Builder(this).setTitle("Câmera").setItems(options){_,which->when(which){
+            0->chooseCamera()
+            1->cycleCameraRotation()
+            2->{cameraMirror=!cameraMirror;selectedId?.let { orientationPrefs().edit().putBoolean("mirror_$it",cameraMirror).apply() };updateCameraTransform()}
+            3->{laneEnabled=!laneEnabled;laneOverlay.showLanes=laneEnabled;auxiliaryOverlay.showLanes=laneEnabled;laneOverlay.invalidate();auxiliaryOverlay.invalidate()}
+            4->if(recording)stopRecording() else startRecording()
+            5->protectCurrentClip()
+            6->toggleFullscreen()
+        }}.setNegativeButton("Fechar",null).show()
+    }
+
+    /** Popup 2 keeps the reference shape; its content and icon come from the actual event. */
+    private fun showPremiumAlert(presentation:EventPresentation){
         runOnUiThread {
+            if(alertPopup.visibility==View.VISIBLE && alertPopup.presentation.critical && !presentation.critical)return@runOnUiThread
             bannerTask?.let { handler.removeCallbacks(it) }
-            val edge = if (severity == 2) Color.rgb(255, 79, 90)
-                else if (severity == 1) Color.rgb(255, 184, 64)
-                else Color.rgb(66, 195, 255)
-            val fill = if (severity == 2) Color.rgb(85, 23, 32)
-                else if (severity == 1) Color.rgb(87, 51, 17)
-                else Color.rgb(14, 49, 75)
-            alertContainer.background = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(Color.argb(224, Color.red(fill), Color.green(fill), Color.blue(fill)),
-                    Color.argb(235, 12, 19, 30))
-            ).apply {
-                cornerRadius = dp(16).toFloat()
-                setStroke(dp(2), edge)
-            }
-            val label = (title + " " + detail).uppercase(Locale.ROOT)
-            alertIcon.text = when {
-                "PARE" in label -> "🛑"
-                "PEDESTRE" in label -> "🚶"
-                "CICLIST" in label || "BICICLET" in label -> "🚴"
-                "RADAR" in label || "VELOCIDADE" in label -> "◉"
-                "COLIS" in label -> "⚠"
-                "SEMÁFORO" in label || "SEMAFORO" in label -> "🚦"
-                else -> "⚠"
-            }
-            alertMessage.text = "$title\n$detail"
-            alertContainer.visibility = View.VISIBLE
-            bannerTask = Runnable { alertContainer.visibility = View.GONE }
-            handler.postDelayed(bannerTask!!, 4500L)
+            alertPopup.animate().cancel();alertPopup.presentation=presentation
+            alertPopup.alpha=1f;alertPopup.visibility=View.VISIBLE
+            bannerTask=Runnable { alertPopup.visibility=View.GONE }
+            handler.postDelayed(bannerTask!!,4500L)
         }
     }
 
@@ -646,13 +569,19 @@ class MainActivity : Activity() {
         } catch (e: Exception) { radarCallback.onLocation(null); showStatus("GPS indisponível: ${e.javaClass.simpleName}") }
     }
     override fun onStop() {
+        if(::hud.isInitialized)hud.stopSensors()
+        handler.removeCallbacks(hudTick)
         if(radarService?.callback===radarCallback)radarService?.callback = null
         radarService = null
         if (radarBound) { unbindService(radarConnection); radarBound=false }
         if(captureService?.callback===captureCallback)captureService?.callback=null
         captureService=null
         if(captureBound){unbindService(captureConnection);captureBound=false}
-        latestVision=null;texture.frame=null;laneOverlay.result=null
+        latestVision=null
+        if(::texture.isInitialized)texture.frame=null
+        if(::laneOverlay.isInitialized)laneOverlay.result=null
+        if(::auxiliaryPreview.isInitialized)auxiliaryPreview.frame=null
+        if(::auxiliaryOverlay.isInitialized)auxiliaryOverlay.result=null
         super.onStop()
     }
 
@@ -686,8 +615,9 @@ class MainActivity : Activity() {
     private fun showStatus(message: String) { runOnUiThread { status.text = message } }
     override fun onResume() {
         super.onResume()
+        if(!::hud.isInitialized)return
         revealControls()
-        if(::speed.isInitialized)startGps()
+        if(::hud.isInitialized){hud.startSensors();handler.removeCallbacks(hudTick);handler.post(hudTick);startGps()}
         if(checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED)scanCameras()
     }
     override fun onDestroy() {handler.removeCallbacksAndMessages(null);if(::audioAlerts.isInitialized)audioAlerts.release();super.onDestroy()}

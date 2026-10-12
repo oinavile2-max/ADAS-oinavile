@@ -9,10 +9,17 @@ import br.com.dashcamadas.vision.*
 data class VisionFrame(val bitmap:Bitmap,val lanes:Lanes,val vehicles:List<Vehicle>,val risk:RiskResult,val timestampMs:Long,val laneNetworkActive:Boolean=false,val vehicleNetworkActive:Boolean=false,val inferenceMs:Long=0,val lanePixels:Int=0,val roadPixels:Int=0)
 class RiskOverlayView(context:Context):View(context) {
     var showLanes=true
+    var showCaption=true
     var preview:CameraPreviewView?=null
     var result:VisionFrame?=null
         set(value){field=value;invalidate()}
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply{style=Paint.Style.STROKE;strokeWidth=4f;strokeCap=Paint.Cap.ROUND}
+    private fun glowingPath(canvas:Canvas,path:Path,color:Int){
+        for((width,alpha) in listOf(14f to 24,8f to 60,4f to 255)){
+            paint.strokeWidth=width;paint.color=Color.argb(alpha,Color.red(color),Color.green(color),Color.blue(color));canvas.drawPath(path,paint)
+        }
+        paint.strokeWidth=4f;paint.color=color
+    }
     override fun onDraw(canvas:Canvas) {
         super.onDraw(canvas)
         val frame=result ?: return
@@ -26,21 +33,23 @@ class RiskOverlayView(context:Context):View(context) {
             if(lane==null || lane.confidence<.65f) continue
             val dangerous=risk in frame.risk.risks
             if(dangerous && !flashing) continue
-            paint.color=if(dangerous) Color.RED else Color.rgb(51,236,174)
+            paint.color=if(dangerous) PremiumVisuals.RED else Color.rgb(0,218,255)
             val path=Path()
             for(i in 0..20) {
                 val y=lane.yStart+(lane.yEnd-lane.yStart)*i/20;val p=point(lane.x(y),y)
                 if(i==0) path.moveTo(p.first,p.second) else path.lineTo(p.first,p.second)
             }
-            canvas.drawPath(path,paint)
+            glowingPath(canvas,path,paint.color)
         }
         for(vehicle in frame.vehicles) {
             val dangerous=Risk.COLLISION in frame.risk.risks && frame.risk.target==vehicle
             if(dangerous && !flashing) continue
-            paint.color=if(dangerous) Color.RED else Color.rgb(60,195,255)
+            paint.color=if(dangerous) PremiumVisuals.RED else Color.rgb(60,195,255)
             val a=point(vehicle.box.left,vehicle.box.top);val b=point(vehicle.box.right,vehicle.box.bottom)
-            canvas.drawRect(minOf(a.first,b.first),minOf(a.second,b.second),maxOf(a.first,b.first),maxOf(a.second,b.second),paint)
+            val box=Path().apply{addRoundRect(RectF(minOf(a.first,b.first),minOf(a.second,b.second),maxOf(a.first,b.first),maxOf(a.second,b.second)),5f,5f,Path.Direction.CW)}
+            glowingPath(canvas,box,paint.color)
         }
+        if(!showCaption){if(frame.risk.risks.isNotEmpty())postInvalidateDelayed(minOf(100,period/4));return}
         paint.style=Paint.Style.FILL;paint.textSize=12*resources.displayMetrics.scaledDensity
         paint.color=Color.WHITE
         val ldw=frame.risk.phases[Risk.LEFT_DEPARTURE]
