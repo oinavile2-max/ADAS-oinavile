@@ -29,7 +29,7 @@ object DeviceCapabilities {
             usbDevices.forEach { appendLine(" • VID %04X PID %04X classe %d interfaces %s".format(it.vendorId, it.productId, it.deviceClass, it.interfaces)) }
             errors.forEach { appendLine("Aviso: $it") }
             appendLine("NOTA: USB enumerado NÃO confirma UVC, decodificação ou acesso a quadros.")
-            appendLine("LDW/FCW: implementação experimental com calibração e GPS; exige validação no dispositivo. Pessoas, ciclistas e placas: sem alertas integrados.")
+            appendLine("LDW/FCW: implementação experimental com calibração e GPS; exige validação no dispositivo. Pedestres: aviso experimental com pré-condições. Ciclistas, placas e semáforos: sem alertas automáticos integrados.")
         }
     }
 

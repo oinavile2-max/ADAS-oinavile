@@ -15,6 +15,7 @@ import android.view.WindowManager
  * Hitboxes são escaladas junto com a arte; cada tile abre sua seção real.
  */
 class PremiumMenuActivity : Activity() {
+ override fun onResume() { super.onResume(); CommercialUi.applyAppearance(this) }
  override fun onCreate(savedInstanceState: Bundle?) {
   super.onCreate(savedInstanceState)
   window.decorView.systemUiVisibility = 5894 or 1024 or 512
@@ -54,7 +55,7 @@ class PremiumMenuActivity : Activity() {
    }
    if(tile == "INICIO") return true
    if(tile == "LIVE") startActivity(Intent(this@PremiumMenuActivity,MainActivity::class.java))
-   else if(tile == "AUDIO") startActivity(Intent(this@PremiumMenuActivity,SettingsActivity::class.java))
+   else if(tile == "AUDIO") startActivity(Intent(this@PremiumMenuActivity,SettingsActivity::class.java).putExtra("section","AUDIO"))
    else startActivity(Intent(this@PremiumMenuActivity,PremiumSectionActivity::class.java).putExtra("section",tile))
    return true
   }

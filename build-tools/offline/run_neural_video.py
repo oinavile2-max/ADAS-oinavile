@@ -11,7 +11,7 @@ parser.add_argument('video',type=Path);parser.add_argument('output',type=Path)
 args=parser.parse_args();repo=Path(__file__).resolve().parents[2];out=args.output;out.mkdir(parents=True,exist_ok=True)
 cache=Path(os.environ['GRADLE_USER_HOME'])/'caches/modules-2/files-2.1'
 stdlib=next((cache/'org.jetbrains.kotlin/kotlin-stdlib/2.0.21').glob('*/*.jar'))
-ort=next((cache/'com.microsoft.onnxruntime/onnxruntime/1.20.0').glob('*/*.jar'))
+ort=next((cache/'com.microsoft.onnxruntime/onnxruntime/1.31.0').glob('*/*.jar'))
 cp=os.pathsep.join(map(str,[repo/'app/build/tmp/kotlin-classes/debug',stdlib,ort]))
 subprocess.run(['javac','--release','17','-cp',cp,'-d',str(out/'classes'),str(repo/'build-tools/offline/NeuralVisionProbe.java')],check=True)
 ssd=repo/'app/src/main/assets/vehicles_ssd_mobilenet_v2.tflite';lane=repo/'app/src/main/assets/road_lanes_yolop_320.onnx'
@@ -56,7 +56,7 @@ summary={'frames':frames,'actual_lane_neural_executions':len(rows),'vehicle_cand
  'confirmed_pair_frames':sum(bool(r['left_confidence'] and r['right_confidence'] and float(r['left_confidence'])>=.65 and float(r['right_confidence'])>=.65) for r in rows),
  'neural_lane_plus_geometry_ms_median':float(np.median(nn_ms)),'neural_lane_plus_geometry_ms_p95':float(np.percentile(nn_ms,95)),
  'ssd_ms_median':float(np.median(ssd_ms)),'critical_risks':0,'reference_annotations':False,'measured_gps_speed':False,'calibration_available':False,
- 'runtime':'Java ONNX Runtime 1.20.0 CPU + shared Kotlin RoadNeuralSession/AdasEngine; host, not Android',
+ 'runtime':'Java ONNX Runtime 1.31.0 CPU + shared Kotlin RoadNeuralSession/AdasEngine; host, not Android',
  'video_sha256':hashlib.sha256(args.video.read_bytes()).hexdigest()}
 (out/'summary.json').write_text(json.dumps(summary,indent=2))
 with (out/'vehicle-candidates.csv').open('w') as f:

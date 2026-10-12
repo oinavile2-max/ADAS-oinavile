@@ -24,11 +24,15 @@ class LiveHudView(context: Context, private val visuals: PremiumVisuals) : View(
     private var resolution = "VÍDEO --"
     private var vision: VisionFrame? = null
     private var recording = false
+    private var animationsEnabled = true
     fun update(speedKmh: Float?, gps: Boolean, videoLabel: String, rec: Boolean, frame: VisionFrame?) {
+        val animate = context.getSharedPreferences("ui_appearance", Context.MODE_PRIVATE).getBoolean("animations", true)
+        if (animate != animationsEnabled) { animator?.cancel(); animationsEnabled = animate; displayedSpeed = speedKmh ?: 0f }
         gpsReady=gps; resolution=videoLabel; vision=frame; recording=rec
         if (measuredSpeed != speedKmh) {
             animator?.cancel()
-            animator=ValueAnimator.ofFloat(displayedSpeed,speedKmh ?: 0f).apply {
+            if (!animationsEnabled) { displayedSpeed = speedKmh ?: 0f }
+            else animator=ValueAnimator.ofFloat(displayedSpeed,speedKmh ?: 0f).apply {
                 duration=300L
                 addUpdateListener { displayedSpeed=it.animatedValue as Float;invalidate() }
                 start()
@@ -75,7 +79,7 @@ class LiveHudView(context: Context, private val visuals: PremiumVisuals) : View(
         paint.style=Paint.Style.STROKE;paint.strokeWidth=4f;paint.color=Color.rgb(129,146,163)
         canvas.drawLine(193f,54f,left,126f,paint);canvas.drawLine(235f,54f,right,126f,paint)
         paint.strokeWidth=7f;paint.color=Color.rgb(78,94,109)
-        val phase=if(measuredSpeed!=null && displayedSpeed>1f)(SystemClock.uptimeMillis()%1000)/1000f*8f else 0f
+        val phase=if(animationsEnabled && measuredSpeed!=null && displayedSpeed>1f)(SystemClock.uptimeMillis()%1000)/1000f*8f else 0f
         for(y in floatArrayOf(69f,88f,112f)){val t=(y+phase-54f)/72f;canvas.drawLine(193f+(left-193f)*t+4f,y+phase,235f+(right-235f)*t-4f,y+phase,paint)}
         if(frame?.vehicles?.isNotEmpty()==true)visuals.icon(canvas,"car",188f,83f,43f,Color.rgb(140,158,174))
         visuals.icon(canvas,"gps",252f,19f,29f,if(gpsReady)PremiumVisuals.WHITE else Color.rgb(82,98,115))
@@ -87,7 +91,7 @@ class LiveHudView(context: Context, private val visuals: PremiumVisuals) : View(
         canvas.drawText(if(sensorRegistered && lastSensorNanos>0 && age in 0L..2_000_000_000L)"G-SENSOR ATIVO" else "G-SENSOR --",485f,120f,paint)
         if(recording){paint.color=PremiumVisuals.RED;canvas.drawCircle(329f,34f,4f,paint)}
         canvas.restore()
-        if(isShown && measuredSpeed!=null && displayedSpeed>1f)postInvalidateDelayed(100L)
+        if(animationsEnabled && isShown && measuredSpeed!=null && displayedSpeed>1f)postInvalidateDelayed(100L)
     }
 }
 

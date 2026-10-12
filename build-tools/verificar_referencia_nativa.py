@@ -10,7 +10,10 @@ parser.add_argument('--sdk', default=os.environ.get('ANDROID_HOME'), help='Andro
 args=parser.parse_args()
 if not args.sdk: parser.error('Configure ANDROID_HOME or --sdk')
 repo=Path(__file__).resolve().parents[1]
-dexdump=Path(args.sdk)/'build-tools/35.0.0'/('dexdump.exe' if os.name=='nt' else 'dexdump')
+tool_name='dexdump.exe' if os.name=='nt' else 'dexdump'
+versions=sorted((p for p in (Path(args.sdk)/'build-tools').iterdir() if re.fullmatch(r'\d+\.\d+\.\d+',p.name)),key=lambda p:tuple(int(v) for v in p.name.split('.')),reverse=True)
+dexdump=next((p/tool_name for p in versions if (p/tool_name).is_file()),None)
+if dexdump is None: parser.error('Install Android SDK Build Tools with dexdump')
 expected=json.loads((repo/'referencias_nativas/jni-api.json').read_text())
 callbacks=json.loads((repo/'referencias_nativas/jni-callbacks.json').read_text())
 with zipfile.ZipFile(args.apk) as apk:

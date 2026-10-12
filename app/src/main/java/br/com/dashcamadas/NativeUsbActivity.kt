@@ -27,15 +27,16 @@ class NativeUsbActivity:Activity(){
     }
     override fun onCreate(state:Bundle?){
         super.onCreate(state);manager=getSystemService(UsbManager::class.java)
-        val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(24,16,24,16);setBackgroundColor(Color.rgb(5,16,29))}
-        root.addView(TextView(this).apply{text="CÂMERA USB — NWD K2001N ARM32";textSize=22f;setTextColor(Color.CYAN)})
-        root.addView(TextView(this).apply{text="Autorize a câmera e abra a LIVE para rede neural de faixas/veículos e REC. A mudança de fonte finaliza eventual clipe Camera2. Compatibilidade USB precisa de teste nesta central.";textSize=17f;setTextColor(Color.WHITE)})
-        status=TextView(this).apply{text="Selecione sua câmera USB";setTextColor(Color.CYAN)}
-        root.addView(status)
-        root.addView(Button(this).apply{text="SELECIONAR E AUTORIZAR USB";setOnClickListener{choose()}})
-        root.addView(Button(this).apply{text="VOLTAR";setOnClickListener{finish()}})
-        setContentView(root);SafeInsets.apply(this)
+        val page = CommercialPage(this, "Câmera USB", "Autorize a fonte compatível e continue na LIVE.")
+        val card = page.card("Conectar sua câmera", "A mudança de fonte finaliza o clipe atual. A captura, a IA e a gravação continuam no serviço do aplicativo.", "camera")
+        status = page.label("Selecione sua câmera USB", 15f, CommercialPage.MUTED)
+        card.addView(status)
+        card.addView(page.action("Selecionar e autorizar USB") { choose() })
+        page.addCard(page.body, card)
+        page.note(page.body, "Este driver é específico do perfil ARM32 em Android 7/8. A compatibilidade da câmera precisa de teste no aparelho.")
+        page.show()
     }
+    override fun onResume(){super.onResume();CommercialUi.applyAppearance(this)}
     override fun onStart(){super.onStart();ContextCompat.registerReceiver(this,receiver,IntentFilter(action),ContextCompat.RECEIVER_NOT_EXPORTED);registered=true}
     private fun choose(){
         if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27){status.text="Use o APK ARM32 no Android 7/8 para o driver enviado";return}

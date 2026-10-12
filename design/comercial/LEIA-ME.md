@@ -1,26 +1,11 @@
-# Refinamento comercial do neon atual
+# Conceito comercial aprovado e aplicado
 
-Direção escolhida pelo usuário: refinar brilho, ícones, tipografia e acabamento, preservando as referências aprovadas e o neon vermelho dos popups.
+Direção aprovada: refinar o neon atual, brilho, ícones, tipografia e acabamento. Os popups permanecem vermelhos.
 
-## Prévia visual
+A maquete index.html e suas imagens registram o conceito aprovado. Não são capturas Android. No aplicativo, CommercialPage/SettingsActivity implementam quatro abas nativas com cards responsivos e controles reais. Na tela menor, a navegação vira uma faixa horizontal e os cards empilham quando necessário. O conteúdo rola, sem esconder o salvamento.
 
-Abra `index.html` no navegador. `configuracoes.png` mostra a proposta; `popup-vermelho.png` mostra o diálogo com neon vermelho. Os ícones usam os mesmos vetores de `premium_ui_icons.json` do aplicativo. As opções de bip usam os seis nomes reais do código.
+Aplicado: sensibilidade/espessura, volumes, seis padrões de bip, frequência/duração/prévia sonora, segmentos/quota dos clipes, orientação/USB, modo noturno, animação decorativa, timeout de controles e informações do aparelho. Rascunhos persistem ao trocar abas/recriar a Activity. Limites ADAS são validados antes de gravar. Mídia, eventos e autorização USB seguem os mesmos cards; dados vêm do armazenamento real e dos serviços.
 
-A proposta agrupa Assistente de faixa, Áudio e alertas, Câmera e gravação e Aparência. Valores em destaque, superfícies escuras com brilho discreto, ação principal e descrições curtas ajudam a leitura. Ajustes de sensibilidade/espessura funcionam na maquete; não alteram preferências do Android. Modo noturno, redução de animações e organização em quatro abas são propostas visuais, ainda não implementadas no app.
+Novo ícone: icone.html e icone-profissional.png mostram exemplos de recorte/tamanho. A arte principal está em app/src/main/res/drawable-xxxhdpi/app_icon_art.png; recursos launcher clássico, adaptativo e monocromático estão em res. A margem adaptativa evita corte do detalhe vermelho. As imagens originais geradas foram preservadas fora do checkout.
 
-## Aplicado ao código Android nesta etapa
-
-- `CommercialUi.kt`: acabamento comum dos botões internos, contraste claro sobre fundo escuro, tipografia média, áreas mínimas de 52 dp, cantos proporcionais à densidade, ripple e destaque de foco.
-- `SettingsActivity.kt`: aplicação do acabamento aos botões, títulos com hierarquia mais clara e ações descritas em português simples.
-- `PremiumSectionActivity.kt`: botões com o mesmo acabamento, espaçamento entre linhas e nomes de ações mais curtos; retirada da indicação histórica “sem build” sobre o fluxo da versão 3.4 já compilada.
-- `PremiumVisuals.kt`: pequeno reflexo no vidro dos seis botões da LIVE e contorno de foco mais visível. Composição e vetores existentes preservados.
-
-A organização completa em cards/abas exibida na maquete não está aplicada à Activity: representa a proposta para a próxima revisão da tela. Os componentes dos popups de evento/HUD, limites da IA, gravação e formatos de áudio não foram modificados nesta etapa.
-
-## Verificação
-
-Maquete renderizada em Chromium; quatro abas, controles de faixa, seis nomes de bip, popup vermelho e ausência de overflow horizontal em 800 px verificados. Nenhum erro JavaScript. Em 800×480, a proposta empilha os controles e exige rolagem; não é uma captura da central.
-
-Parser estático Kotlin aceitou os novos componentes e os arquivos de apresentação alterados, exceto SettingsActivity, cuja construção já apresenta limitações no parser usado. Esse parser não substitui o compilador Kotlin. `git diff --check` passou.
-
-Nenhum novo build Gradle, APK ou teste físico Android nesta revisão comercial. As evidências de 81 testes e os APKs/ZIP 3.4 pertencem à entrega anterior. Esta prévia não comprova a aparência final na NWD K2001N.
+Compilação do código, testes e lint foram executados, sem empacotamento de APK. Evidências em ../../relatorios/comercial-android-atual. Android físico, identidade pixel a pixel e launcher OEM ainda não validados. SDK 37.2/target 37, mínimo Android 7.1/API25; duas dependências neurais atualizadas para suporte a páginas de 16 KB sem perder a base antiga. Consulte ../../RELATORIO_TECNICO.md.

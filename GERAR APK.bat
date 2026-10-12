@@ -15,8 +15,8 @@ javac -version
 if not defined ANDROID_HOME if defined ANDROID_SDK_ROOT set "ANDROID_HOME=%ANDROID_SDK_ROOT%"
 if not defined ANDROID_HOME if exist "%LOCALAPPDATA%\Android\Sdk\platforms" set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 if not defined ANDROID_HOME goto NO_SDK
-if not exist "%ANDROID_HOME%\platforms\android-35\android.jar" goto NO_SDK
-if not exist "%ANDROID_HOME%\build-tools\35.0.0\aapt2.exe" goto NO_SDK
+if not exist "%ANDROID_HOME%\platforms\android-37.2\android.jar" goto NO_SDK
+if not exist "%ANDROID_HOME%\build-tools\36.0.0\aapt2.exe" goto NO_SDK
 if not exist "gradlew.bat" goto NO_WRAPPER
 if not exist "gradle\wrapper\gradle-wrapper.jar" goto NO_WRAPPER
 if not exist "gradle\wrapper\gradle-wrapper.properties" goto NO_WRAPPER
@@ -40,7 +40,7 @@ goto END
 echo [ERRO] Instale um JDK completo. JDK 17 recomendado; configure JAVA_HOME.
 goto END
 :NO_SDK
-echo [ERRO] Configure ANDROID_HOME e instale SDK Platform 35 e Build Tools 35.0.0.
+echo [ERRO] Configure ANDROID_HOME e instale SDK Platform 37.2 e Build Tools 36.0.0.
 goto END
 :NO_WRAPPER
 echo [ERRO] Gradle Wrapper incompleto. Extraia novamente o ZIP integral.

@@ -2,7 +2,8 @@ package br.com.dashcamadas
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.Context
@@ -23,7 +24,7 @@ import java.util.*
  * LIVE renders real frames from the independent foreground camera service.
  * Camera2/native USB, recording and both neural models belong to the foreground service.
  */
-class MainActivity : Activity() {
+class MainActivity : ComponentActivity() {
     private lateinit var texture: CameraPreviewView
     private lateinit var laneOverlay: RiskOverlayView
     private var laneEnabled = true
@@ -130,6 +131,7 @@ class MainActivity : Activity() {
         // A interface deve abrir mesmo quando serviços, TTS ou câmeras falharem.
         try {
             buildUi()
+            onBackPressedDispatcher.addCallback(this, fullscreenBack)
         } catch (t: Throwable) {
             Log.e("DashCamStartup", "Falha construindo LIVE", t)
             showStartupFailure("Falha na interface LIVE", t)
@@ -181,6 +183,9 @@ class MainActivity : Activity() {
     private lateinit var footerBar: ViewGroup
     private lateinit var statusBar: TextView
     private var cameraFullscreen = false
+    private val fullscreenBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() { toggleFullscreen() }
+    }
     private var cameraFill = false
     private var cameraMirror = false
     private var controlsHidden = false
@@ -254,6 +259,7 @@ class MainActivity : Activity() {
 
     private fun toggleFullscreen() {
         cameraFullscreen = !cameraFullscreen
+        fullscreenBack.isEnabled = cameraFullscreen
         headerBar.visibility = if (cameraFullscreen) View.GONE else View.VISIBLE
         sidePanel.visibility = if (cameraFullscreen) View.GONE else View.VISIBLE
         footerBar.visibility = if (cameraFullscreen) View.GONE else View.VISIBLE
@@ -265,7 +271,6 @@ class MainActivity : Activity() {
         revealControls()
         texture.post { updateCameraTransform() }
     }
-    override fun onBackPressed() { if (cameraFullscreen) toggleFullscreen() else super.onBackPressed() }
     private var bannerTask: Runnable? = null
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
@@ -380,7 +385,7 @@ class MainActivity : Activity() {
         add("RADARES","radar_wave",575f,252f){listRadars()}
         add("MÍDIA","media",851f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","MIDIA"))}
         add("EVENTOS","folder",1128f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","EVENTOS"))}
-        add("CONFIG","gear",1405f,244f){startActivity(Intent(this,PremiumMenuActivity::class.java))}
+        add("CONFIG","gear",1405f,244f){startActivity(Intent(this,SettingsActivity::class.java))}
         footerBar=controls
         root.place(controls,0f,805f,1679f,89f)
         setContentView(root);SafeInsets.apply(this,immersive=true);revealControls()
@@ -427,7 +432,7 @@ class MainActivity : Activity() {
         else { scanCameras(); startGps() }
     }
 
-    override fun onRequestPermissionsResult(code: Int, permissions: Array<out String>, grants: IntArray) {
+    override fun onRequestPermissionsResult(code: Int, permissions: Array<String>, grants: IntArray) {
         super.onRequestPermissionsResult(code, permissions, grants)
         if (code == 41) {
             if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) scanCameras()
@@ -622,6 +627,7 @@ class MainActivity : Activity() {
     private fun showStatus(message: String) { runOnUiThread { status.text = message } }
     override fun onResume() {
         super.onResume()
+        CommercialUi.applyAppearance(this)
         if(!::hud.isInitialized)return
         revealControls()
         if(::hud.isInitialized){hud.startSensors();handler.removeCallbacks(hudTick);handler.post(hudTick);startGps()}

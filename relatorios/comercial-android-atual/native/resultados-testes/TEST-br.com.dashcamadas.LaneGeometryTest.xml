@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.LaneGeometryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-12T21:37:37.385Z" hostname="8a60e457805d" time="0.013">
+  <properties/>
+  <testcase name="actualContrastProducesGeometricallyOrderedCandidates" classname="br.com.dashcamadas.LaneGeometryTest" time="0.003"/>
+  <testcase name="smallFrameIsUnavailable" classname="br.com.dashcamadas.LaneGeometryTest" time="0.0"/>
+  <testcase name="incompleteInputIsRejected" classname="br.com.dashcamadas.LaneGeometryTest" time="0.001"/>
+  <testcase name="singleObservedBoundaryIsNotDiscardedOrDuplicated" classname="br.com.dashcamadas.LaneGeometryTest" time="0.001"/>
+  <testcase name="verticalContrastStreakIsNotPresentedAsLane" classname="br.com.dashcamadas.LaneGeometryTest" time="0.007"/>
+  <testcase name="blankFrameDoesNotInventLanes" classname="br.com.dashcamadas.LaneGeometryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

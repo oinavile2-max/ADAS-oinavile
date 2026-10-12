@@ -1,5 +1,7 @@
 package br.com.dashcamadas
 
+import android.app.Activity
+import android.view.WindowManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
@@ -45,6 +47,12 @@ object CommercialUi {
     fun buttonsIn(root: View) {
         if (root is Button) button(root)
         if (root is ViewGroup) for (i in 0 until root.childCount) buttonsIn(root.getChildAt(i))
+    }
+    fun applyAppearance(activity: Activity) {
+        val night = activity.getSharedPreferences("ui_appearance", Activity.MODE_PRIVATE).getBoolean("night", false)
+        activity.window.attributes = activity.window.attributes.apply {
+            screenBrightness = if (night) .22f else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        }
     }
     fun heading(view: TextView) {
         view.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)

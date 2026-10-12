@@ -1,0 +1,60 @@
+[
+  {
+    "abi": "arm64-v8a",
+    "library": "libonnxruntime.so",
+    "sha256": "8005a741e57117b4d7b476417706c0e9af13cf1b89db47e60f0cbc56e1af91e0",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x1fda2e0 0x1fda2e0 R E 0x4000",
+      "LOAD           0x1fda2e0 0x0000000001fde2e0 0x0000000001fde2e0 0x0be808 0x0bed20 RW  0x4000",
+      "LOAD           0x2098ae8 0x00000000020a0ae8 0x00000000020a0ae8 0x0066e0 0x019df8 RW  0x4000"
+    ]
+  },
+  {
+    "abi": "arm64-v8a",
+    "library": "libonnxruntime4j_jni.so",
+    "sha256": "5f2f1a99fd9f65fd6271eed825632f4ae5ada95f5cc13d66605888ccb80cdc29",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x015cb0 0x015cb0 R E 0x4000",
+      "LOAD           0x015cb0 0x0000000000019cb0 0x0000000000019cb0 0x000378 0x001350 RW  0x4000"
+    ]
+  },
+  {
+    "abi": "arm64-v8a",
+    "library": "libtensorflowlite_jni.so",
+    "sha256": "e2328caf39606382a13dc08f06ed03eb0119a490208d375e3f42b80e4dabc465",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x432210 0x432210 R E 0x4000",
+      "LOAD           0x434000 0x0000000000434000 0x0000000000434000 0x00a528 0x00a528 RW  0x4000",
+      "LOAD           0x43e528 0x0000000000442528 0x0000000000442528 0x005b80 0x02f0d8 RW  0x4000"
+    ]
+  },
+  {
+    "abi": "x86_64",
+    "library": "libonnxruntime.so",
+    "sha256": "068896846a7fe679cf780c1c532745286d9ef2e469f3dbde5bb9cf2c02095b18",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x262eba0 0x262eba0 R E 0x4000",
+      "LOAD           0x262eba0 0x0000000002632ba0 0x0000000002632ba0 0x0ba118 0x0ba460 RW  0x4000",
+      "LOAD           0x26e8cc0 0x00000000026f0cc0 0x00000000026f0cc0 0x006588 0x016808 RW  0x4000"
+    ]
+  },
+  {
+    "abi": "x86_64",
+    "library": "libonnxruntime4j_jni.so",
+    "sha256": "07e725e73555fd89ce260e45c88f835c969831fbb6d6aeef59e9ff924d1d241f",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x014f80 0x014f80 R E 0x4000",
+      "LOAD           0x014f80 0x0000000000018f80 0x0000000000018f80 0x000310 0x001080 RW  0x4000"
+    ]
+  },
+  {
+    "abi": "x86_64",
+    "library": "libtensorflowlite_jni.so",
+    "sha256": "59fb31cc5aae55fd764ef74b0855db7549e981427e7debe31ef3a3f2792dc0d5",
+    "load_segments": [
+      "LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x5ea720 0x5ea720 R E 0x4000",
+      "LOAD           0x5ec000 0x00000000005ec000 0x00000000005ec000 0x009300 0x009300 RW  0x4000",
+      "LOAD           0x5f5300 0x00000000005f9300 0x00000000005f9300 0x005b80 0x0110e0 RW  0x4000"
+    ]
+  }
+]

@@ -598,3 +598,7 @@ O ensaio adicional do SSD no host executou 27 inferências reais; um candidato p
 ## Build 3.4 autorizado — 12/10/2026
 
 A revisão acima foi compilada após autorização posterior do usuário: 81 testes passaram (incluindo oito novos), hashes/inferência real obrigatórios executados antes do empacotamento e lint sem erros (79 avisos). APK NWD K2001N ARM32 com V1/V2 e fonte atualizados. Essas verificações substituem o estado “não executado/sem build” da revisão anterior; validação Android física/visual e precisão em estrada continuam pendentes. Evidências: relatorios/3_4.
+
+## Conceito comercial aplicado e Android 7.1–atual
+
+Quatro abas nativas com cards responsivos, controles reais, salvamento por categoria e rascunhos; mídia/eventos/USB com identidade comum. Novo ícone clássico/adaptativo/monocromático. Modo noturno e preferência de movimento decorativo implementados. minSdk25, compileSdk37.2 estável e targetSdk37, sem maxSdk. ONNX1.31/LiteRT1.4.2 com verificação ELF16KB obrigatória antes de empacotar. Navegação de voltar compatível com Android moderno. Evidências em relatorios/comercial-android-atual; sem novo APK e sem validação física desta revisão.

@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-12",
+  "revision": "3.5 commercial source, no new APK",
+  "compile_sdk": "37.2",
+  "platform_channel": "Google stable channel-0",
+  "agp": "9.4.1",
+  "gradle": "9.6.0",
+  "gradle_sha256": "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01",
+  "java": "17",
+  "onnx_android": "1.31.0",
+  "litert_android": "1.4.2",
+  "androidx_activity": "1.13.0",
+  "profiles": {
+    "native": {
+      "k2000Native": true,
+      "tests": {
+        "tests": 84,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 91
+      },
+      "code_compilation_success": true,
+      "apk_packaging_executed": false,
+      "model_hash_gate_executed": true,
+      "native_64bit_alignment_gate_passed": true,
+      "min_sdk": 25,
+      "target_sdk": 37,
+      "internet_permission_present": false,
+      "telemetry_initializer_present": false,
+      "launcher_icon_declared": true
+    },
+    "generic": {
+      "k2000Native": false,
+      "tests": {
+        "tests": 84,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 91
+      },
+      "code_compilation_success": true,
+      "apk_packaging_executed": false,
+      "model_hash_gate_executed": true,
+      "native_64bit_alignment_gate_passed": true,
+      "min_sdk": 25,
+      "target_sdk": 37,
+      "internet_permission_present": false,
+      "telemetry_initializer_present": false,
+      "launcher_icon_declared": true
+    }
+  },
+  "elf64_libraries_verified": 6,
+  "old_apk_3_4_sha256_unchanged": "71c3f6ae05bd4b6ca43f23a6fc363e82527ff522e21cfe1210de2e1605726323",
+  "physical_android_tested": false,
+  "android_launcher_and_ui_rendered_on_device": false,
+  "ssd_new_android_runtime_executed_on_device": false,
+  "neural_lane_model_real_cpu_inference_test_passed": true,
+  "icon_png_sha256": "7fa32c75de93c061beb5431009120244c4f5f4b04566db7cb331e687c9a253e1"
+}

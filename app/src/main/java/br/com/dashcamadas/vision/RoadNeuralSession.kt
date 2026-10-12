@@ -13,6 +13,7 @@ class RoadNeuralSession(model:ByteArray):AutoCloseable {
     init{
         val hash=MessageDigest.getInstance("SHA-256").digest(model).joinToString(""){"%02x".format(it.toInt() and 255)}
         require(hash=="f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe"){"Lane model integrity failure"}
+        environment.setTelemetry(false)
         OrtSession.SessionOptions().use{options->
             options.setIntraOpNumThreads(2);options.setInterOpNumThreads(1)
             options.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)

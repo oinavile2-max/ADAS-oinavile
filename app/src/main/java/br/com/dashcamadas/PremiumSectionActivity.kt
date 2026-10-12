@@ -1,124 +1,128 @@
 package br.com.dashcamadas
 
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
-import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.view.Gravity
-import android.view.View
 import android.widget.*
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/** Páginas nativas de diagnóstico, testes, eventos e configurações.
- * Nenhuma IA fictícia é apresentada como detecção verdadeira. */
-class PremiumSectionActivity:Activity() {
- private lateinit var root:LinearLayout
- private lateinit var audio:AlertAudio
- private lateinit var events:EventStore
- private val blue=Color.rgb(61,195,255)
- private val white=Color.WHITE
- override fun onCreate(savedInstanceState:Bundle?) {
-  super.onCreate(savedInstanceState)
-  audio=AlertAudio(this);events=EventStore(this)
-  val section=intent.getStringExtra("section") ?: "ADAS"
-  root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(28,16,28,12);setBackgroundColor(Color.rgb(7,13,24)) }
-  val bar=LinearLayout(this).apply {orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
-  bar.addView(button("‹ Voltar") {finish()})
-  bar.addView(text("  DASHCAM ADAS PRO  /  $section",23f,blue),LinearLayout.LayoutParams(0,-2,1f))
-  root.addView(bar)
-  val scroll=ScrollView(this);val body=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,10,4,10)}
-  scroll.addView(body);root.addView(scroll,LinearLayout.LayoutParams(-1,0,1f));setContentView(root);SafeInsets.apply(this)
-  when(section) {
-   "ADAS","PLACAS","SEMAFOROS" -> detectionPage(body,section)
-   "RADARES" -> radarPage(body)
-   "EVENTOS" -> eventsPage(body)
-   "MIDIA" -> mediaPage(body)
-   "CONFIG" -> configPage(body)
-   else -> detectionPage(body,section)
-  }
- }
- private fun text(s:String,size:Float=17f,color:Int=white):TextView=TextView(this).apply{text=s;textSize=size;setTextColor(color);setLineSpacing(0f,1.15f);setPadding(10,10,10,10)}
- private fun button(s:String,click:()->Unit):Button=Button(this).apply{text=s;CommercialUi.button(this);setOnClickListener{click()}}
- private fun item(parent:LinearLayout,s:String,click:()->Unit){val density=resources.displayMetrics.density;parent.addView(button(s,click),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=(8*density).toInt()})}
- private fun note(parent:LinearLayout,s:String){parent.addView(text(s,16f,Color.rgb(169,192,213)))}
- private fun detectionPage(p:LinearLayout,section:String){
-  if(section=="ADAS") {
-   note(p,"Redes neurais locais detectam faixas/área dirigível e veículos. Camera2 e USB autorizado no APK ARM32 alimentam a mesma LIVE e gravação em serviço. Alertas LDW/FCW são experimentais e exigem calibração, GPS válido e resultados recentes.")
-   item(p,"Abrir LIVE para calibrar") {startActivity(Intent(this,MainActivity::class.java))}
-   note(p,"A classe pessoa do SSD agora alimenta caixas e aviso experimental de pedestre na área dirigível, com GPS, calibração e confirmação temporal. Funcionamento na central ainda precisa de teste físico. Alertas de ciclistas continuam pendentes.")
-   return
-  }
-  note(p,"Reconhecimento automático por IA: NÃO IMPLEMENTADO. Os botões abaixo simulam o aviso e registram como TESTE, nunca como infração real.")
-  val options=when(section){
-   "PLACAS" -> listOf("Limite de velocidade" to "Atenção. Velocidade acima do limite.","Placa PARE" to "Atenção! Placa de parada obrigatória.","Entrada proibida" to "Atenção! Entrada proibida.")
-   "SEMAFOROS" -> listOf("Semáforo fechado" to "Atenção. Semáforo fechado.","Semáforo amarelo" to "Atenção. Semáforo amarelo.","Semáforo aberto" to "Semáforo aberto.")
-   else -> listOf("Risco de colisão" to "Atenção! Risco de colisão à frente!","Pedestre" to "Atenção! Pedestre à frente!","Ciclista" to "Atenção! Ciclista à frente!","Saída de faixa" to "Atenção, saída de faixa.","Veículo iniciou movimento" to "O veículo à frente começou a andar.")
-  }
-  options.forEach{ (label,voice)->item(p,"TESTAR POPUP • $label"){
-   events.add(label,"Aviso demonstrativo: $voice")
-   audio.announce(voice,true)
-   showTestBanner(label, voice)
-  }}
- }
- private var activeBanner: PopupWindow? = null
- private val bannerHandler = android.os.Handler(android.os.Looper.getMainLooper())
- private fun showTestBanner(label: String, voice: String) {
-  activeBanner?.dismiss()
-  val visuals=PremiumVisuals(this)
-  val icon=when { label.contains("Semáforo",true)->"traffic";label.contains("Pedestre",true)->"pedestrian";label.contains("Ciclista",true)->"cyclist";label.contains("faixa",true)->"lane";label.contains("colisão",true)->"car";else->"warning" }
-  val banner=EventPopupView(this,visuals).apply { presentation=EventPresentation("TESTE • ${label.uppercase()}",voice,icon,true) }
-  val width=(resources.displayMetrics.widthPixels*.64f).toInt()
-  val popup=PopupWindow(banner,width,(width*194f/752f).toInt(),false)
-  popup.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
-  popup.isOutsideTouchable=false
-  activeBanner=popup
-  popup.showAtLocation(root,Gravity.TOP or Gravity.CENTER_HORIZONTAL,0,32)
-  bannerHandler.postDelayed({if(activeBanner===popup){popup.dismiss();activeBanner=null}},3500)
- }
- private fun radarPage(p:LinearLayout){
-  note(p,"Os radares são pontos GPS cadastrados manualmente. Não há detecção de radiofrequência ou base pré-carregada.")
-  item(p,"Abrir LIVE e gerenciar radares") {startActivity(Intent(this,MainActivity::class.java))}
-  val radars=RadarStore(this).all();note(p,"Radares locais: ${radars.size}")
-  radars.forEach {note(p,"${it.type.uppercase()} • ${it.limit} km/h • ${it.lat}, ${it.lon}")}
- }
- private fun eventsPage(p:LinearLayout){
-  note(p,"Histórico local de eventos. Avisos de teste são explicitamente marcados como MANUAL / TESTE.")
-  val rows=events.lines();if(rows.isEmpty())note(p,"Nenhum evento registrado.") else rows.forEach{note(p,it)}
-  item(p,"Limpar histórico") {NeonDialogs.Builder(this).setTitle("Excluir eventos locais?").setNegativeButton("Cancelar",null).setPositiveButton("Excluir"){_,_->events.clear();recreate()}.show()}
- }
- private fun mediaPage(p:LinearLayout){
-  note(p,"Gravações armazenadas no espaço privado do aplicativo. Não há sincronização com nuvem.")
-  listOf("clips","protegidos").forEach{folder->
-   val files=File(getExternalFilesDir(null),folder).listFiles()?.filter{it.extension=="mp4"} ?: emptyList()
-   note(p,"$folder: ${files.size} vídeo(s)")
-   files.sortedByDescending{it.lastModified()}.forEach{file->item(p,file.name){
-    val uri=androidx.core.content.FileProvider.getUriForFile(this, "$packageName.clips", file)
-    try{startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,"video/mp4").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}
-    catch(e:Exception){NeonDialogs.Builder(this).setMessage("Sem reprodutor disponível: ${e.message}").setPositiveButton("OK",null).show()}
-   }}
-  }
- }
- private fun configPage(p:LinearLayout){
-  note(p,"NWD K2001N Android 7.1.1 e tablets. Resoluções e câmeras dependem do hardware.")
-  val cm=getSystemService(Context.CAMERA_SERVICE) as CameraManager
-  try {cm.cameraIdList.forEach{id->
-   val chars=cm.getCameraCharacteristics(id)
-   val facing=when(chars.get(CameraCharacteristics.LENS_FACING)){
-    CameraCharacteristics.LENS_FACING_BACK->"TRASEIRA";CameraCharacteristics.LENS_FACING_FRONT->"FRONTAL";else->"EXTERNA/OUTRA"}
-   note(p,"Camera2: ID $id • $facing")
-  }}catch(e:Exception){note(p,"Erro Camera2: ${e.message}")}
-  val usb=getSystemService(Context.USB_SERVICE) as UsbManager
-  if(usb.deviceList.isEmpty())note(p,"Nenhum USB detectado pelo Android USB Host.")
-  usb.deviceList.values.forEach{note(p,"USB VID=${it.vendorId} PID=${it.productId} • ${it.deviceName}")}
-  item(p,"Selecionar câmera e gravar") {startActivity(Intent(this,MainActivity::class.java))}
-  item(p,"Ajustar faixas e áudio") {startActivity(Intent(this,SettingsActivity::class.java))}
-  if(BuildConfig.K2000_NATIVE)item(p,"Autorizar câmera USB") {startActivity(Intent(this,NativeUsbActivity::class.java))}
-  note(p,if(BuildConfig.K2000_NATIVE)"USB integrado ao serviço de captura, rede neural e REC. Compatibilidade EGL/encoder precisa de teste físico nesta central." else "Para o driver USB enviado, use o APK K2000N ARM32 na central Android 7/8.")
- }
- override fun onDestroy(){activeBanner?.dismiss();bannerHandler.removeCallbacksAndMessages(null);audio.release();super.onDestroy()}
+/** Commercial cards show actual local data; demonstrations retain explicit TESTE labels. */
+class PremiumSectionActivity : Activity() {
+    private lateinit var page: CommercialPage
+    private lateinit var audio: AlertAudio
+    private lateinit var events: EventStore
+    private var activeBanner: PopupWindow? = null
+    private val bannerHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        audio = AlertAudio(this); events = EventStore(this)
+        val section = intent.getStringExtra("section") ?: "ADAS"
+        val title = when (section) { "MIDIA" -> "Seus vídeos"; "EVENTOS" -> "Eventos"; "RADARES" -> "Radares"; "CONFIG" -> "Dispositivo e câmera"; "PLACAS" -> "Placas · demonstração"; "SEMAFOROS" -> "Semáforos · demonstração"; else -> "Assistência de condução" }
+        val subtitle = when (section) { "MIDIA" -> "Gravações e clipes protegidos, organizados em um só lugar."; "EVENTOS" -> "Consulte os registros locais da sua condução."; "RADARES" -> "Gerencie os pontos cadastrados no seu GPS."; "CONFIG" -> "Consulte as fontes disponíveis e informações do aparelho."; else -> "Informações e controles do assistente." }
+        page = CommercialPage(this, title, subtitle)
+        when (section) {
+            "MIDIA" -> mediaPage(page.body)
+            "EVENTOS" -> eventsPage(page.body)
+            "RADARES" -> radarPage(page.body)
+            "CONFIG" -> devicePage(page.body)
+            else -> detectionPage(page.body, section)
+        }
+        page.show()
+    }
+    private fun live() { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)) }
+    private fun detectionPage(parent: LinearLayout, section: String) {
+        if (section == "ADAS") {
+            val lanes = page.card("Assistente de faixa", "Faixas e área dirigível são analisadas por uma rede neural local. Alertas exigem GPS, calibração e resultados recentes.", "lane")
+            lanes.addView(page.action("Abrir LIVE para calibrar") { live() })
+            val objects = page.card("Veículos e pedestres", "Detecções locais alimentam caixas e avisos experimentais. O aviso de pedestre exige confirmação e suporte da área dirigível.", "car")
+            objects.addView(page.action("Ajustar o assistente") { startActivity(Intent(this, SettingsActivity::class.java).putExtra("section", "FAIXAS")) })
+            page.pair(parent, lanes, objects)
+            page.note(parent, "Funcionamento e desempenho na central ainda precisam de validação física. Alertas de ciclistas continuam pendentes.")
+            return
+        }
+        page.note(parent, "Demonstração: reconhecimento automático destas placas/sinais ainda não está implementado. Os avisos abaixo são registrados como TESTE.", true)
+        val choices = if (section == "PLACAS") listOf("Limite de velocidade" to "Atenção. Velocidade acima do limite.", "Placa PARE" to "Atenção! Placa de parada obrigatória.", "Entrada proibida" to "Atenção! Entrada proibida.")
+            else listOf("Semáforo fechado" to "Atenção. Semáforo fechado.", "Semáforo amarelo" to "Atenção. Semáforo amarelo.", "Semáforo aberto" to "Semáforo aberto.")
+        choices.forEach { (label, voice) ->
+            val card = page.card(label, "Aviso demonstrativo, sem detecção automática.", if (section == "SEMAFOROS") "traffic" else "warning")
+            card.addView(page.action("Testar popup") { events.add(label, "Aviso demonstrativo: $voice"); audio.announce(voice, true); showTestBanner(label, voice) })
+            page.addCard(parent, card)
+        }
+    }
+    private fun radarPage(parent: LinearLayout) {
+        val radars = RadarStore(this).all()
+        val overview = page.card("${radars.size} pontos cadastrados", "A base é local, com pontos GPS adicionados manualmente.", "radar_wave")
+        overview.addView(page.action("Gerenciar radares na LIVE") { live() }); page.addCard(parent, overview)
+        if (radars.isEmpty()) page.note(parent, "Nenhum radar cadastrado. Na LIVE, use o botão RADARES para adicionar um ponto.")
+        radars.forEach {
+            val title = when (it.type) { "fixo" -> "Radar fixo"; "movel" -> "Radar móvel"; "semaforo" -> "Radar semafórico"; else -> "Radar cadastrado" }
+            page.addCard(parent, page.card(title, "${it.limit} km/h · ${it.lat}, ${it.lon}", "radar"))
+        }
+    }
+    private fun eventsPage(parent: LinearLayout) {
+        val data = events.all()
+        val summary = page.card("${data.length()} registros", "Histórico local. Avisos de teste mantêm sua identificação de origem.", "folder")
+        if (data.length() > 0) summary.addView(page.action("Limpar histórico") {
+            NeonDialogs.Builder(this).setTitle("Excluir eventos locais?").setMessage("Esta ação remove os registros do histórico.")
+                .setNegativeButton("Cancelar", null).setPositiveButton("Excluir") { _, _ -> events.clear(); recreate() }.show()
+        })
+        page.addCard(parent, summary)
+        if (data.length() == 0) page.note(parent, "Seu histórico está vazio. Os eventos registrados pelo aplicativo aparecerão aqui.")
+        val date = SimpleDateFormat("dd/MM · HH:mm:ss", Locale("pt", "BR"))
+        for (index in data.length() - 1 downTo 0) {
+            val entry = data.optJSONObject(index) ?: continue
+            val source = entry.optString("origem", "Origem indisponível")
+            val time = entry.optLong("timestamp", 0)
+            val card = page.card(entry.optString("tipo", "Evento"), "${if (time > 0) date.format(Date(time)) else "Horário indisponível"} · $source", "warning")
+            card.addView(page.label(entry.optString("detalhes"), 14f, CommercialPage.MUTED))
+            page.addCard(parent, card)
+        }
+    }
+    private fun mediaPage(parent: LinearLayout) {
+        page.note(parent, "Seus vídeos ficam no armazenamento do aplicativo, sem sincronização com nuvem.")
+        listOf("clips" to "Gravações", "protegidos" to "Clipes protegidos").forEach { (folder, title) ->
+            val directory = getExternalFilesDir(null)?.let { File(it, folder) }
+            val files = directory?.listFiles()?.filter { it.isFile && it.extension == "mp4" && !File(it.parentFile, it.name + ".lock").exists() }?.sortedByDescending { it.lastModified() } ?: emptyList()
+            val card = page.card(title, "${files.size} vídeo(s)${if (folder == "protegidos") " · preservados na limpeza automática" else ""}", "media")
+            if (files.isEmpty()) card.addView(page.label("Nenhum vídeo finalizado nesta pasta.", 14f, CommercialPage.MUTED))
+            files.forEach { file ->
+                val date = SimpleDateFormat("dd/MM · HH:mm", Locale("pt", "BR")).format(Date(file.lastModified()))
+                val size = String.format(Locale("pt", "BR"), "%.1f MB", file.length() / 1_000_000.0)
+                card.addView(page.action("$date  ·  $size\n${file.name}") {
+                    val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.clips", file)
+                    try { startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, "video/mp4").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
+                    catch (_: Exception) { NeonDialogs.Builder(this).setTitle("Abrir vídeo").setMessage("Instale um reprodutor de vídeo compatível para abrir este clipe.").setPositiveButton("OK", null).show() }
+                }.apply { textSize = 13f; setPadding(page.dp(12), page.dp(12), page.dp(12), page.dp(12)) }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = page.dp(8) })
+            }
+            page.addCard(parent, card)
+        }
+    }
+    private fun devicePage(parent: LinearLayout) {
+        val camera = page.card("Fontes de câmera", "Selecione a fonte disponível na LIVE. A autorização USB específica depende do perfil e da versão Android.", "camera")
+        camera.addView(page.action("Selecionar câmera na LIVE") { live() })
+        if (BuildConfig.K2000_NATIVE && android.os.Build.VERSION.SDK_INT in 24..27) camera.addView(page.action("Autorizar câmera USB") { startActivity(Intent(this, NativeUsbActivity::class.java)) })
+        page.addCard(parent, camera)
+        val report = DeviceCapabilities.inspect(this)
+        val device = page.card("${report.manufacturer} ${report.model}", "Android ${android.os.Build.VERSION.RELEASE} · API ${report.sdk}", "device")
+        val details = page.label(report.asText(), 13f, CommercialPage.MUTED).apply { visibility = android.view.View.GONE }
+        device.addView(page.action("Mostrar diagnóstico") { details.visibility = if (details.visibility == android.view.View.VISIBLE) android.view.View.GONE else android.view.View.VISIBLE })
+        device.addView(details); page.addCard(parent, device)
+    }
+    private fun showTestBanner(label: String, voice: String) {
+        activeBanner?.dismiss()
+        val icon = when { label.contains("Semáforo", true) -> "traffic"; label.contains("Pedestre", true) -> "pedestrian"; label.contains("Ciclista", true) -> "cyclist"; label.contains("faixa", true) -> "lane"; label.contains("colisão", true) -> "car"; else -> "warning" }
+        val banner = EventPopupView(this, page.visuals).apply { presentation = EventPresentation("TESTE • ${label.uppercase(Locale("pt", "BR"))}", voice, icon, true) }
+        val width = (resources.displayMetrics.widthPixels * .64f).toInt()
+        val popup = PopupWindow(banner, width, (width * 194f / 752f).toInt(), false)
+        popup.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)); popup.isOutsideTouchable = false
+        activeBanner = popup; popup.showAtLocation(page.root, Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, page.dp(32))
+        bannerHandler.postDelayed({ if (activeBanner === popup) { popup.dismiss(); activeBanner = null } }, 3500)
+    }
+    override fun onResume() { super.onResume(); CommercialUi.applyAppearance(this) }
+    override fun onDestroy() { activeBanner?.dismiss(); bannerHandler.removeCallbacksAndMessages(null); if (::audio.isInitialized) audio.release(); super.onDestroy() }
 }
