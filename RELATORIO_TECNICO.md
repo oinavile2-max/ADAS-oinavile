@@ -1,6 +1,6 @@
 # DashCam ADAS PRO — 3.3: rede neural ativa e serviço USB
 
-Data: 12/10/2026. versionCode 33; minSdk 24, targetSdk 35. Android 7.1 informado para a K2000N; CPU, VID/PID e combinação driver/encoder ainda não foram medidos no hardware.
+Data: 12/10/2026. versionCode 33; minSdk 24, targetSdk 35. Identificação corrigida pelo usuário: NWD K2001N, Android 7.1.1 (API 25); CPU, VID/PID e combinação driver/encoder ainda não foram medidos no hardware.
 
 ## Rede neural de faixas
 
@@ -24,14 +24,18 @@ Captura, duas redes e gravação pertencem ao serviço foreground, sem superfíc
 
 73 testes JVM, sem falhas/erros/skips. Incluem execução do modelo real em CPU pelo mesmo RoadNeuralSession, rejeição de pesos alterados, letterbox/RGB/NCHW, padding, valores não finitos/fora da faixa, tolerância numérica, quadro uniforme, suporte de estrada, marcações tracejadas com lacunas e conversão RGBA com strides/crop. Os testes geométricos sintéticos não medem precisão em estrada.
 
-A reprodução real do vídeo usa SSD TensorFlow Lite e RoadNeuralSession/AdasEngine compartilhados com o app. Resultados: 82 quadros e execuções neurais; 66 quadros com candidatos a curvas; 7 pares confirmados pelo critério interno; três candidatos a veículos. Sem GPS/calibração, nenhum risco crítico. A versão anterior registrou zero pares. Não há ground truth, portanto não é possível calcular precisão/recall ou afirmar prontidão comercial. Estatísticas de tempo medem o host, não a K2000N.
+A reprodução real do vídeo usa SSD TensorFlow Lite e RoadNeuralSession/AdasEngine compartilhados com o app. Resultados: 82 quadros e execuções neurais; 66 quadros com candidatos a curvas; 7 pares confirmados pelo critério interno; três candidatos a veículos. Sem GPS/calibração, nenhum risco crítico. A versão anterior registrou zero pares. Não há ground truth, portanto não é possível calcular precisão/recall ou afirmar prontidão comercial. Estatísticas de tempo medem o host, não a NWD K2001N.
 
 Build/lint, assinaturas, empacotamento de ABI/JNI e checksums são conferidos na entrega. O runtime para computador está somente no escopo de testes; libs JNI do APK são comprimidas para manter o APK genérico abaixo do limite de arquivo do GitHub. Logs e resultados atuais estão em relatorios/3_3; os relatórios anteriores são históricos.
 
-A inspeção ELF identificou alinhamento de 4096 bytes na ponte libonnxruntime4j_jni.so ARM64 do ONNX Runtime 1.20.0. Assim, o APK genérico não suporta dispositivos com páginas de memória de 16 KB, embora passe na verificação de alinhamento ZIP. O perfil K2000N contém somente ARM32 e se destina a Android 7/8. Detalhes por biblioteca e APK estão em relatorios/3_3/apks-verificacao.json.
+A inspeção ELF identificou alinhamento de 4096 bytes na ponte libonnxruntime4j_jni.so ARM64 do ONNX Runtime 1.20.0. Assim, o APK genérico não suporta dispositivos com páginas de memória de 16 KB, embora passe na verificação de alinhamento ZIP. O perfil com identificador histórico K2000N contém somente ARM32 e se destina a Android 7/8. Detalhes por biblioteca e APK estão em relatorios/3_3/apks-verificacao.json.
 
 ## Pendências externas e limites
 
-Nenhum Android conectado via ADB. GPS, áudio/FM, renderização, consumo de RAM/temperatura, taxa de inferência em ARM32, imagem do driver e gravação/tela apagada na K2000N não foram executados. O helper de hardware agora exige avanço das duas redes em segundo plano e examina o vídeo real; --native-usb exige fonte USB previamente autorizada e --require-realtime verifica o orçamento de 500 ms.
+Nenhum Android conectado via ADB. GPS, áudio/FM, renderização, consumo de RAM/temperatura, taxa de inferência em ARM32, imagem do driver e gravação/tela apagada na NWD K2001N não foram executados. O helper de hardware agora exige avanço das duas redes em segundo plano e examina o vídeo real; --native-usb exige fonte USB previamente autorizada e --require-realtime verifica o orçamento de 500 ms.
 
 YOLOP preserva a licença MIT oficial e a proveniência do grafo; seus dados de treinamento não tiveram auditoria independente de todos os termos comerciais. SSD preserva Apache-2.0. A autorização comercial da biblioteca do APK fornecido segue não verificada. Pedestres/ciclistas/placas/semáforos com alertas completos não foram integrados nesta revisão. FCW continua uma estimativa temporal de expansão de caixa, não uma distância métrica certificada.
+
+## Alternativa de instalação NWD K2001N — assinaturas V1/V2
+
+O usuário relatou falha de instalação sem fornecer ainda a mensagem exata ou o arquivo tentado. A inspeção do APK ARM32 3.3 confirmou minSdk 24, versão 33, ABI armeabi-v7a e assinatura V2 válida para API 25. A ausência de V1 não invalida o APK para Android 7.1.1 padrão. Foi preparada uma alternativa com V1 e V2 para ampliar a compatibilidade com instaladores OEM antigos, mantendo versão e certificado. Isso não resolve automaticamente conflito de certificado, downgrade, API/ABI divergente ou download truncado, e não demonstra instalação física. A configuração debug de compilação agora habilita os dois formatos.

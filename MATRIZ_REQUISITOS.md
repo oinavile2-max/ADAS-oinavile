@@ -573,7 +573,11 @@ Os estados Pendente/Parcial do inventário completo acima continuam sendo estado
 |---|---|---|
 | Rede neural de faixas | YOLOP pré-treinado executado no Android e no teste compartilhado; máscaras de faixas/área dirigível | Precisão/recall e desempenho na central |
 | Faixas tracejadas/curvas | Âncoras por lado, suporte apenas observado e estrada adjacente; sete pares no vídeo | Anotações de referência, calibração física e condução |
-| USB alimentando IA | ImageReader RGBA do driver para os mesmos modelos no serviço | Compatibilidade física com VID/PID da K2000N |
+| USB alimentando IA | ImageReader RGBA do driver para os mesmos modelos no serviço | Compatibilidade física com CPU/ABI e VID/PID da NWD K2001N |
 | Gravação USB independente da LIVE | EGL recordable do app para MediaRecorder/H264, segmentos e encerramento por perda de quadros | Arquivo real e continuidade/tela apagada na central |
 | Ativação/saúde da IA | Contadores de inferência real, mensagens de indisponibilidade/atraso e suspensão por limite de 500 ms | Latência/temperatura/RAM em ARM32 |
 | Validação | 73 testes, incluindo modelo neural real; 82 quadros do vídeo | Android real continua sem aparelho conectado |
+
+## Correção da identificação do hardware — 12/10/2026
+
+Central informada pelo usuário: **NWD K2001N, Android 7.1.1 (API 25)**. A referência anterior a K2000N/Android 7.1 foi corrigida. Os nomes históricos de APK/scripts e a opção k2000Native permanecem para preservar os downloads. API 25 já está na faixa do driver (24–27); a correção não comprova CPU/ABI, compatibilidade da câmera ou execução física.

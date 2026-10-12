@@ -15,3 +15,7 @@ Prévia USB experimental disponível na tela de teste; não integra ainda grava�
 ## Estado 3.3
 
 A nota de prévia isolada acima descreve a revisão 3.2. Na 3.3, a biblioteca continua byte a byte igual, mas seu render de prévia type=0/ID=hash da Surface alimenta ImageReader RGBA do serviço. As duas redes analisam esses quadros e um EGL recordable próprio alimenta MediaRecorder. Não se utiliza um tipo de encoder presumido do SDK. O código de integração foi compilado; carregamento/render/gravação com a câmera física continuam não executados.
+
+## Identificação corrigida do aparelho
+
+Em 12/10/2026, o usuário corrigiu a central para **NWD K2001N com Android 7.1.1 (API 25)**. O nome k2000Native é mantido somente como identificador de compilação histórico. A versão está dentro da faixa API 24–27 prevista; CPU/ABI e câmera continuam sem confirmação física.

@@ -4,6 +4,10 @@ android {
  namespace = "br.com.dashcamadas"
  compileSdk = 35
  buildFeatures { buildConfig = true }
+ signingConfigs.getByName("debug") {
+  enableV1Signing = true
+  enableV2Signing = true
+ }
  defaultConfig {
   applicationId = "br.com.dashcamadas"; minSdk = 24; targetSdk = 35; versionCode = 33
   versionName = if(k2000Native) "3.3.0-neural-usb-arm32-experimental" else "3.3.0-neural-adas-experimental"

@@ -1,0 +1,28 @@
+{
+  "apk": "DashCam_ADAS_PRO_3_3_NWD_K2001N_ARM32_V1_V2_DEBUG.apk",
+  "min_sdk": 24,
+  "target_sdk": 35,
+  "version_code": 33,
+  "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+  "signature_checks": [
+    {
+      "scheme": "v1",
+      "verifier_api_range": [
+        23,
+        23
+      ],
+      "verified": true
+    },
+    {
+      "scheme": "v2",
+      "verifier_api_range": [
+        25,
+        25
+      ],
+      "verified": true
+    }
+  ],
+  "note": "API 23 forced only to exercise the V1 verifier; APK still requires API >=24. API25 verifier selects V2.",
+  "installation_on_device_executed": false,
+  "reported_failure_cause": "unknown; exact error and attempted APK not yet supplied"
+}
