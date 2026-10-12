@@ -1,0 +1,18 @@
+{
+  "actual_ssd_inferences": 27,
+  "class_zero_person_candidates": [
+    {
+      "frame": "frame-16.jpg",
+      "confidence": 0.5,
+      "box_yxyx": [
+        0.6151681542396545,
+        0.5905939936637878,
+        0.7188892960548401,
+        0.63454669713974
+      ]
+    }
+  ],
+  "reference_labels_available": false,
+  "android_execution": false,
+  "warning_logic_executed": false
+}

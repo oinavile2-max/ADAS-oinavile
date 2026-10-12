@@ -388,23 +388,24 @@ class DashCamForegroundService:Service() {
                     if(oriented.width<oriented.height){engine.reset();publish(state.copy(message="Gire a câmera para a estrada horizontal; ADAS suspenso"));return@execute}
                     val masks=laneNetwork?.detect(oriented)
                     if(masks!=null)laneInferences++
-                    val vehicles=detector?.detect(oriented).orEmpty()
+                    val scene=detector?.detectScene(oriented) ?: SceneDetections(emptyList(),emptyList())
+                    val vehicles=scene.vehicles
                     if(detector!=null)vehicleInferences++
                     val prefs=getSharedPreferences("adas_calibration",MODE_PRIVATE)
                     val calibration=Calibration(prefs.getBoolean("enabled_$cameraId",false),prefs.getFloat("ego_$cameraId",.5f),prefs.getFloat("vehicle_width_$cameraId",1.8f),prefs.getFloat("lane_width_$cameraId",3.5f))
                     val settings=getSharedPreferences("adas_tuning",MODE_PRIVATE)
-                    engine.configure(RiskTuning(settings.getFloat("ldw_kmh",30f).coerceIn(10f,100f)/3.6f,settings.getFloat("fcw_ttc",2.5f).coerceIn(1f,5f),settings.getLong("confirm_ms",900).coerceIn(300,2000),settings.getLong("cooldown_ms",10000).coerceIn(5000,60000)))
+                    engine.configure(RiskTuning(settings.getFloat("ldw_kmh",30f).coerceIn(10f,100f)/3.6f,settings.getFloat("fcw_ttc",2.5f).coerceIn(1f,5f),settings.getLong("confirm_ms",900).coerceIn(300,2000),settings.getLong("cooldown_ms",10000).coerceIn(5000,60000),settings.getInt("lane_sensitivity",50).coerceIn(0,100)))
                     val actualMask=masks ?: NeuralMasks(320,180,IntArray(320*180),BooleanArray(320*180),0,0)
                     val observed=engine.observeNeural(actualMask,if(calibration.valid)calibration.egoX else .5f)
                     inferenceMs=SystemClock.elapsedRealtime()-now
-                    val outcome=engine.evaluateNeural(actualMask,observed,vehicles,now,if(inferenceMs<=500) DrivingContext.speed() else null,calibration)
+                    val outcome=engine.evaluateNeural(actualMask,observed,vehicles,now,if(inferenceMs<=500) DrivingContext.speed() else null,calibration,scene.pedestrians)
                     val laneResult=outcome.lanes
                     val evaluated=outcome.risk
-                    val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now,masks!=null,detector!=null,inferenceMs,actualMask.lanePixels,actualMask.roadPixels)
+                    val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now,masks!=null,detector!=null,inferenceMs,actualMask.lanePixels,actualMask.roadPixels,scene.pedestrians)
                     if(epoch!=generation || closing)return@execute
                     processedFrames++
                     for(kind in evaluated.newAlerts) {
-                        val message=when(kind){Risk.COLLISION->"Atenção! Risco de colisão à frente!";Risk.LEFT_DEPARTURE->"Atenção! Saída de faixa à esquerda!";Risk.RIGHT_DEPARTURE->"Atenção! Saída de faixa à direita!"}
+                        val message=when(kind){Risk.PEDESTRIAN->"Atenção! Pedestre à frente!";Risk.COLLISION->"Atenção! Risco de colisão à frente!";Risk.LEFT_DEPARTURE->"Atenção! Saída de faixa à esquerda!";Risk.RIGHT_DEPARTURE->"Atenção! Saída de faixa à direita!"}
                         main.post{if(epoch==generation && !closing){audio?.announce(message,true);callback?.onAlert(message);EventStore(this).add(kind.name,"Risco estimado por visão; câmera $cameraId","VISION / EXPERIMENTAL",true)}}
                         cameraHandler.post{if(epoch==generation && isRecording)rotateSegment(true)}
                     }

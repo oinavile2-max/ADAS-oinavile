@@ -581,3 +581,16 @@ Os estados Pendente/Parcial do inventário completo acima continuam sendo estado
 ## Correção da identificação do hardware — 12/10/2026
 
 Central informada pelo usuário: **NWD K2001N, Android 7.1.1 (API 25)**. A referência anterior a K2000N/Android 7.1 foi corrigida. Os nomes históricos de APK/scripts e a opção k2000Native permanecem para preservar os downloads. API 25 já está na faixa do driver (24–27); a correção não comprova CPU/ABI, compatibilidade da câmera ou execução física.
+
+## Revisão de referência vermelha — sem build
+
+| Requisito | Implementado no código | Validação restante |
+|---|---|---|
+| Popups com neon vermelho | HUD, evento real/teste, diálogos, listas e avisos via componentes comuns | Android e comparação visual |
+| Alvo na tela direita | Mesmo bitmap, foco limitado e caixa vermelha sincronizada com o risco | Android/câmera real |
+| Assistente nas referências | Curvas/corredor/seta ciano e marcador do veículo azul/vermelho | Capturas Android; nenhuma distância em metros inventada |
+| Sensibilidade/espessura | Margem LDW 0–100% e desenho 1–12 dp persistidos | Novos testes preparados, não executados |
+| Pessoa por IA real | Classe 0 do SSD ligada a geometria/máscara/tempo/GPS/calibração | Novo fluxo de alerta não compilado/testado em Android |
+| Regra máxima de build | Hashes dos modelos e teste JVM de inferência real obrigatórios antes de empacotar | Dependências Gradle não executadas nesta revisão |
+
+O ensaio adicional do SSD no host executou 27 inferências reais; um candidato pessoa com confiança 0,5 não satisfaz o limiar de aviso 0,6. Não mede precisão. Nenhum novo APK foi produzido.

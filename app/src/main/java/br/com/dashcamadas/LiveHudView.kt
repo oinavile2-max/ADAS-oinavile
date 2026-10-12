@@ -47,14 +47,15 @@ class LiveHudView(context: Context, private val visuals: PremiumVisuals) : View(
     override fun onSensorChanged(event:SensorEvent){if(event.values.all{it.isFinite()}){lastSensorNanos=event.timestamp;invalidate()}}
     override fun onAccuracyChanged(sensor:Sensor?,accuracy:Int){}
     override fun onDetachedFromWindow(){stopSensors();super.onDetachedFromWindow()}
+    init { setLayerType(LAYER_TYPE_SOFTWARE,null) }
     override fun onDraw(canvas:Canvas){
         super.onDraw(canvas)
         val scale=minOf(width/514f,height/146f);if(scale<=0f)return
         canvas.save();canvas.translate((width-514f*scale)/2,(height-146f*scale)/2);canvas.scale(scale,scale)
         paint.style=Paint.Style.FILL;paint.shader=LinearGradient(0f,1f,0f,144f,intArrayOf(Color.argb(242,39,57,75),Color.argb(242,9,18,29),Color.argb(245,6,20,34)),floatArrayOf(0f,.38f,1f),Shader.TileMode.CLAMP)
-        canvas.drawRoundRect(RectF(1f,1f,513f,144f),27f,27f,paint)
-        paint.shader=null;paint.color=Color.rgb(101,112,126);paint.style=Paint.Style.STROKE;paint.strokeWidth=1.2f
-        canvas.drawRoundRect(RectF(1f,1f,513f,144f),27f,27f,paint)
+        canvas.drawRoundRect(RectF(8f,8f,506f,138f),24f,24f,paint)
+        paint.shader=null;paint.color=PremiumVisuals.RED;paint.style=Paint.Style.STROKE;paint.strokeWidth=2.4f;paint.setShadowLayer(7f,0f,0f,PremiumVisuals.RED)
+        canvas.drawRoundRect(RectF(8f,8f,506f,138f),24f,24f,paint);paint.clearShadowLayer()
         val gauge=requireNotNull(PathParser.createPathFromPathData("M35 116 A60 60 0 0 1 124 34"))
         paint.color=Color.rgb(57,67,77);paint.strokeWidth=6f;canvas.drawPath(gauge,paint)
         val measure=PathMeasure(gauge,false);val progress=Path()

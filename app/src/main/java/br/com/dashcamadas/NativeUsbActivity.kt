@@ -28,7 +28,7 @@ class NativeUsbActivity:Activity(){
     override fun onCreate(state:Bundle?){
         super.onCreate(state);manager=getSystemService(UsbManager::class.java)
         val root=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(24,16,24,16);setBackgroundColor(Color.rgb(5,16,29))}
-        root.addView(TextView(this).apply{text="CÂMERA USB — K2000N ARM32";textSize=22f;setTextColor(Color.CYAN)})
+        root.addView(TextView(this).apply{text="CÂMERA USB — NWD K2001N ARM32";textSize=22f;setTextColor(Color.CYAN)})
         root.addView(TextView(this).apply{text="Autorize a câmera e abra a LIVE para rede neural de faixas/veículos e REC. A mudança de fonte finaliza eventual clipe Camera2. Compatibilidade USB precisa de teste nesta central.";textSize=17f;setTextColor(Color.WHITE)})
         status=TextView(this).apply{text="Selecione sua câmera USB";setTextColor(Color.CYAN)}
         root.addView(status)
@@ -45,7 +45,7 @@ class NativeUsbActivity:Activity(){
         val suggested=intent.getStringExtra("device_name")
         val device=devices.firstOrNull{it.deviceName==suggested}
         if(device!=null){authorize(device);return}
-        AlertDialog.Builder(this).setTitle("Selecionar câmera USB")
+        NeonDialogs.Builder(this).setTitle("Selecionar câmera USB")
             .setItems(devices.map{"VID %04X / PID %04X".format(it.vendorId,it.productId)}.toTypedArray()){_,i->authorize(devices[i])}
             .setNegativeButton("Cancelar",null).show()
     }

@@ -54,18 +54,18 @@ class MainActivity : Activity() {
             updateHud();showStatus(state.message)
             if(!state.connected || state.message.startsWith("Sem quadros")) {
                 texture.frame=null;laneOverlay.result=null;latestVision=null
-                auxiliaryPreview.frame=null;auxiliaryOverlay.result=null
+                auxiliaryPreview.frame=null;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
                 auxiliaryPlaceholder.visibility=View.VISIBLE
                 cameraPlaceholder.visibility=View.VISIBLE
             }
-            if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;auxiliaryOverlay.result=null;latestVision=null}
+            if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;auxiliaryOverlay.result=null;auxiliaryPreview.focusBox=null;latestVision=null}
         }
         override fun onPreview(bitmap:android.graphics.Bitmap,timestampMs:Long) {
             val analyzed=latestVision
             if(analyzed!=null && SystemClock.elapsedRealtime()-analyzed.timestampMs<1200)return
             texture.timestampMs=timestampMs;texture.frame=bitmap
             laneOverlay.result=null
-            auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryOverlay.result=null
+            auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
             auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
@@ -73,13 +73,19 @@ class MainActivity : Activity() {
         override fun onFrame(frame:VisionFrame) {
             if(SystemClock.elapsedRealtime()-frame.timestampMs>1200 || (latestVision?.timestampMs ?: -1)>frame.timestampMs)return
             latestVision=frame
+            if(::alertPopup.isInitialized && alertPopup.presentation.critical && frame.risk.risks.isEmpty())alertPopup.visibility=View.GONE
             // Display the analyzed bitmap with its own detections; no old boxes on a new image.
             texture.timestampMs=frame.timestampMs;texture.frame=frame.bitmap;laneOverlay.result=frame
             auxiliaryPreview.timestampMs=frame.timestampMs;auxiliaryPreview.frame=frame.bitmap;auxiliaryOverlay.result=frame
+            auxiliaryPreview.focusBox=when{
+                br.com.dashcamadas.vision.Risk.PEDESTRIAN in frame.risk.risks->frame.risk.pedestrianTarget?.box
+                br.com.dashcamadas.vision.Risk.COLLISION in frame.risk.risks->frame.risk.target?.box
+                else->null
+            }
             auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
-            showStatus(if(!frame.laneNetworkActive)"Rede neural de faixas indisponível" else if(frame.inferenceMs>500)"IA ativa, ${frame.inferenceMs} ms — alarmes suspensos por atraso" else if(!frame.vehicleNetworkActive)"IA de faixas ativa · veículos indisponíveis" else "IA ativa · ${frame.inferenceMs} ms · faixas e veículos")
+            showStatus(if(!frame.laneNetworkActive)"Rede neural de faixas indisponível" else if(frame.inferenceMs>500)"IA ativa, ${frame.inferenceMs} ms — alarmes suspensos por atraso" else if(!frame.vehicleNetworkActive)"IA de faixas ativa · veículos e pessoas indisponíveis" else "IA ativa · ${frame.inferenceMs} ms · faixas, veículos e pessoas")
             updateHud()
         }
         override fun onAlert(message:String){showPremiumAlert(EventPresentation.adas(message))}
@@ -381,8 +387,8 @@ class MainActivity : Activity() {
     }
 
     private fun showCameraControls(){
-        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia")
-        AlertDialog.Builder(this).setTitle("Câmera").setItems(options){_,which->when(which){
+        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia","Sensibilidade e espessura das faixas")
+        NeonDialogs.Builder(this).setTitle("Câmera").setItems(options){_,which->when(which){
             0->chooseCamera()
             1->cycleCameraRotation()
             2->{cameraMirror=!cameraMirror;selectedId?.let { orientationPrefs().edit().putBoolean("mirror_$it",cameraMirror).apply() };updateCameraTransform()}
@@ -390,6 +396,7 @@ class MainActivity : Activity() {
             4->if(recording)stopRecording() else startRecording()
             5->protectCurrentClip()
             6->toggleFullscreen()
+            7->startActivity(Intent(this,SettingsActivity::class.java).putExtra("section","FAIXAS"))
         }}.setNegativeButton("Fechar",null).show()
     }
 
@@ -445,7 +452,7 @@ class MainActivity : Activity() {
             }
             val all=ids.toList()+usbIds
             val labels=cameraLabels+usbIds.map{"USB NATIVO • "+it.removePrefix("usb:")}
-            AlertDialog.Builder(this).setTitle("Selecionar câmera disponível").setItems(labels.toTypedArray()){_,which->
+            NeonDialogs.Builder(this).setTitle("Selecionar câmera disponível").setItems(labels.toTypedArray()){_,which->
                 val id=all[which]
                 if(id.startsWith("usb:"))startActivity(Intent(this,NativeUsbActivity::class.java).putExtra("device_name",id.removePrefix("usb:")))
                 else {selectedId=id;openCamera(id);getSharedPreferences("camera",MODE_PRIVATE).edit().putString("preferred",id).apply()}
@@ -465,7 +472,7 @@ class MainActivity : Activity() {
 
     private fun showCompatibilityReport() {
         val report = DeviceCapabilities.inspect(this)
-        AlertDialog.Builder(this)
+        NeonDialogs.Builder(this)
             .setTitle("Compatibilidade do dispositivo")
             .setMessage(report.asText())
             .setPositiveButton("Fechar", null)
@@ -545,10 +552,10 @@ class MainActivity : Activity() {
         val center=field("Centro no quadro completo (0,15 a 0,85; confira montagem)",if(cameraMirror)1f-observed else observed)
         val vehicle=field("Largura real do veículo (metros)",prefs.getFloat("vehicle_width_$id",1.8f))
         val lane=field("Largura de referência da faixa (metros)",prefs.getFloat("lane_width_$id",3.5f))
-        val dialog=AlertDialog.Builder(this).setTitle("Calibrar LDW / FCW").setView(box)
+        val dialog=NeonDialogs.Builder(this).setTitle("Calibrar LDW / FCW").setView(box)
             .setNegativeButton("Cancelar",null).setNeutralButton("Desativar alarmes"){_,_->prefs.edit().putBoolean("enabled_$id",false).apply()}
             .setPositiveButton("Confirmar medidas",null).create()
-        dialog.setOnShowListener{dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
+        dialog.setOnShowListener{NeonDialogs.decorate(dialog);dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
             val displayCenter=center.text.toString().replace(',','.').toFloatOrNull() ?: -1f
             val calibration=br.com.dashcamadas.vision.Calibration(true,if(cameraMirror)1f-displayCenter else displayCenter,vehicle.text.toString().replace(',','.').toFloatOrNull() ?: -1f,lane.text.toString().replace(',','.').toFloatOrNull() ?: -1f)
             if(!calibration.valid){showStatus("Medidas inválidas; calibração não salva");return@setOnClickListener}
@@ -591,11 +598,11 @@ class MainActivity : Activity() {
         val limits = arrayOf("30", "40", "50", "60", "70", "80", "90", "100", "110", "120")
         val types = arrayOf("fixo", "semaforo", "movel")
         val wrapper = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(22,8,22,8) }
-        val limit = Spinner(this).apply { adapter = ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,limits);setSelection(3) }
-        val type = Spinner(this).apply { adapter = ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,types) }
+        val limit = Spinner(NeonDialogs.themed(this),Spinner.MODE_DROPDOWN).apply { adapter = ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,limits);setSelection(3) }
+        val type = Spinner(NeonDialogs.themed(this),Spinner.MODE_DROPDOWN).apply { adapter = ArrayAdapter(this@MainActivity,android.R.layout.simple_spinner_dropdown_item,types) }
         wrapper.addView(TextView(this).apply {text="Limite (km/h)"});wrapper.addView(limit)
         wrapper.addView(TextView(this).apply {text="Tipo"});wrapper.addView(type)
-        AlertDialog.Builder(this).setTitle("Adicionar radar neste GPS").setView(wrapper)
+        NeonDialogs.Builder(this).setTitle("Adicionar radar neste GPS").setView(wrapper)
             .setNegativeButton("Cancelar",null).setPositiveButton("Salvar") { _, _ ->
                 radarStore.add(loc,limits[limit.selectedItemPosition].toInt(),types[type.selectedItemPosition])
                 showStatus("Radar salvo localmente • ${radarStore.all().size} ponto(s)")
@@ -605,9 +612,9 @@ class MainActivity : Activity() {
     private fun listRadars() {
         val items=radarStore.all()
         if (items.isEmpty()) {showStatus("Não há radares cadastrados");return}
-        AlertDialog.Builder(this).setTitle("Radares — toque para excluir")
+        NeonDialogs.Builder(this).setTitle("Radares — toque para excluir")
             .setItems(items.map { "${it.type} ${it.limit} km/h • %.5f, %.5f".format(Locale.US,it.lat,it.lon) }.toTypedArray()) { _, index ->
-                AlertDialog.Builder(this).setTitle("Excluir radar?").setNegativeButton("Cancelar",null)
+                NeonDialogs.Builder(this).setTitle("Excluir radar?").setNegativeButton("Cancelar",null)
                     .setPositiveButton("Excluir") { _, _ -> radarStore.remove(items[index].id); showStatus("Radar excluído") }.show()
             }.setNegativeButton("Fechar",null).show()
     }

@@ -51,7 +51,7 @@ class PremiumSectionActivity:Activity() {
   if(section=="ADAS") {
    note(p,"Redes neurais locais detectam faixas/área dirigível e veículos. Camera2 e USB autorizado no APK ARM32 alimentam a mesma LIVE e gravação em serviço. Alertas LDW/FCW são experimentais e exigem calibração, GPS válido e resultados recentes.")
    item(p,"ABRIR LIVE — CALIBRAR NO BOTÃO ADAS") {startActivity(Intent(this,MainActivity::class.java))}
-   note(p,"Reconhecimento com alertas de pedestres e ciclistas ainda não integrado.")
+   note(p,"A classe pessoa do SSD agora alimenta caixas e aviso experimental de pedestre na área dirigível, com GPS, calibração e confirmação temporal. Fluxo novo ainda sem build e sem teste físico. Alertas de ciclistas continuam pendentes.")
    return
   }
   note(p,"Reconhecimento automático por IA: NÃO IMPLEMENTADO. Os botões abaixo simulam o aviso e registram como TESTE, nunca como infração real.")
@@ -70,19 +70,12 @@ class PremiumSectionActivity:Activity() {
  private val bannerHandler = android.os.Handler(android.os.Looper.getMainLooper())
  private fun showTestBanner(label: String, voice: String) {
   activeBanner?.dismiss()
-  val urgent = label.contains("colisão",true) || label.contains("Pedestre",true) || label.contains("fechado",true)
-  val color = if (urgent) Color.rgb(255,82,91) else Color.rgb(255,187,66)
-  val background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-   intArrayOf(Color.rgb(70,48,29),Color.rgb(17,25,40))).apply {
-    cornerRadius=22f;setStroke(3,color)
-  }
-  val banner = TextView(this).apply {
-   text="TESTE • ${label.uppercase()}\n$voice"
-   textSize=18f;setTextColor(Color.WHITE);gravity=Gravity.CENTER
-   setPadding(24,14,24,14);this.background=background
-  }
-  val popup=PopupWindow(banner,(resources.displayMetrics.widthPixels*0.64f).toInt(),
-   (resources.displayMetrics.heightPixels*0.23f).toInt(),false)
+  val visuals=PremiumVisuals(this)
+  val icon=when { label.contains("Semáforo",true)->"traffic";label.contains("Pedestre",true)->"pedestrian";label.contains("Ciclista",true)->"cyclist";label.contains("faixa",true)->"lane";label.contains("colisão",true)->"car";else->"warning" }
+  val banner=EventPopupView(this,visuals).apply { presentation=EventPresentation("TESTE • ${label.uppercase()}",voice,icon,true) }
+  val width=(resources.displayMetrics.widthPixels*.64f).toInt()
+  val popup=PopupWindow(banner,width,(width*194f/752f).toInt(),false)
+  popup.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
   popup.isOutsideTouchable=false
   activeBanner=popup
   popup.showAtLocation(root,Gravity.TOP or Gravity.CENTER_HORIZONTAL,0,32)
@@ -97,7 +90,7 @@ class PremiumSectionActivity:Activity() {
  private fun eventsPage(p:LinearLayout){
   note(p,"Histórico local de eventos. Avisos de teste são explicitamente marcados como MANUAL / TESTE.")
   val rows=events.lines();if(rows.isEmpty())note(p,"Nenhum evento registrado.") else rows.forEach{note(p,it)}
-  item(p,"LIMPAR HISTÓRICO") {AlertDialog.Builder(this).setTitle("Excluir eventos locais?").setNegativeButton("Cancelar",null).setPositiveButton("Excluir"){_,_->events.clear();recreate()}.show()}
+  item(p,"LIMPAR HISTÓRICO") {NeonDialogs.Builder(this).setTitle("Excluir eventos locais?").setNegativeButton("Cancelar",null).setPositiveButton("Excluir"){_,_->events.clear();recreate()}.show()}
  }
  private fun mediaPage(p:LinearLayout){
   note(p,"Gravações armazenadas no espaço privado do aplicativo. Não há sincronização com nuvem.")
@@ -107,12 +100,12 @@ class PremiumSectionActivity:Activity() {
    files.sortedByDescending{it.lastModified()}.forEach{file->item(p,file.name){
     val uri=androidx.core.content.FileProvider.getUriForFile(this, "$packageName.clips", file)
     try{startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,"video/mp4").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))}
-    catch(e:Exception){AlertDialog.Builder(this).setMessage("Sem reprodutor disponível: ${e.message}").setPositiveButton("OK",null).show()}
+    catch(e:Exception){NeonDialogs.Builder(this).setMessage("Sem reprodutor disponível: ${e.message}").setPositiveButton("OK",null).show()}
    }}
   }
  }
  private fun configPage(p:LinearLayout){
-  note(p,"K2000N / K2001N Android 7.1 e tablets. Resoluções e câmeras dependem do hardware.")
+  note(p,"NWD K2001N Android 7.1.1 e tablets. Resoluções e câmeras dependem do hardware.")
   val cm=getSystemService(Context.CAMERA_SERVICE) as CameraManager
   try {cm.cameraIdList.forEach{id->
    val chars=cm.getCameraCharacteristics(id)
@@ -124,7 +117,7 @@ class PremiumSectionActivity:Activity() {
   if(usb.deviceList.isEmpty())note(p,"Nenhum USB detectado pelo Android USB Host.")
   usb.deviceList.values.forEach{note(p,"USB VID=${it.vendorId} PID=${it.productId} • ${it.deviceName}")}
   item(p,"SELECIONAR CÂMERA / GRAVAR") {startActivity(Intent(this,MainActivity::class.java))}
-  item(p,"CONFIGURAR ÁUDIO E PADRÕES DE BIP") {startActivity(Intent(this,SettingsActivity::class.java))}
+  item(p,"AJUSTAR FAIXAS, ÁUDIO E BIPS") {startActivity(Intent(this,SettingsActivity::class.java))}
   if(BuildConfig.K2000_NATIVE)item(p,"AUTORIZAR USB — ABRIR LIVE COM IA") {startActivity(Intent(this,NativeUsbActivity::class.java))}
   note(p,if(BuildConfig.K2000_NATIVE)"USB integrado ao serviço de captura, rede neural e REC. Compatibilidade EGL/encoder precisa de teste físico nesta central." else "Para o driver USB enviado, use o APK K2000N ARM32 na central Android 7/8.")
  }

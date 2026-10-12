@@ -7,3 +7,5 @@ Repository license: Apache-2.0; copy included in MODEL_LICENSE_APACHE_2_0.txt.
 COCO labels: coco_labels.txt from the same official commit.
 Vehicle output categories (zero-based): car 2, bus 5, truck 7.
 This model is object detection, not safety certification, metric distance estimation or FCW by itself.
+
+Na revisão de neon vermelho sem build, a classe COCO zero-based 0 (pessoa) também é consumida do mesmo SSD. Pessoas são separadas de veículos no decoder; não é um novo modelo nem treinamento online. O novo aviso experimental exige máscara de área dirigível, confiança, confirmação temporal, GPS e calibração. Ver design/preview/ssd-pessoa-inferencia-host.json para o ensaio adicional do modelo real no host; funcionamento Android ainda não validado nesta revisão.

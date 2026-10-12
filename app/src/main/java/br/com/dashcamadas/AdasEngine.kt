@@ -27,8 +27,9 @@ class AdasEngine {
         val observed=laneDetector.detect(mask.lanes,mask.width,mask.height,null,true,egoX)
         return Lanes(observed.left?.takeIf{mask.besideLane(it,true)},observed.right?.takeIf{mask.besideLane(it,false)})
     }
-    fun evaluateNeural(mask:NeuralMasks,lanes:Lanes,vehicles:List<Vehicle>,nowMs:Long,speedMs:Float?,calibration:Calibration):Analysis {
+    @JvmOverloads fun evaluateNeural(mask:NeuralMasks,lanes:Lanes,vehicles:List<Vehicle>,nowMs:Long,speedMs:Float?,calibration:Calibration,pedestrians:List<Pedestrian> = emptyList()):Analysis {
         val onRoad=vehicles.filter{mask.roadUnder(it.box)}
-        return Analysis(lanes,riskEngine.update(nowMs,lanes,onRoad,speedMs,calibration))
+        val onRoadPeople=pedestrians.filter{mask.roadUnder(it.box)}
+        return Analysis(lanes,riskEngine.update(nowMs,lanes,onRoad,speedMs,calibration,onRoadPeople))
     }
 }

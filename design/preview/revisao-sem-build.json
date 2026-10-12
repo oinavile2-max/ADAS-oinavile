@@ -1,0 +1,104 @@
+{
+  "android_build_executed": false,
+  "gradle_test_executed": false,
+  "new_tests_prepared_not_run": true,
+  "syntax_review": [
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/AdasEngine.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/CameraPreviewView.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/CameraTransform.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt",
+      "syntax_parser_accepted": false,
+      "known_parser_limitation_in_previous_revision": true
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/LiveHudView.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/MainActivity.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/NeonDialogs.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/PremiumVisuals.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/RiskOverlayView.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/SettingsActivity.kt",
+      "syntax_parser_accepted": false,
+      "known_parser_limitation_in_previous_revision": true
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/vision/RiskEngine.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/vision/SceneOutputDecoder.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/vision/VehicleDetector.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/main/java/br/com/dashcamadas/vision/VisionTypes.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/test/java/br/com/dashcamadas/FocusedCameraTransformTest.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/test/java/br/com/dashcamadas/vision/PedestrianRiskTest.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    },
+    {
+      "file": "app/src/test/java/br/com/dashcamadas/vision/SceneOutputDecoderTest.kt",
+      "syntax_parser_accepted": true,
+      "known_parser_limitation_in_previous_revision": false
+    }
+  ],
+  "new_parser_rejections": [],
+  "note": "Parser limitations in SettingsActivity and DashCamForegroundService also occur in the previous revision; parser is not the Kotlin compiler."
+}

@@ -36,7 +36,7 @@ class PremiumVisuals(context: Context) {
     companion object {
         val CYAN = Color.rgb(0, 174, 255)
         val GOLD = Color.rgb(255, 189, 57)
-        val RED = Color.rgb(255, 82, 101)
+        val RED = Color.rgb(255, 35, 62)
         val WHITE = Color.rgb(245, 247, 250)
     }
 }
@@ -76,27 +76,26 @@ class EventPopupView(context: Context, private val visuals: PremiumVisuals) : Vi
         val scale = minOf(width / 752f, height / 194f)
         if (scale <= 0f) return
         canvas.save(); canvas.translate((width - 752f * scale) / 2f, (height - 194f * scale) / 2f); canvas.scale(scale, scale)
-        val edge = if (presentation.critical) PremiumVisuals.RED else PremiumVisuals.GOLD
+        val edge = PremiumVisuals.RED
         paint.style = Paint.Style.STROKE; paint.strokeWidth = 3f; paint.color = edge; paint.shader = null
         paint.setShadowLayer(13f, 0f, 0f, edge)
         canvas.drawRoundRect(box, 19f, 19f, paint)
         paint.clearShadowLayer(); paint.style = Paint.Style.FILL
         paint.shader = LinearGradient(0f, 16f, 0f, 178f,
-            if (presentation.critical) intArrayOf(Color.argb(230,145,40,49), Color.argb(242,33,13,20), Color.argb(245,80,32,43))
-            else intArrayOf(Color.argb(230,173,101,8), Color.argb(237,81,41,4), Color.argb(242,28,15,4), Color.argb(245,70,35,5)),
-            if (presentation.critical) floatArrayOf(0f,.6f,1f) else floatArrayOf(0f,.24f,.6f,1f), Shader.TileMode.CLAMP)
+            intArrayOf(Color.argb(230,145,40,49), Color.argb(242,33,13,20), Color.argb(245,80,32,43)),
+            floatArrayOf(0f,.6f,1f), Shader.TileMode.CLAMP)
         canvas.drawRoundRect(box, 19f, 19f, paint)
         paint.shader = null; paint.style = Paint.Style.STROKE; paint.color = edge; paint.strokeWidth = 2.4f
         paint.setShadowLayer(3f, 0f, 0f, edge); canvas.drawRoundRect(box, 19f, 19f, paint); paint.clearShadowLayer()
-        paint.style = Paint.Style.FILL; paint.color = Color.argb(184,20,12,4)
+        paint.style = Paint.Style.FILL; paint.color = Color.argb(184,24,7,13)
         canvas.drawRoundRect(RectF(49f,37f,185f,160f),28f,28f,paint)
         visuals.icon(canvas,presentation.icon,61f,32f,113f,edge)
-        paint.color = if (presentation.critical) Color.rgb(255,219,224) else Color.rgb(255,207,106)
+        paint.color = Color.rgb(255,219,224)
         paint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
         paint.textAlign = Paint.Align.CENTER; paint.textSize = 38f
         fitText(presentation.title, 525f)
         canvas.drawText(presentation.title,455f,84f,paint)
-        paint.color = if (presentation.critical) Color.rgb(255,219,224) else Color.rgb(255,215,133)
+        paint.color = Color.rgb(255,219,224)
         paint.textSize = if (presentation.detail.endsWith(" km/h")) 40f else 27f
         fitText(presentation.detail, 525f)
         canvas.drawText(presentation.detail,455f,141f,paint)

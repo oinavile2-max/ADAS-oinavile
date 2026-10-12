@@ -24,7 +24,8 @@ class VehicleDetector(context:Context):AutoCloseable {
         interpreter=Interpreter(model,Interpreter.Options().setNumThreads(2))
         require(interpreter.getInputTensor(0).shape().contentEquals(intArrayOf(1,300,300,3)))
     }
-    fun detect(bitmap:Bitmap):List<Vehicle> {
+    fun detect(bitmap:Bitmap):List<Vehicle> = detectScene(bitmap).vehicles
+    fun detectScene(bitmap:Bitmap):SceneDetections {
         val resized=Bitmap.createScaledBitmap(bitmap,300,300,true)
         resized.getPixels(pixels,0,300,0,0,300,300)
         input.rewind()
@@ -32,13 +33,7 @@ class VehicleDetector(context:Context):AutoCloseable {
         input.rewind()
         if(resized!==bitmap) resized.recycle()
         interpreter.runForMultipleInputsOutputs(arrayOf(input),mapOf(0 to locations,1 to classes,2 to scores,3 to count))
-        return (0 until count[0].toInt().coerceIn(0,20)).mapNotNull { index ->
-            val category=classes[0][index].toInt()
-            if(category !in setOf(2,5,7) || scores[0][index]<.5f) return@mapNotNull null
-            val b=locations[0][index]
-            val box=Box(b[1].coerceIn(0f,1f),b[0].coerceIn(0f,1f),b[3].coerceIn(0f,1f),b[2].coerceIn(0f,1f))
-            if(box.width<=0 || box.height<=0) null else Vehicle(box,scores[0][index],category)
-        }
+        return SceneOutputDecoder.decode(locations[0],classes[0],scores[0],count[0])
     }
     override fun close()=interpreter.close()
 }
