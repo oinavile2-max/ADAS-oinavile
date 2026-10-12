@@ -1,5 +1,7 @@
 # DashCam ADAS PRO — 3.4 neon neural experimental
 
+**Branch de aparência comercial:** refinamento de controles e [prévia das configurações](design/comercial/LEIA-ME.md), ainda sem novo APK. Os downloads e os 81 testes abaixo correspondem ao build 3.4 anterior a esse refinamento.
+
 Build para **NWD K2001N, Android 7.1.1 (API 25), ARM32**. Interface LIVE atualizada segundo as referências, popups com neon vermelho, foco no alvo real na tela direita e controles de sensibilidade/espessura das faixas. Redes locais YOLOP (faixas/área dirigível) e SSD MobileNet (veículos/pessoas), sem internet ou treinamento durante a condução.
 
 ## Downloads

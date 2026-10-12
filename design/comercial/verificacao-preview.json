@@ -1,0 +1,11 @@
+{
+  "render": "Chromium HTML, not Android",
+  "tabs_verified": 4,
+  "tone_names_from_app": 6,
+  "sensitivity_thickness_controls_verified": true,
+  "red_neon_popup_verified": true,
+  "no_horizontal_overflow_at_800px": true,
+  "javascript_errors": [],
+  "android_build_executed": false,
+  "android_ui_tested": false
+}

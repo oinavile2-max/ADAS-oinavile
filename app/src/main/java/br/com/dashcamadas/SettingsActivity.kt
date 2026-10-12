@@ -11,7 +11,7 @@ class SettingsActivity: Activity() {
         super.onCreate(savedInstanceState)
         audio = AlertAudio(this)
         val root=LinearLayout(this).apply {orientation=LinearLayout.VERTICAL;setPadding(28,20,28,16);setBackgroundColor(Color.rgb(12,22,34))}
-        fun title(t:String)=TextView(this).apply {text=t;textSize=20f;setTextColor(Color.WHITE)}
+        fun title(t:String)=TextView(this).apply {text=t;textSize=18f;CommercialUi.heading(this)}
         root.addView(title("FAIXAS, ÁUDIO E CÂMERA — NWD K2001N"))
         root.addView(title("Nunca solicitar foco de áudio nem reduzir música ou rádio"))
         val modes=arrayOf("mix","voice","beep","silent")
@@ -40,8 +40,8 @@ class SettingsActivity: Activity() {
         fun labels(){frequencyLabel.text="Frequência: ${frequency.progress+400} Hz";durationLabel.text="Duração de cada tom: ${duration.progress+80} ms"}
         val change=object:SeekBar.OnSeekBarChangeListener{override fun onProgressChanged(s:SeekBar?,p:Int,u:Boolean){labels()};override fun onStartTrackingTouch(s:SeekBar?){};override fun onStopTrackingTouch(s:SeekBar?){}}
         frequency.setOnSeekBarChangeListener(change);duration.setOnSeekBarChangeListener(change);labels()
-        root.addView(Button(this).apply{text="OUVIR BIP SELECIONADO";setOnClickListener{audio.previewTone(tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80,sound.progress/100f)}})
-        root.addView(Button(this).apply{text="AUTORIZAR CÂMERA USB — LIVE / IA / REC";setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})
+        root.addView(Button(this).apply{text="Ouvir bip selecionado";setOnClickListener{audio.previewTone(tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80,sound.progress/100f)}})
+        root.addView(Button(this).apply{text="Autorizar câmera USB";setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})
         root.addView(title("Duração dos clipes: 1, 3 ou 5 minutos"))
         val segments = intArrayOf(1,3,5)
         val segmentSelector = Spinner(NeonDialogs.themed(this),Spinner.MODE_DROPDOWN)
@@ -49,7 +49,7 @@ class SettingsActivity: Activity() {
         val savedSegment = getSharedPreferences("camera",MODE_PRIVATE).getInt("segment",3)
         segmentSelector.setSelection(segments.indexOf(savedSegment).coerceAtLeast(0))
         root.addView(segmentSelector)
-        root.addView(Button(this).apply {text="TESTAR AVISO (com música tocando)";setOnClickListener {audio.announce("Teste de áudio ADAS sem interromper a multimídia",true)}})
+        root.addView(Button(this).apply {text="Testar aviso com música";setOnClickListener {audio.announce("Teste de áudio ADAS sem interromper a multimídia",true)}})
         root.addView(title("Recolher controles após inatividade (provisório, ajustável)"))
         val timeouts = intArrayOf(0, 5, 10, 15, 30)
         val timeoutSelector = Spinner(NeonDialogs.themed(this),Spinner.MODE_DROPDOWN)
@@ -81,7 +81,7 @@ class SettingsActivity: Activity() {
         val confirmation=numeric("Confirmação temporal (300–2000 ms)",tuning.getLong("confirm_ms",900).toString())
         val cooldown=numeric("Intervalo mínimo entre avisos (5000–60000 ms)",tuning.getLong("cooldown_ms",10000).toString())
         val blink=numeric("Período do piscar (250–1000 ms)",tuning.getLong("blink_ms",500).toString())
-        root.addView(Button(this).apply {text="SALVAR LIMITES ADAS";setOnClickListener {
+        root.addView(Button(this).apply {text="Salvar ajustes do assistente";setOnClickListener {
             if((DrivingContext.speed() ?: 0f)>.5f){NeonDialogs.notice(this@SettingsActivity,"Pare o veículo para ajustar o assistente");return@setOnClickListener}
             val speed=ldwSpeed.text.toString().replace(',','.').toFloatOrNull()
             val ttc=fcwTtc.text.toString().replace(',','.').toFloatOrNull()
@@ -95,11 +95,12 @@ class SettingsActivity: Activity() {
                 NeonDialogs.notice(this@SettingsActivity,"Limites experimentais salvos")
             }
         }})
-        root.addView(Button(this).apply {text="SALVAR ÁUDIO E CÂMERA";setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress,tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80);getSharedPreferences("camera",MODE_PRIVATE).edit().putInt("segment",segments[segmentSelector.selectedItemPosition]).putInt("controls_timeout",timeouts[timeoutSelector.selectedItemPosition]).putInt("storage_mb",storageLimits[storageSelector.selectedItemPosition]).apply();NeonDialogs.notice(this@SettingsActivity,"Preferências salvas");finish()}})
+        root.addView(Button(this).apply {text="Salvar áudio e câmera";setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress,tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80);getSharedPreferences("camera",MODE_PRIVATE).edit().putInt("segment",segments[segmentSelector.selectedItemPosition]).putInt("controls_timeout",timeouts[timeoutSelector.selectedItemPosition]).putInt("storage_mb",storageLimits[storageSelector.selectedItemPosition]).apply();NeonDialogs.notice(this@SettingsActivity,"Preferências salvas");finish()}})
         root.addView(title("Teste obrigatório: Spotify, Waze e rádio FM. O firmware da K2001N pode impedir a mistura com rádio."))
         val scroll=ScrollView(this).apply { addView(root) };setContentView(scroll)
         if(intent.getStringExtra("section")=="FAIXAS")scroll.post { scroll.smoothScrollTo(0,adasHeading.top) }
         NeonDialogs.styleContent(root)
+        CommercialUi.buttonsIn(root)
         SafeInsets.apply(this)
     }
     override fun onDestroy(){audio.release();super.onDestroy()}

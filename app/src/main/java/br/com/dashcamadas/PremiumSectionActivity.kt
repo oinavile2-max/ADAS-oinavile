@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.usb.UsbManager
@@ -29,7 +28,7 @@ class PremiumSectionActivity:Activity() {
   val section=intent.getStringExtra("section") ?: "ADAS"
   root=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL;setPadding(28,16,28,12);setBackgroundColor(Color.rgb(7,13,24)) }
   val bar=LinearLayout(this).apply {orientation=LinearLayout.HORIZONTAL;gravity=Gravity.CENTER_VERTICAL}
-  bar.addView(button("‹ MENU") {finish()})
+  bar.addView(button("‹ Voltar") {finish()})
   bar.addView(text("  DASHCAM ADAS PRO  /  $section",23f,blue),LinearLayout.LayoutParams(0,-2,1f))
   root.addView(bar)
   val scroll=ScrollView(this);val body=LinearLayout(this).apply{orientation=LinearLayout.VERTICAL;setPadding(4,10,4,10)}
@@ -43,15 +42,15 @@ class PremiumSectionActivity:Activity() {
    else -> detectionPage(body,section)
   }
  }
- private fun text(s:String,size:Float=17f,color:Int=white):TextView=TextView(this).apply{text=s;textSize=size;setTextColor(color);setPadding(10,10,10,10)}
- private fun button(s:String,click:()->Unit):Button=Button(this).apply{text=s;setTextColor(white);background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.rgb(42,75,104),Color.rgb(16,29,47))).apply{cornerRadius=18f;setStroke(2,blue)};setOnClickListener{click()}}
- private fun item(parent:LinearLayout,s:String,click:()->Unit){val density=resources.displayMetrics.density;parent.addView(button(s,click).apply{minHeight=(48*density).toInt();setPadding((12*density).toInt(),(10*density).toInt(),(12*density).toInt(),(10*density).toInt())},LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=(8*density).toInt()})}
+ private fun text(s:String,size:Float=17f,color:Int=white):TextView=TextView(this).apply{text=s;textSize=size;setTextColor(color);setLineSpacing(0f,1.15f);setPadding(10,10,10,10)}
+ private fun button(s:String,click:()->Unit):Button=Button(this).apply{text=s;CommercialUi.button(this);setOnClickListener{click()}}
+ private fun item(parent:LinearLayout,s:String,click:()->Unit){val density=resources.displayMetrics.density;parent.addView(button(s,click),LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=(8*density).toInt()})}
  private fun note(parent:LinearLayout,s:String){parent.addView(text(s,16f,Color.rgb(169,192,213)))}
  private fun detectionPage(p:LinearLayout,section:String){
   if(section=="ADAS") {
    note(p,"Redes neurais locais detectam faixas/área dirigível e veículos. Camera2 e USB autorizado no APK ARM32 alimentam a mesma LIVE e gravação em serviço. Alertas LDW/FCW são experimentais e exigem calibração, GPS válido e resultados recentes.")
-   item(p,"ABRIR LIVE — CALIBRAR NO BOTÃO ADAS") {startActivity(Intent(this,MainActivity::class.java))}
-   note(p,"A classe pessoa do SSD agora alimenta caixas e aviso experimental de pedestre na área dirigível, com GPS, calibração e confirmação temporal. Fluxo novo ainda sem build e sem teste físico. Alertas de ciclistas continuam pendentes.")
+   item(p,"Abrir LIVE para calibrar") {startActivity(Intent(this,MainActivity::class.java))}
+   note(p,"A classe pessoa do SSD agora alimenta caixas e aviso experimental de pedestre na área dirigível, com GPS, calibração e confirmação temporal. Funcionamento na central ainda precisa de teste físico. Alertas de ciclistas continuam pendentes.")
    return
   }
   note(p,"Reconhecimento automático por IA: NÃO IMPLEMENTADO. Os botões abaixo simulam o aviso e registram como TESTE, nunca como infração real.")
@@ -83,14 +82,14 @@ class PremiumSectionActivity:Activity() {
  }
  private fun radarPage(p:LinearLayout){
   note(p,"Os radares são pontos GPS cadastrados manualmente. Não há detecção de radiofrequência ou base pré-carregada.")
-  item(p,"ABRIR LIVE / GERENCIAR RADARES") {startActivity(Intent(this,MainActivity::class.java))}
+  item(p,"Abrir LIVE e gerenciar radares") {startActivity(Intent(this,MainActivity::class.java))}
   val radars=RadarStore(this).all();note(p,"Radares locais: ${radars.size}")
   radars.forEach {note(p,"${it.type.uppercase()} • ${it.limit} km/h • ${it.lat}, ${it.lon}")}
  }
  private fun eventsPage(p:LinearLayout){
   note(p,"Histórico local de eventos. Avisos de teste são explicitamente marcados como MANUAL / TESTE.")
   val rows=events.lines();if(rows.isEmpty())note(p,"Nenhum evento registrado.") else rows.forEach{note(p,it)}
-  item(p,"LIMPAR HISTÓRICO") {NeonDialogs.Builder(this).setTitle("Excluir eventos locais?").setNegativeButton("Cancelar",null).setPositiveButton("Excluir"){_,_->events.clear();recreate()}.show()}
+  item(p,"Limpar histórico") {NeonDialogs.Builder(this).setTitle("Excluir eventos locais?").setNegativeButton("Cancelar",null).setPositiveButton("Excluir"){_,_->events.clear();recreate()}.show()}
  }
  private fun mediaPage(p:LinearLayout){
   note(p,"Gravações armazenadas no espaço privado do aplicativo. Não há sincronização com nuvem.")
@@ -116,9 +115,9 @@ class PremiumSectionActivity:Activity() {
   val usb=getSystemService(Context.USB_SERVICE) as UsbManager
   if(usb.deviceList.isEmpty())note(p,"Nenhum USB detectado pelo Android USB Host.")
   usb.deviceList.values.forEach{note(p,"USB VID=${it.vendorId} PID=${it.productId} • ${it.deviceName}")}
-  item(p,"SELECIONAR CÂMERA / GRAVAR") {startActivity(Intent(this,MainActivity::class.java))}
-  item(p,"AJUSTAR FAIXAS, ÁUDIO E BIPS") {startActivity(Intent(this,SettingsActivity::class.java))}
-  if(BuildConfig.K2000_NATIVE)item(p,"AUTORIZAR USB — ABRIR LIVE COM IA") {startActivity(Intent(this,NativeUsbActivity::class.java))}
+  item(p,"Selecionar câmera e gravar") {startActivity(Intent(this,MainActivity::class.java))}
+  item(p,"Ajustar faixas e áudio") {startActivity(Intent(this,SettingsActivity::class.java))}
+  if(BuildConfig.K2000_NATIVE)item(p,"Autorizar câmera USB") {startActivity(Intent(this,NativeUsbActivity::class.java))}
   note(p,if(BuildConfig.K2000_NATIVE)"USB integrado ao serviço de captura, rede neural e REC. Compatibilidade EGL/encoder precisa de teste físico nesta central." else "Para o driver USB enviado, use o APK K2000N ARM32 na central Android 7/8.")
  }
  override fun onDestroy(){activeBanner?.dismiss();bannerHandler.removeCallbacksAndMessages(null);audio.release();super.onDestroy()}

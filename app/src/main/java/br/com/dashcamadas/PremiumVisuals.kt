@@ -119,8 +119,11 @@ class PremiumNavigationView(context: Context, private val visuals: PremiumVisual
             else intArrayOf(Color.rgb(83,97,112),Color.rgb(40,54,68),Color.rgb(23,34,48),Color.rgb(3,11,21),Color.rgb(16,30,44))
         paint.style = Paint.Style.FILL; paint.shader = LinearGradient(0f,0f,0f,89f,colors,floatArrayOf(0f,.25f,.49f,.51f,1f),Shader.TileMode.CLAMP)
         canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)
-        paint.shader=null; paint.style=Paint.Style.STROKE; paint.color=if(active)PremiumVisuals.CYAN else Color.rgb(105,120,138); paint.strokeWidth=1.6f
+        paint.shader=null; paint.style=Paint.Style.STROKE; paint.color=if(isFocused)Color.rgb(140,231,255) else if(active)PremiumVisuals.CYAN else Color.rgb(105,120,138); paint.strokeWidth=if(isFocused)3f else 1.6f
         canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)
+        // A narrow glass highlight preserves the reference finish without a large blurred layer.
+        paint.color=Color.argb(if(active)135 else 65,210,239,255);paint.strokeWidth=1f
+        canvas.drawLine(22f,3f,230f,3f,paint)
         if(isPressed){paint.style=Paint.Style.FILL;paint.color=Color.argb(45,255,255,255);canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)}
         visuals.icon(canvas,icon,45f,22f,42f,if(active)Color.rgb(120,222,255) else PremiumVisuals.WHITE)
         paint.style=Paint.Style.FILL;paint.color=PremiumVisuals.WHITE;paint.typeface=Typeface.create("sans-serif-condensed",Typeface.NORMAL);paint.textAlign=Paint.Align.LEFT;paint.textSize=29f
