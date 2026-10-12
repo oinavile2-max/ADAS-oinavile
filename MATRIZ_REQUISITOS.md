@@ -554,3 +554,14 @@ Nenhum item desta matriz afirma validação de ADAS em câmera, vídeo ou pista.
 | Compatibilidade K2001N/UVC/proprietário | Camera2/ARM32 e ARM64 | Empacotamento verificado; backend proprietário não integrado | Parcial |
 
 Os estados Pendente/Parcial do inventário completo acima continuam sendo estados de aceitação do requisito inteiro; implementação nesta etapa não implica validação comercial.
+
+
+## Revisão 3.2 — faixas, áudio e APK de referência
+
+| Requisito | Aplicado | Aceitação restante |
+|---|---|---|
+| Faixas dinâmicas | Consenso multi largura, textura/direção, curvas para ambos os lados e confirmação temporal | Pares confirmados no vídeo: zero; precisão real/LDW operacional não demonstrados |
+| Mais bips | Seis padrões, frequência/duração/volume e prévia | Áudio e mistura com FM em hardware |
+| Referências nativas APK | Binário ARM32 copiado, contrato JNI reconstruído, perfil ARM32 e tela de prévia USB | Runtime/câmera física e licença comercial da biblioteca não verificados |
+| Captura/ADAS USB | Prévia nativa de teste | Gravação e LDW/FCW USB não integrados; caminho atual é Camera2 |
+| Interface nas capturas | Alturas em dp, texto expansível, insets reservados e estado ADAS reposicionado | Verificação visual em Android real |

@@ -39,8 +39,7 @@ with (out/'risk-trace.csv').open('w') as trace,(out/'execution.log').open('w') a
                 if right<=left or bottom<=top: continue
                 candidates.append((left,top,right,bottom,score,category))
                 all_detections.append([frames,frames/3,category,score,left,top,right,bottom])
-            gray=((rgb[:,:,0].astype(np.uint16)*30+rgb[:,:,1].astype(np.uint16)*59+rgb[:,:,2].astype(np.uint16)*11)//100).astype(np.uint8)
-            processor.stdin.write(struct.pack('>iq',frames,round(frames*1000/3))+gray.tobytes()+struct.pack('>i',len(candidates)))
+            processor.stdin.write(struct.pack('>iq',frames,round(frames*1000/3))+rgb.tobytes()+struct.pack('>i',len(candidates)))
             for candidate in candidates: processor.stdin.write(struct.pack('>fffffi',*candidate))
             frames+=1
         processor.stdin.close()

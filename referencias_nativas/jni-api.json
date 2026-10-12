@@ -1,0 +1,127 @@
+[
+  {
+    "name": "nativeAddPreview",
+    "signature": "(JIILandroid/view/Surface;)V",
+    "static": false
+  },
+  {
+    "name": "nativeClearHalt",
+    "signature": "(II)Z",
+    "static": true
+  },
+  {
+    "name": "nativeConnect",
+    "signature": "(JLjava/lang/String;I)V",
+    "static": false
+  },
+  {
+    "name": "nativeCreateUFD",
+    "signature": "(Lgit/my/camera/core/MyCamera$NativeCameraCallback;)J",
+    "static": true
+  },
+  {
+    "name": "nativeCreateUVC",
+    "signature": "(Lgit/my/camera/core/MyCamera$NativeCameraCallback;)J",
+    "static": true
+  },
+  {
+    "name": "nativeCropI420",
+    "signature": "([BII[BIIII)V",
+    "static": true
+  },
+  {
+    "name": "nativeDestroy",
+    "signature": "(J)V",
+    "static": true
+  },
+  {
+    "name": "nativeDisconnect",
+    "signature": "(J)V",
+    "static": false
+  },
+  {
+    "name": "nativeErrno",
+    "signature": "()I",
+    "static": true
+  },
+  {
+    "name": "nativeErrstr",
+    "signature": "()Ljava/lang/String;",
+    "static": true
+  },
+  {
+    "name": "nativeGetCurrentTimeMillis",
+    "signature": "()J",
+    "static": true
+  },
+  {
+    "name": "nativeGetRunningTimeMillis",
+    "signature": "()J",
+    "static": true
+  },
+  {
+    "name": "nativeInitApplicationContext",
+    "signature": "(Landroid/content/Context;)V",
+    "static": true
+  },
+  {
+    "name": "nativeIsConnected",
+    "signature": "(J)Z",
+    "static": false
+  },
+  {
+    "name": "nativeIsDisconnected",
+    "signature": "(J)Z",
+    "static": false
+  },
+  {
+    "name": "nativeIsInitialized",
+    "signature": "(J)Z",
+    "static": false
+  },
+  {
+    "name": "nativePost",
+    "signature": "(JIIILjava/lang/String;)I",
+    "static": false
+  },
+  {
+    "name": "nativePreviewAddPreview",
+    "signature": "(JILandroid/view/Surface;)V",
+    "static": true
+  },
+  {
+    "name": "nativePreviewCreate",
+    "signature": "(Lgit/my/camera/core/MyCamera$NativePreviewCallback;)J",
+    "static": true
+  },
+  {
+    "name": "nativePreviewDestroy",
+    "signature": "(J)V",
+    "static": true
+  },
+  {
+    "name": "nativePreviewOnFrame",
+    "signature": "(J[BI)V",
+    "static": true
+  },
+  {
+    "name": "nativePreviewRemovePreview",
+    "signature": "(JI)V",
+    "static": true
+  },
+  {
+    "name": "nativeRemovePreview",
+    "signature": "(JII)V",
+    "static": false
+  },
+  {
+    "name": "nativeReset",
+    "signature": "(I)Z",
+    "static": true
+  },
+  {
+    "name": "nativeVersion",
+    "signature": "()Ljava/lang/String;",
+    "static": true
+  }
+]

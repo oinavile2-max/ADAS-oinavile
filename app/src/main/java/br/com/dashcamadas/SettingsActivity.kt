@@ -12,7 +12,7 @@ class SettingsActivity: Activity() {
         audio = AlertAudio(this)
         val root=LinearLayout(this).apply {orientation=LinearLayout.VERTICAL;setPadding(28,20,28,16);setBackgroundColor(Color.rgb(12,22,34))}
         fun title(t:String)=TextView(this).apply {text=t;textSize=20f;setTextColor(Color.WHITE)}
-        root.addView(title("LUXURY ELEGANCE — K2001N / TABLET"))
+        root.addView(title("ÁUDIO E CÂMERA — K2000N / K2001N / TABLET"))
         root.addView(title("Nunca solicitar foco de áudio nem reduzir música ou rádio"))
         val modes=arrayOf("mix","voice","beep","silent")
         val selector=Spinner(this)
@@ -25,6 +25,23 @@ class SettingsActivity: Activity() {
         }
         val sound=volume("Efeitos: 65% padrão",(audio.soundGain()*100).toInt())
         val voice=volume("Voz: 80% padrão",(audio.voiceGain()*100).toInt())
+        root.addView(title("Padrão do bip"))
+        val tones=AlertTone.entries
+        val toneSelector=Spinner(this).apply{adapter=ArrayAdapter(this@SettingsActivity,android.R.layout.simple_spinner_dropdown_item,tones.map{it.label});setSelection(tones.indexOf(audio.tone()))}
+        root.addView(toneSelector)
+        val frequencyLabel=title("")
+        root.addView(frequencyLabel)
+        val frequency=SeekBar(this).apply{max=1400;progress=audio.frequency()-400}
+        root.addView(frequency)
+        val durationLabel=title("")
+        root.addView(durationLabel)
+        val duration=SeekBar(this).apply{max=160;progress=audio.durationMs()-80}
+        root.addView(duration)
+        fun labels(){frequencyLabel.text="Frequência: ${frequency.progress+400} Hz";durationLabel.text="Duração de cada tom: ${duration.progress+80} ms"}
+        val change=object:SeekBar.OnSeekBarChangeListener{override fun onProgressChanged(s:SeekBar?,p:Int,u:Boolean){labels()};override fun onStartTrackingTouch(s:SeekBar?){};override fun onStopTrackingTouch(s:SeekBar?){}}
+        frequency.setOnSeekBarChangeListener(change);duration.setOnSeekBarChangeListener(change);labels()
+        root.addView(Button(this).apply{text="OUVIR BIP SELECIONADO";setOnClickListener{audio.previewTone(tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80,sound.progress/100f)}})
+        root.addView(Button(this).apply{text="TESTAR CÂMERA USB NATIVA — ARM 32 BITS";setOnClickListener{startActivity(android.content.Intent(this@SettingsActivity,NativeUsbActivity::class.java))}})
         root.addView(title("Duração dos clipes: 1, 3 ou 5 minutos"))
         val segments = intArrayOf(1,3,5)
         val segmentSelector = Spinner(this)
@@ -69,7 +86,7 @@ class SettingsActivity: Activity() {
                 Toast.makeText(this@SettingsActivity,"Limites experimentais salvos",Toast.LENGTH_SHORT).show()
             }
         }})
-        root.addView(Button(this).apply {text="SALVAR";setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress);getSharedPreferences("camera",MODE_PRIVATE).edit().putInt("segment",segments[segmentSelector.selectedItemPosition]).putInt("controls_timeout",timeouts[timeoutSelector.selectedItemPosition]).putInt("storage_mb",storageLimits[storageSelector.selectedItemPosition]).apply();Toast.makeText(this@SettingsActivity,"Preferências salvas",Toast.LENGTH_SHORT).show();finish()}})
+        root.addView(Button(this).apply {text="SALVAR";setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress,tones[toneSelector.selectedItemPosition],frequency.progress+400,duration.progress+80);getSharedPreferences("camera",MODE_PRIVATE).edit().putInt("segment",segments[segmentSelector.selectedItemPosition]).putInt("controls_timeout",timeouts[timeoutSelector.selectedItemPosition]).putInt("storage_mb",storageLimits[storageSelector.selectedItemPosition]).apply();Toast.makeText(this@SettingsActivity,"Preferências salvas",Toast.LENGTH_SHORT).show();finish()}})
         root.addView(title("Teste obrigatório: Spotify, Waze e rádio FM. O firmware da K2001N pode impedir a mistura com rádio."))
         setContentView(ScrollView(this).apply {addView(root)})
         SafeInsets.apply(this)

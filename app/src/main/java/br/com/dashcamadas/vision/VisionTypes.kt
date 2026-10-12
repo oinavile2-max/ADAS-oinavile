@@ -14,7 +14,7 @@ data class Box(val left: Float,val top: Float,val right: Float,val bottom: Float
 }
 data class Vehicle(val box:Box,val confidence:Float,val category:Int)
 /** x(t)=a*t²+b*t+c, t=(y-.5)/.48; only supported pixel observations are returned. */
-data class LaneCurve(val a:Float,val b:Float,val c:Float,val confidence:Float) {
+data class LaneCurve(val a:Float,val b:Float,val c:Float,val confidence:Float,val yStart:Float=.56f,val yEnd:Float=.94f) {
     fun x(y:Float):Float { val t=(y-.5f)/.48f;return a*t*t+b*t+c }
 }
 data class Lanes(val left:LaneCurve?,val right:LaneCurve?)

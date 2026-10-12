@@ -13,12 +13,12 @@ public class ServiceVisionProbe {
         System.out.println("frame,time_ms,left_confidence,right_confidence,vehicles,ttc_estimate_s,left_phase,right_phase,fcw_phase,critical_risks");
         while(true) {
             int index;try{index=input.readInt();}catch(EOFException done){break;}
-            long time=input.readLong();byte[] bytes=input.readNBytes(320*180);
-            if(bytes.length!=320*180)throw new EOFException("Truncated real frame");
-            int[] gray=new int[bytes.length];for(int i=0;i<gray.length;i++)gray[i]=bytes[i]&255;
+            long time=input.readLong();byte[] bytes=input.readNBytes(320*180*3);
+            if(bytes.length!=320*180*3)throw new EOFException("Truncated real RGB frame");
+            int[] pixels=new int[320*180];for(int i=0;i<pixels.length;i++)pixels[i]=0xff000000 | (bytes[i*3]&255)<<16 | (bytes[i*3+1]&255)<<8 | (bytes[i*3+2]&255);
             int count=input.readInt();var vehicles=new ArrayList<Vehicle>();
             for(int i=0;i<count;i++)vehicles.add(new Vehicle(new Box(input.readFloat(),input.readFloat(),input.readFloat(),input.readFloat()),input.readFloat(),input.readInt()));
-            var outcome=engine.process(gray,320,180,vehicles,time,null,calibration);
+            var outcome=engine.processRgb(pixels,320,180,vehicles,time,null,calibration);
             var observed=outcome.getLanes();var result=outcome.getRisk();
             if(observed.getLeft()!=null || observed.getRight()!=null)lanes++;
             if(!vehicles.isEmpty())vehicleFrames++;

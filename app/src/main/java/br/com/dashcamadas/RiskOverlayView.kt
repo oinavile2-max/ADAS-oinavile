@@ -23,13 +23,13 @@ class RiskOverlayView(context:Context):View(context) {
         fun point(x:Float,y:Float)=transform.project(x*frame.bitmap.width,y*frame.bitmap.height)
         for((lane,risk) in listOf(frame.lanes.left to Risk.LEFT_DEPARTURE,frame.lanes.right to Risk.RIGHT_DEPARTURE)) {
             if(!showLanes && risk !in frame.risk.risks) continue
-            if(lane==null || lane.confidence<.45f) continue
+            if(lane==null || lane.confidence<.65f) continue
             val dangerous=risk in frame.risk.risks
             if(dangerous && !flashing) continue
             paint.color=if(dangerous) Color.RED else Color.rgb(51,236,174)
             val path=Path()
             for(i in 0..20) {
-                val y=.56f+i*.019f;val p=point(lane.x(y),y)
+                val y=lane.yStart+(lane.yEnd-lane.yStart)*i/20;val p=point(lane.x(y),y)
                 if(i==0) path.moveTo(p.first,p.second) else path.lineTo(p.first,p.second)
             }
             canvas.drawPath(path,paint)
@@ -46,7 +46,13 @@ class RiskOverlayView(context:Context):View(context) {
         val ldw=frame.risk.phases[Risk.LEFT_DEPARTURE]
         val fcw=frame.risk.phases[Risk.COLLISION]
         fun label(value:Phase?)=when(value){Phase.UNAVAILABLE->"indisponível";Phase.CANDIDATE->"confirmando";Phase.RISK->"RISCO";Phase.RECOVERY->"recuperação";else->"monitorando"}
-        canvas.drawText("LDW ${label(ldw)}  |  FCW ${label(fcw)}",12*resources.displayMetrics.density,height-12*resources.displayMetrics.density,paint)
+        val caption="LDW ${label(ldw)}  |  FCW ${label(fcw)}"
+        val margin=8*resources.displayMetrics.density
+        paint.color=Color.argb(190,4,12,22)
+        val top=56*resources.displayMetrics.density
+        canvas.drawRect(margin,top,margin+paint.measureText(caption)+margin,top+paint.textSize*1.5f,paint)
+        paint.color=Color.WHITE
+        canvas.drawText(caption,margin*1.5f,top+paint.textSize,paint)
         paint.style=Paint.Style.STROKE
         if(frame.risk.risks.isNotEmpty()) postInvalidateDelayed(minOf(100,period/4))
     }

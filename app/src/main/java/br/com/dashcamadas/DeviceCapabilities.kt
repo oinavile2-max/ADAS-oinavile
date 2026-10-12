@@ -20,6 +20,8 @@ object DeviceCapabilities {
         fun asText(): String = buildString {
             appendLine("DASHCAM ADAS PRO — DIAGNÓSTICO DE COMPATIBILIDADE")
             appendLine("Dispositivo: $manufacturer / $model | API $sdk | RAM estimada: $memoryMb MB")
+            appendLine("Android: ${Build.VERSION.RELEASE} | ABIs: ${Build.SUPPORTED_ABIS.joinToString()} | Processo: ${if(android.os.Process.is64Bit()) "64" else "32"} bits")
+            appendLine("Driver USB do APK enviado: ${if(BuildConfig.K2000_NATIVE) "incluído (ARM32, teste de prévia Android 7/8)" else "ausente neste APK genérico"}")
             appendLine("Perfil sugerido: $profile | Permissão câmera: $cameraPermission | USB host: $usbHost")
             appendLine("Câmeras Camera2 (${cameras.size}):")
             cameras.forEach { appendLine(" • ID ${it.id}: ${it.type} | resoluções de preview: ${it.streamSizes}") }

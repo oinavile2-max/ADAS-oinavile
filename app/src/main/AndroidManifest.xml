@@ -21,6 +21,7 @@
    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
   </activity>
   <activity android:name=".SettingsActivity" android:screenOrientation="landscape" android:exported="false"/>
+  <activity android:name=".NativeUsbActivity" android:screenOrientation="landscape" android:exported="false"/>
   <activity android:name=".PremiumSectionActivity" android:screenOrientation="landscape" android:exported="false"/>
   <activity android:name=".PremiumMenuActivity" android:screenOrientation="landscape" android:exported="false"/>
  </application>

@@ -1,0 +1,6 @@
+{
+  "status": "not_executed",
+  "reason": "No Android device in adb devices -l",
+  "native_driver_runtime_tested": false,
+  "gps_camera_audio_ui_tested_on_hardware": false
+}

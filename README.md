@@ -1,35 +1,38 @@
-## Download do código-fonte
+# DashCam ADAS PRO — 3.2 experimental
 
-[Baixar o ZIP completo](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip) ou use **Code → Download ZIP** neste repositório.
+Android: minSdk 24 (Android 7.0+), targetSdk/compileSdk 35. Compilação: JDK 17, Gradle 8.9, SDK Platform 35 e Build Tools 35.0.0.
 
-O projeto está completo também nesta branch. A entrega é experimental; os resultados e as limitações estão em `RELATORIO_TECNICO.md`.
+## Downloads
 
-# DashCam ADAS PRO — 3.1.0 experimental
+- [Código-fonte completo em ZIP](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK K2000N ARM32 de teste](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_2_K2000N_ARM32_DEBUG.apk): inclui a biblioteca do APK fornecido; prévia USB nativa habilitada no Android 7/8 (API 24–27), sem validação física.
+- [APK genérico de teste](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_2_GENERIC_DEBUG.apk): tablets/celulares, Camera2, ARM32/ARM64/x86; sem o driver legado.
 
-Código Android com LIVE de quadros reais Camera2, captura/gravação em serviço de primeiro plano e pipeline experimental LDW/FCW. targetSdk/compileSdk 35, minSdk 24, JDK 17, Gradle 8.9.
+Ambos são APKs debug assinados, não versões comerciais validadas. Instale somente o perfil adequado ao aparelho. A versão informada da K2000N foi Android 7.1; processador/câmera/VID/PID ainda não confirmados. Consulte o diagnóstico do aparelho no aplicativo.
 
-Veja [RELATORIO_TECNICO.md](RELATORIO_TECNICO.md) e [MATRIZ_REQUISITOS.md](MATRIZ_REQUISITOS.md). Não confundir código implementado e testes JVM/vídeo com validação em dispositivo ou prontidão comercial. Documentos V4.x anteriores e logs históricos não representam o estado atual.
+## O que mudou
+
+As faixas usam contraste em várias larguras, coerência direcional, rejeição de textura e consenso quadrático. Curvas para ambos os lados, inclusive com ambas as bordas curvando na mesma direção, são aceitas. O traçado só aparece após confirmação temporal e dentro dos pixels observados. A ausência de uma borda não cria uma faixa artificial. Câmera vertical suspende ADAS até corrigir a orientação.
+
+Áudio: bip suave, duplo, triplo, ascendente, descendente e alternado, com frequência base, duração e volume ajustáveis. Abra **CONFIG → CONFIG → CONFIGURAR ÁUDIO E PADRÕES DE BIP**, escolha um padrão e pressione **OUVIR BIP SELECIONADO**; **SALVAR** mantém a escolha. MIX não solicita foco de áudio. Mistura com rádio FM depende do firmware e ainda precisa de teste.
+
+Na K2000N ARM32, abra **TESTAR PRÉVIA USB NATIVA** na configuração, selecione a câmera e autorize o acesso USB. A sessão Camera2 será encerrada, finalizando eventual clipe, para iniciar esse teste. Esta tela usa a biblioteca copiada e o contrato JNI reconstruído; **não integra gravação/LDW/FCW ao USB do driver**. Esses recursos continuam no caminho Camera2. A prévia USB precisa de teste físico de compatibilidade.
+
+Os botões das páginas de testes agora têm altura mínima em dp e crescem com o texto. Insets reservam espaço para barras/cortes da tela, inclusive quando a barra reaparece.
 
 ## Compilar
 
-Linux/macOS: configure JDK 17 e ANDROID_HOME com Platform 35/Build Tools 35.0.0, então execute `./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.
-Windows: execute `GERAR APK.bat`. APK: `APK_GERADO/DashCam_ADAS_PRO_DEBUG.apk`.
+- Windows, genérico: `GERAR APK.bat`.
+- Windows, K2000N ARM32: `GERAR APK K2000N.bat`.
+- Linux/macOS, genérico: `./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.
+- Linux/macOS, ARM32: acrescente `-Pk2000Native=true` ao comando anterior.
 
-## Fluxo
+A compilação Windows não foi executada nesta nuvem. Os comandos Gradle foram executados com JDK 17 e SDK 35. Não altere targetSdk para 28 para tentar carregar uma biblioteca de arquitetura incompatível.
 
-```mermaid
-flowchart LR
- C[Camera2] --> S[Serviço de câmera]
- S --> R[MediaRecorder e segmentos]
- S --> Y[Quadros YUV reais]
- Y --> P[LIVE]
- Y --> V[Faixas e SSD de veículos]
- V --> E[Risco temporal com GPS e calibração]
- E --> A[Overlay, voz e eventos]
-```
+## Evidências e limites
 
-Na LIVE escolha câmera/orientação e calibre no botão ADAS com o veículo parado. Confirme medidas reais; alarmes exigem GPS válido e detecções confiáveis. Os limites de desenvolvimento são ajustáveis. REC permanece sob responsabilidade do serviço ao sair da Activity, sujeito às restrições do sistema/hardware. Encerrar câmera na notificação fecha a sessão.
+54 testes JVM aprovados. Nenhum Android físico conectado; GPS, câmera, áudio/FM, interface e driver nativo permanecem sem validação física. No vídeo real: 82 quadros, 40 com candidatos a faixa, **zero pares de faixas confirmados**, três candidatos a veículos. Não há anotações de referência, GPS ou calibração; não foi medida precisão e o vídeo ainda não valida LDW operacional.
 
-Modelo oficial Google Coral, Apache-2.0, pesos/checksum/proveniência em app/src/main/assets. Bibliotecas CPU para ARM32/ARM64. UVC/protocolo proprietário não é garantido por descobrir um USB.
+Veja [RELATORIO_TECNICO.md](RELATORIO_TECNICO.md), [MATRIZ_REQUISITOS.md](MATRIZ_REQUISITOS.md), `relatorios/3_2` e [proveniência da biblioteca](referencias_nativas/PROVENIENCIA.md). Os relatórios anteriores são históricos.
 
-Teste real preparado: `python3 build-tools/test_android_device.py --help`. Nesta nuvem não houve aparelho conectado nem teste físico aprovado. A análise do vídeo recebido teve cobertura baixa; não demonstrou LDW/FCW operacional em trânsito.
+Modelo de veículos: Google Coral SSD, Apache-2.0, checksum e licença em `app/src/main/assets`. O APK enviado contém um binário de câmera sem licença geral de redistribuição declarada; direitos comerciais dessa biblioteca não foram verificados.

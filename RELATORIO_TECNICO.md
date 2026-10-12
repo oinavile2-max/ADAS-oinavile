@@ -1,64 +1,39 @@
-# DashCam ADAS PRO — implementação experimental de LDW/FCW e gravação em serviço
+# DashCam ADAS PRO — revisão 3.2 experimental
 
-Data: 12/10/2026. Versão 3.1.0-adas-experimental, versionCode 31, targetSdk 35 e minSdk 24. Esta entrega implementa os módulos em código; não representa validação comercial ou testes em Android físico.
+Data: 12/10/2026. versionCode 32, targetSdk 35, minSdk 24. K2000N informada como Android 7.1. Os dados adicionais recebidos sobre CPU/RAM são descrições de variantes, não diagnóstico físico desta central.
 
-## O que foi aplicado
+## Faixas dinâmicas
 
-Camera2 e MediaRecorder agora pertencem exclusivamente a DashCamForegroundService, com foregroundServiceType camera, notificação e parada explícita. A Activity recebe os quadros por binder e apenas desenha a LIVE. Ao sair da LIVE ela libera a conexão, não encerra a captura nem a gravação. Os únicos outputs da sessão são ImageReader YUV e a superfície do MediaRecorder; nenhum output depende de uma SurfaceTexture da Activity. A prévia real e a inferência são publicadas separadamente; resultados antigos não são desenhados sobre uma imagem mais recente.
+A revisão corrige a busca limitada a um pico por linha e a rejeição de algumas curvas por direção. O detector agora avalia picos em quatro larguras, coerência local direcional e textura do entorno; ajusta curvas por consenso e refina com mínimos quadrados ponderados. Pode acompanhar ambas as bordas curvando para o mesmo lado. As bordas são classificadas no trecho inferior, e pares que cruzam ou têm perspectiva incompatível são rejeitados.
 
-O serviço inicia a partir da Activity visível e com CAMERA concedida; não tenta abrir câmera no boot ou reiniciar silenciosamente após morte do processo. Um wake lock parcial temporizado/renovado durante a captura permite continuar o processamento com a tela apagada; é liberado ao fechar a câmera. Não impede encerramento pelo sistema/OEM, perda de alimentação ou políticas de câmera. Há até três tentativas de recuperação ao reaparecer a mesma câmera. Falhas na combinação de gravação/YUV tentam restaurar a prévia; uma prévia incompatível é suspensa.
+A primeira observação tem confiança limitada, sem ativar LDW. É necessária concordância com a observação seguinte. Pequenas variações recebem suavização limitada ao suporte atual; perda de evidência apaga a borda imediatamente. O desenho usa apenas o intervalo vertical medido e confiança mínima 0,65. A ausência de uma borda nunca sintetiza outra. LDW também exige que a referência inferior esteja dentro do intervalo observado, evitando extrapolação para disparar avisos. FCW usa curvas apenas quando o alvo está no intervalo observado. Câmera orientada verticalmente suspende o processamento ADAS; a prévia e gravação permanecem disponíveis para corrigir a orientação.
 
-A gravação MP4/H.264 usa tamanho anunciado pelo hardware, segmentos configuráveis e orientação. A proteção manual/por evento fecha o segmento atual, move para protegidos e calcula SHA-256. Não há buffer anterior/posterior além do segmento existente. Um marcador .lock impede exclusão circular de um clipe protegido quando a movimentação falha. Eventos de serviços concorrentes são serializados. Datas/metadados são reais; não foram inventadas coordenadas ou velocidade.
+Testes incluem faixa escura por contraste, curva para a direita com ambas as bordas no mesmo sentido, marcação larga/tracejada, pontos claros isolados, textura aleatória, perda de evidência, reconfirmação e bloqueio de extrapolação. Erros de coordenadas são medidos nas cenas sintéticas. Esses testes não medem precisão em estrada.
 
-RadarForegroundService continua responsável pelo GPS, radares locais e áudio, independentemente da Activity. DrivingContext compartilha apenas observações válidas: velocidade presente, precisão até 30 m, idade até 8 s e sem origem mock. GPS ausente/inadequado suspende os alertas críticos dependentes dele.
+No vídeo fornecido, o processamento RGB compartilha a classe AdasEngine usada no APK: 82 quadros reais, 40 com candidatos a marcações e zero pares confirmados com ambas as confianças ≥0,65. Houve três candidatos a veículos. Sem GPS/calibração, nenhum risco crítico foi produzido. Não há ground truth, recall, precisão ou validação em trânsito. A cobertura de pares continua insuficiente para afirmar LDW operacional. Resultados em relatorios/3_2/offline; latência de SSD mede apenas o host da nuvem.
 
-## LDW
+## Opções de áudio
 
-CurveLaneDetector usa contraste local e ajuste quadrático robusto, com rejeição geométrica, cobertura vertical e suporte dos pixels. AdasEngine é um coordenador efetivo; NoOpAdasEngine foi removido. A avaliação de saída usa os limites observados, a referência de centro e as larguras informadas por câmera. Exige duas marcações com confiança suficiente, calibração habilitada e velocidade válida. Após confirmação temporal, a linha correspondente é vermelha piscante, com voz/som configuráveis e registro. Perda de confiança/quadros encerra a condição crítica; retorno à faixa sai do vermelho automaticamente.
+Seis padrões PCM: suave, duplo, triplo, ascendente, descendente e alternado. Frequência base 400–1800 Hz, cada tom 80–240 ms, intervalo entre tons 60 ms, volume separado de voz e rampa para evitar clique. A reprodução usa fila serial com rejeição de sobreposição dentro da instância, sem solicitar AudioFocus. O botão de prévia testa a configuração selecionada antes de salvar. Testes verificam formas distintas, ganho/silêncio, clipping, intervalo silencioso e frequência por cruzamentos de zero.
 
-É um detector experimental por contraste, não uma segmentação semântica validada. Pode perder marcações descontínuas/curvas ou confundir reflexos/contrastes. A calibração é uma referência manual simplificada, não uma calibração métrica completa de intrínsecos, perspectiva e distância. No vídeo recebido a cobertura foi insuficiente para validar LDW: retornou apenas candidatos isolados em dois quadros. Não anunciar LDW operacional de segurança com base nisso.
+Não houve reprodução em alto-falante, Bluetooth, Spotify/Waze ou rádio FM físico nesta sessão. MIX sem foco de áudio não garante mistura com o caminho FM proprietário da central.
 
-## FCW
+## Referência nativa do APK
 
-VehicleDetector executa de verdade o SSD MobileNet v2 COCO quantizado, via TensorFlow Lite 2.17.0 em CPU com duas threads. Modelo oficial Google Coral, commit fixado, licença Apache-2.0 e checksum SHA-256 verificado na inicialização. O APK inclui os pesos/labels/licença e bibliotecas para ARM32/ARM64 (também x86/x86_64). Não depende de download ou Internet no aparelho.
+APK com.ankai.cardvr, versão 20250515.3, targetSdk 21; contém somente lib/armeabi-v7a/libmycamera.so, ELF32 ARM. Foram reproduzidos 25 descritores JNI e 23 métodos de callbacks com os nomes de classe originais necessários ao RegisterNatives. Nenhum classes.dex do outro app foi incorporado. Hashes, ABI e proveniência em referencias_nativas/.
 
-O RiskEngine associa o alvo por classe/IoU, seleciona candidatos relevantes ao corredor, acompanha expansão aparente e estima TTC por regressão temporal de log da escala. Proximidade sozinha não dispara alarme. Exige confiança, histórico, consistência de expansão, calibração, GPS e confirmação temporal. Alvo correspondente fica vermelho piscante quando a estimativa entra em risco; redução de aproximação/perda do alvo encerra o estado crítico. Há antirrepetição de avisos. É estimativa monocular experimental, sem distância métrica nem certificação.
+O APK genérico não carrega nem inclui a biblioteca legada. A compilação -Pk2000Native=true inclui o binário copiado sem alteração e restringe todas as bibliotecas a armeabi-v7a. Não tenta carregar ARM32 em processo ARM64. O checker build-tools/verificar_referencia_nativa.py verifica os descritores no DEX final, callbacks, ABI e hashes de modelo/driver; não executa o driver ARM.
 
-São processados carro, ônibus e caminhão. Pedestres, ciclistas, sinais e semáforos não têm alertas integrados nesta etapa. O reconhecimento geral do modelo não equivale à integração desses módulos.
+A tela de teste USB utiliza UsbManager com autorização explícita, abre o descritor do dispositivo, carrega a biblioteca, cria sessão UFD como no APK original, configura isTest=false e conecta a prévia à superfície. Aguarda inicialização real antes de solicitar START_PREVIEW, com timeout limitado. Fecha sessão/descritor ao sair ou desconectar e oferece girar/espelhar. Está habilitada para Android 7/8, evitando assumir compatibilidade do driver com restrições de APIs privadas das versões posteriores. Um buffer atualizado na superfície é indicado como atualização, não como comprovação de câmera funcionando.
 
-## Ativação no aparelho
+A prévia USB é um teste de integração, **não integra ainda gravação nem LDW/FCW USB**. A versão atual mantém esses recursos no serviço Camera2. Não houve teste físico de carregar o driver, decodificar UFD/UVC, combinar áudio/FM, recuperar USB ou gravar na K2000N. A licença geral de redistribuição da biblioteca do APK não foi identificada; não afirmar autorização comercial.
 
-1. Instalar o novo APK Debug e conceder câmera/localização. Notificações tornam a sessão/ação de parada acessíveis.
-2. Escolher câmera e orientação. Calibrar pelo botão ADAS com o veículo parado/alinhado e informar medidas reais. A calibração fica salva por câmera. Mudança de orientação desabilita a calibração anterior.
-3. Em Configurações de áudio, os limites de LDW/TTC, confirmação, antirrepetição e piscar são ajustáveis e marcados como provisórios. Os valores padrão de desenvolvimento não foram aprovados como definitivos.
-4. Iniciar REC antes de sair da LIVE. A sessão de câmera permanece no serviço; a ação Encerrar câmera na notificação fecha captura/gravação.
+## Interface
 
-Os alarmes vêm desabilitados até confirmar calibração. Não force alertas com GPS falso nem marque os botões de teste históricos como detecção verdadeira.
+Botões nas páginas passam a usar altura mínima em dp e conteúdo expansível, corrigindo a restrição de 70 pixels que podia cortar rótulos em telas densas. Insets reservam as barras e recortes mesmo quando escondidos, e o texto de estado ADAS foi movido para abaixo dos controles superiores. A prévia e os overlays usam o mesmo mapeamento de espelhamento/FIT/FILL; orientação é corrigida por câmera e invalida a calibração anterior.
 
-## Testes nesta nuvem
+## Validação e pendências
 
-Ver resultados definitivos em verification-summary.json, build-validacao.log, resultados-testes e lint-results-debug.*. Testes JVM exercitam confirmação/recuperação, perda de GPS/confiança/alvo, troca de objeto, ausência de FCW por proximidade estável, lacuna de frames, limites configuráveis, curvas sintéticas, conversão YUV com strides/crop, coordenadas, hash e retenção/proteção. São testes de software, não condução real.
+54 testes JVM aprovados, sem falhas/erros/skips. Build e lint dos dois perfis foram executados; resultados atuais em relatorios/3_2. As assinaturas, alinhamento ZIP e empacotamento JNI são verificados na entrega. Nenhum teste físico aprovado: a lista ADB não apresentou aparelhos. Scripts Windows preparados, execução Windows não realizada.
 
-O vídeo real Video Project 1.mp4 foi decodificado e processado por inferência SSD real; a mesma classe Kotlin AdasEngine utilizada pelo serviço foi executada em JVM para faixas/risco. Resultados: 82 quadros a 3 fps, 3 candidatos a veículos em 3 quadros e candidatos a marcação em dois quadros. GPS/calibração não existem no vídeo: os estados críticos permaneceram UNAVAILABLE. Nenhuma velocidade foi presumida.
-
-Inferência por CPU no host: mediana 23.2 ms, percentil 95 123.8 ms. Isso não mede desempenho em Android/K2001N. Sem anotações de referência, não há precisão/recall/acurácia nem validação de LDW/FCW em trânsito. Os candidatos incluem possíveis falsos positivos.
-
-ADB foi consultado: zero dispositivos conectados. Testes físicos de GPS, câmera, interface, gravação sob troca de apps/tela apagada, áudio FM e execução de JNI no Android NÃO foram executados. O helper de teste recusou corretamente iniciar sem dispositivo (exit 1); isso não é teste físico aprovado.
-
-## Teste físico preparado, ainda não executado
-
-build-tools/test_android_device.py requer Android físico autorizado por ADB, Python e ffprobe. --install e --grant-test-permissions são ações explícitas opcionais; não desinstala nem apaga dados de uma instalação existente. O helper exige ausência de gravação prévia, inicia um clipe, pressiona HOME, verifica avanço dos quadros/capturas no serviço, encerra, copia e verifica MP4/H.264 de duração >=3 s e retorna à LIVE. --require-gps exige observação real recente. A interface visual e acurácia ADAS continuam exigindo revisão manual/pista mesmo se o helper passar.
-
-O APK Debug contém um controle de teste por arquivo privado acessível apenas ao UID do app/ADB run-as autorizado. Fica condicionado a BuildConfig.DEBUG e não está ativo em Release. Nenhuma interface de serviço foi exportada para terceiros.
-
-Exemplo local: python3 build-tools/test_android_device.py --serial SERIAL_REAL --apk DashCam_ADAS_PRO_DEBUG.apk --install --grant-test-permissions --output resultados-aparelho
-
-## Reprodução e pendências
-
-Na nuvem: source /workspace/cloud-setup/env.sh; cd /workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE; ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
-Vídeo: PYTHONPATH=/workspace/python-model-runtime python3 build-tools/offline/run_service_video.py "VIDEO.mp4" "RESULTADOS"
-Windows: GERAR APK.bat, Wrapper completo, JDK 17 e SDK 35. O BAT continua sem execução em Windows neste ambiente.
-
-Ainda pendentes: validação hardware/pista e anotações de referência; aperfeiçoamento da percepção e calibração para o desempenho exigido; backend UVC/proprietário quando Camera2 não oferecer quadros; pedestrian/cyclist/sign/light alerts, referências visuais aprovadas, backup Drive/OAuth, áudio premium e validação comercial. Esses itens não são considerados concluídos por existir menu/interface.
-
-O repositório Git original de wallpapers permanece inalterado. O fonte DashCam é o projeto separado recebido por ZIP. Scripts de ambiente são rascunho; publicação e validação em nova máquina não foram realizadas.
+A gravação Camera2 continua no serviço foreground independente da LIVE, com segmentos e proteção; o relatório 3.1 preservado em relatorios/HISTORICO documenta a implementação anterior. Continuidade real da gravação, GPS, câmera, interface, áudio e compatibilidade nativa exigem teste no equipamento. Placas/semáforos/pedestres/ciclistas com alertas completos permanecem fora desta revisão; páginas demonstrativas são identificadas como testes.

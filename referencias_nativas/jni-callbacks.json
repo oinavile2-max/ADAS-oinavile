@@ -1,0 +1,29 @@
+{
+  "NativeCameraCallback": {
+    "event2String": "(II)Ljava/lang/String;",
+    "onAStreamFrame": "([BI)V",
+    "onAStreamStarted": "(IIILjava/lang/String;)V",
+    "onAStreamStopped": "()V",
+    "onCallback": "(IILjava/lang/String;)V",
+    "onLog": "(ILjava/lang/String;)V",
+    "onPostedCallback": "(IIIILjava/lang/String;)V",
+    "onSharedSrcClosed": "()V",
+    "onSharedSrcOpened": "(Landroid/os/MemoryFile;II)V",
+    "onSharedSrcUpdated": "()V",
+    "onSharedYuvClosed": "()V",
+    "onSharedYuvOpened": "(Landroid/os/MemoryFile;II)V",
+    "onSharedYuvUpdated": "()V",
+    "onVStreamFrame": "([BI)V",
+    "onVStreamStarted": "(IIILjava/lang/String;)V",
+    "onVStreamStopped": "()V",
+    "umsdChunkSize": "()I",
+    "umsdOpen": "(Ljava/lang/String;)Ljava/lang/String;",
+    "umsdRead": "([BIII)I",
+    "umsdSeek": "(I)V",
+    "umsdSize": "()I",
+    "umsdWrite": "([BI)V"
+  },
+  "NativePreviewCallback": {
+    "onPreview": "(II)V"
+  }
+}

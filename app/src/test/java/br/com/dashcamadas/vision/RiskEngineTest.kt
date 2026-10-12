@@ -80,4 +80,8 @@ class RiskEngineTest {
         assertTrue(Risk.LEFT_DEPARTURE in e.update(1500,leftDeparture,emptyList(),15f,calibration).risks)
     }
     @Test fun invalidPhysicalMeasuresDisableCalibration() {assertFalse(Calibration(true,.5f,3f,2.5f).valid)}
+    @Test fun upperStripeCannotArmDepartureByExtrapolatingBelowObservedPixels(){
+        val e=RiskEngine();val upper=Lanes(leftDeparture.left!!.copy(yEnd=.8f),leftDeparture.right!!.copy(yEnd=.8f))
+        for(i in 0..10){val r=e.update(i*300L,upper,emptyList(),15f,calibration);assertTrue(r.risks.isEmpty());assertEquals(Phase.UNAVAILABLE,r.phases[Risk.LEFT_DEPARTURE])}
+    }
 }

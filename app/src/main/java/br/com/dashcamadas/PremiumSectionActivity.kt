@@ -45,7 +45,7 @@ class PremiumSectionActivity:Activity() {
  }
  private fun text(s:String,size:Float=17f,color:Int=white):TextView=TextView(this).apply{text=s;textSize=size;setTextColor(color);setPadding(10,10,10,10)}
  private fun button(s:String,click:()->Unit):Button=Button(this).apply{text=s;setTextColor(white);background=GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.rgb(42,75,104),Color.rgb(16,29,47))).apply{cornerRadius=18f;setStroke(2,blue)};setOnClickListener{click()}}
- private fun item(parent:LinearLayout,s:String,click:()->Unit){parent.addView(button(s,click),LinearLayout.LayoutParams(-1,70).apply{bottomMargin=12})}
+ private fun item(parent:LinearLayout,s:String,click:()->Unit){val density=resources.displayMetrics.density;parent.addView(button(s,click).apply{minHeight=(48*density).toInt();setPadding((12*density).toInt(),(10*density).toInt(),(12*density).toInt(),(10*density).toInt())},LinearLayout.LayoutParams(-1,-2).apply{bottomMargin=(8*density).toInt()})}
  private fun note(parent:LinearLayout,s:String){parent.addView(text(s,16f,Color.rgb(169,192,213)))}
  private fun detectionPage(p:LinearLayout,section:String){
   if(section=="ADAS") {
@@ -112,7 +112,7 @@ class PremiumSectionActivity:Activity() {
   }
  }
  private fun configPage(p:LinearLayout){
-  note(p,"Perfil K2001N Android 7.1 / Tablet. Resoluções e câmeras dependem do hardware.")
+  note(p,"K2000N / K2001N Android 7.1 e tablets. Resoluções e câmeras dependem do hardware.")
   val cm=getSystemService(Context.CAMERA_SERVICE) as CameraManager
   try {cm.cameraIdList.forEach{id->
    val chars=cm.getCameraCharacteristics(id)
@@ -124,8 +124,9 @@ class PremiumSectionActivity:Activity() {
   if(usb.deviceList.isEmpty())note(p,"Nenhum USB detectado pelo Android USB Host.")
   usb.deviceList.values.forEach{note(p,"USB VID=${it.vendorId} PID=${it.productId} • ${it.deviceName}")}
   item(p,"SELECIONAR CÂMERA / GRAVAR") {startActivity(Intent(this,MainActivity::class.java))}
-  item(p,"CONFIGURAR LUXURY AUDIO") {startActivity(Intent(this,SettingsActivity::class.java))}
-  note(p,"UCarDVR original pode usar protocolo proprietário. Sua biblioteca nativa não foi incorporada ao projeto.")
+  item(p,"CONFIGURAR ÁUDIO E PADRÕES DE BIP") {startActivity(Intent(this,SettingsActivity::class.java))}
+  if(BuildConfig.K2000_NATIVE)item(p,"TESTAR PRÉVIA USB NATIVA") {startActivity(Intent(this,NativeUsbActivity::class.java))}
+  note(p,if(BuildConfig.K2000_NATIVE)"Biblioteca do UCarDVR incluída neste APK ARM32. A prévia USB está em teste; gravação e ADAS USB ainda não integrados." else "Para testar o driver do UCarDVR enviado, use o APK K2000N ARM32 na central Android 7/8.")
  }
  override fun onDestroy(){activeBanner?.dismiss();bannerHandler.removeCallbacksAndMessages(null);audio.release();super.onDestroy()}
 }

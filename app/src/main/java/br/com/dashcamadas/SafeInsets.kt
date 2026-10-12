@@ -13,7 +13,7 @@ object SafeInsets {
         val root=activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0) ?: return
         val left=root.paddingLeft;val top=root.paddingTop;val right=root.paddingRight;val bottom=root.paddingBottom
         ViewCompat.setOnApplyWindowInsetsListener(root) { view,insets ->
-            val safe=insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val safe=insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             view.setPadding(left+safe.left,top+safe.top,right+safe.right,bottom+safe.bottom)
             insets
         }

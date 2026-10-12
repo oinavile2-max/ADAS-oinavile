@@ -1,0 +1,12 @@
+{
+  "profiles": [
+    "generic",
+    "k2000n-arm32"
+  ],
+  "signature_verified": true,
+  "zipalign_16kb_verified": true,
+  "jni_methods_verified": 25,
+  "callback_methods_verified": 23,
+  "native_library_original_hash_verified": true,
+  "runtime_tested": false
+}

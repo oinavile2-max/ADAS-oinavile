@@ -30,7 +30,7 @@ class RiskEngine(private val tuning:RiskTuning=RiskTuning()) {
             }
         }
         val l=lanes.left;val r=lanes.right
-        val laneAvailable=calibration.valid && speedMs!=null && speedMs>=tuning.departureMinSpeedMs && l!=null && r!=null && min(l.confidence,r.confidence)>=.65f
+        val laneAvailable=calibration.valid && speedMs!=null && speedMs>=tuning.departureMinSpeedMs && l!=null && r!=null && min(l.confidence,r.confidence)>=.65f && l.yStart<=.93f && r.yStart<=.93f && l.yEnd>=.93f && r.yEnd>=.93f
         val lx=l?.x(.93f) ?: 0f;val rx=r?.x(.93f) ?: 1f;val width=rx-lx
         val half=calibration.vehicleWidthM/calibration.laneWidthM/2
         val valid=laneAvailable && width in .16f.. .92f
@@ -38,7 +38,7 @@ class RiskEngine(private val tuning:RiskTuning=RiskTuning()) {
         gate(Risk.RIGHT_DEPARTURE,valid,valid && (rx-calibration.egoX)/width<=half)
         val candidates=vehicles.filter {
             val corridor=.08f+.28f*it.box.bottom
-            val pathCenter=if(l!=null && r!=null && min(l.confidence,r.confidence)>=.65f && it.box.bottom>=.53f)(l.x(it.box.bottom)+r.x(it.box.bottom))/2 else calibration.egoX
+            val pathCenter=if(l!=null && r!=null && min(l.confidence,r.confidence)>=.65f && it.box.bottom in max(l.yStart,r.yStart)..min(l.yEnd,r.yEnd))(l.x(it.box.bottom)+r.x(it.box.bottom))/2 else calibration.egoX
             it.confidence>=.6f && it.box.width>=.04f && it.box.bottom>.4f && abs(it.box.centerX-pathCenter)<corridor
         }
         val old=target

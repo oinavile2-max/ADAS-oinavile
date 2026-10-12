@@ -325,14 +325,14 @@ class DashCamForegroundService:Service() {
                     if(epoch!=generation || closing)return@execute
                     val small=Bitmap.createScaledBitmap(oriented,320,180,true)
                     val pixels=IntArray(320*180);small.getPixels(pixels,0,320,0,0,320,180)
-                    val gray=IntArray(pixels.size){i->val c=pixels[i];((c shr 16 and 255)*30+(c shr 8 and 255)*59+(c and 255)*11)/100}
                     if(small!==oriented)small.recycle()
                     val vehicles=detector?.detect(oriented).orEmpty()
                     val prefs=getSharedPreferences("adas_calibration",MODE_PRIVATE)
                     val calibration=Calibration(prefs.getBoolean("enabled_$cameraId",false),prefs.getFloat("ego_$cameraId",.5f),prefs.getFloat("vehicle_width_$cameraId",1.8f),prefs.getFloat("lane_width_$cameraId",3.5f))
                     val settings=getSharedPreferences("adas_tuning",MODE_PRIVATE)
                     engine.configure(RiskTuning(settings.getFloat("ldw_kmh",30f).coerceIn(10f,100f)/3.6f,settings.getFloat("fcw_ttc",2.5f).coerceIn(1f,5f),settings.getLong("confirm_ms",900).coerceIn(300,2000),settings.getLong("cooldown_ms",10000).coerceIn(5000,60000)))
-                    val outcome=engine.process(gray,320,180,vehicles,now,if(SystemClock.elapsedRealtime()-now<=500) DrivingContext.speed() else null,calibration)
+                    if(oriented.width<oriented.height){engine.reset();publish(state.copy(message="Gire a câmera para a estrada horizontal; ADAS suspenso"));return@execute}
+                    val outcome=engine.processRgb(pixels,320,180,vehicles,now,if(SystemClock.elapsedRealtime()-now<=500) DrivingContext.speed() else null,calibration)
                     val laneResult=outcome.lanes
                     val evaluated=outcome.risk
                     val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now)

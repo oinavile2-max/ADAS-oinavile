@@ -1,0 +1,11 @@
+{
+  "apk": "DashCam_ADAS_PRO_3_2_K2000N_ARM32_DEBUG.apk",
+  "native_profile": true,
+  "abis": [
+    "armeabi-v7a"
+  ],
+  "jni_methods_verified": 25,
+  "callback_methods_verified": 23,
+  "model_sha256_verified": true,
+  "native_runtime_tested": false
+}
