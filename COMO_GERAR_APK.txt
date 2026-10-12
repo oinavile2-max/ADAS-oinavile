@@ -1,0 +1,12 @@
+DASHCAM ADAS PRO V3 - GERAR APK NO WINDOWS
+
+1. Extraia o ZIP completamente.
+2. Instale Android Studio com JDK 17 e Android SDK Platform 35.
+3. Execute GERAR APK.bat na pasta principal.
+4. Na primeira execucao, Internet e necessaria para Gradle/dependencias.
+5. Se compilar, o APK sera copiado para APK_GERADO\DashCam_ADAS_PRO_DEBUG.apk.
+6. Se falhar, veja as mensagens exibidas na janela.
+
+IMPORTANTE: APK de teste (debug), nao assinado para distribuicao.
+Os recursos ADAS de IA e integracao proprietaria UCarDVR continuam pendentes.
+Este pacote nao foi compilado/testado neste ambiente.

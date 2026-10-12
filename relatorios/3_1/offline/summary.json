@@ -1,0 +1,11 @@
+{
+  "frames": 82,
+  "vehicle_candidates": 3,
+  "frames_with_vehicle_candidates": 3,
+  "cpu_inference_ms_median": 23.204123499454,
+  "cpu_inference_ms_p95": 123.77984254853806,
+  "runtime": "ai-edge-litert 1.4.0 CPU 2 threads; host, not Android device",
+  "reference_annotations": false,
+  "measured_gps_speed": false,
+  "calibration_available": false
+}

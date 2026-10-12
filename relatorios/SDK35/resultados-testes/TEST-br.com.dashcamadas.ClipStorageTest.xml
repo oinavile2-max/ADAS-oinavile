@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.ClipStorageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-11T23:21:07" hostname="b091e225e522" time="0.046">
+  <properties/>
+  <testcase name="oldestClosedClipIsRemovedFirst" classname="br.com.dashcamadas.ClipStorageTest" time="0.035"/>
+  <testcase name="pruningKeepsActiveAndProtectedFiles" classname="br.com.dashcamadas.ClipStorageTest" time="0.002"/>
+  <testcase name="hashMatchesKnownVector" classname="br.com.dashcamadas.ClipStorageTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

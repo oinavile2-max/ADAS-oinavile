@@ -1,0 +1,5 @@
+{
+  "status": "not_executed",
+  "reason": "adb devices reports no attached Android",
+  "missing_device_check_exit_code": 1
+}

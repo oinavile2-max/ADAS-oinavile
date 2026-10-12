@@ -1,0 +1,92 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.9/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:mergeDebugShaders UP-TO-DATE
+> Task :app:compileDebugShaders NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :app:mergeDebugNativeLibs NO-SOURCE
+> Task :app:stripDebugDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :app:generateDebugAndroidTestResValues UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+
+> Task :app:compileDebugKotlin
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:259:51 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:306:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:306:88 'fun onBackPressed(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:347:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:348:18 'static field SYSTEM_UI_FLAG_FULLSCREEN: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:348:52 'static field SYSTEM_UI_FLAG_HIDE_NAVIGATION: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:349:18 'static field SYSTEM_UI_FLAG_IMMERSIVE_STICKY: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:349:58 'static field SYSTEM_UI_FLAG_LAYOUT_STABLE: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:722:20 'fun createCaptureSession(p0: (MutableList<Surface!>..List<Surface!>), p1: CameraCaptureSession.StateCallback, p2: Handler?): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:760:91 'constructor(): MediaRecorder' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:780:20 'fun createCaptureSession(p0: (MutableList<Surface!>..List<Surface!>), p1: CameraCaptureSession.StateCallback, p2: Handler?): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/PremiumMenuActivity.kt:20:20 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/RadarForegroundService.kt:45:104 'constructor(p0: Context!): Notification.Builder' is deprecated. Deprecated in Java.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:mergeProjectDexDebug
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDebug
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:generateDebugLintReportModel
+> Task :app:generateDebugUnitTestLintModel
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :app:lintAnalyzeDebugAndroidTest
+Warning: Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (No such file or directory)
+
+> Task :app:lintAnalyzeDebugUnitTest
+> Task :app:lintAnalyzeDebug
+> Task :app:lintReportDebug UP-TO-DATE
+> Task :app:lintDebug
+
+BUILD SUCCESSFUL in 41s
+49 actionable tasks: 15 executed, 34 up-to-date

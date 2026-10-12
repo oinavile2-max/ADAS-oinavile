@@ -1,0 +1,232 @@
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:618: Warning: Field requires API level 28 (current min is 24): android.hardware.camera2.CameraMetadata#INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL [InlinedApi]
+                manager.getCameraCharacteristics(id).get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL
+                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "InlinedApi":
+   This check scans through all the Android API field references in the
+   application and flags certain constants, such as static final integers and
+   Strings, which were introduced in later versions. These will actually be
+   copied into the class files rather than being referenced, which means that
+   the value is available even when running on older devices. In some cases
+   that's fine, and in other cases it can result in a runtime crash or
+   incorrect behavior. It depends on the context, so consider the code
+   carefully and decide whether it's safe and can be suppressed or whether the
+   code needs to be guarded.
+
+   If you really want to use this API and don't need to support older devices
+   just set the minSdkVersion in your build.gradle or AndroidManifest.xml
+   files.
+
+   If your code is deliberately accessing newer APIs, and you have ensured
+   (e.g. with conditional execution) that this code will only ever be called
+   on a supported platform, then you can annotate your class or method with
+   the @TargetApi annotation specifying the local minimum SDK to apply, such
+   as @TargetApi(11), such that this check considers 11 rather than your
+   manifest file's minimum SDK as the required API level.
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/AndroidManifest.xml:10: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+  <activity android:name=".MainActivity" android:screenOrientation="landscape" android:exported="true">
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/AndroidManifest.xml:13: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+  <activity android:name=".SettingsActivity" android:screenOrientation="landscape" android:exported="false"/>
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/AndroidManifest.xml:14: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+  <activity android:name=".PremiumSectionActivity" android:screenOrientation="landscape" android:exported="false"/>
+                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/AndroidManifest.xml:15: Warning: Should not restrict activity to fixed orientation. This may not be suitable for different form factors, causing the app to be letterboxed. [DiscouragedApi]
+  <activity android:name=".PremiumMenuActivity" android:screenOrientation="landscape" android:exported="false"/>
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "DiscouragedApi":
+   Discouraged APIs are allowed and are not deprecated, but they may be unfit
+   for common use (e.g. due to slow performance or subtle behavior).
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/build.gradle.kts:5: Error: Google Play requires that apps target API level 33 or higher. [ExpiredTargetSdkVersion]
+ defaultConfig { applicationId = "br.com.dashcamadas"; minSdk = 24; targetSdk = 28; versionCode = 30; versionName = "3.0.0-projeto" }
+                                                                    ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "ExpiredTargetSdkVersion":
+   Configuring your app to target a recent API level ensures that users
+   benefit from significant security and performance improvements, while still
+   allowing your app to run on older Android versions (down to the
+   minSdkVersion).
+
+   To update your targetSdkVersion, follow the steps from "Meeting Google Play
+   requirements for target API level",
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://support.google.com/googleplay/android-developer/answer/113469#targetsdk
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/LaneAssistView.kt:23: Warning: Avoid object allocations during draw/layout operations (preallocate and reuse instead) [DrawAllocation]
+            val path = Path()
+                       ~~~~~~
+
+   Explanation for issues of type "DrawAllocation":
+   You should avoid allocating objects during a drawing or layout operation.
+   These are called frequently, so a smooth UI can be interrupted by garbage
+   collection pauses caused by the object allocations.
+
+   The way this is generally handled is to allocate the needed objects up
+   front and to reuse them for each drawing operation.
+
+   Some methods allocate memory on your behalf (such as Bitmap.create), and
+   these should be handled in the same way.
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:739: Warning: Consider also using StorageManager#getAllocatableBytes and allocateBytes which will consider clearable cached data [UsableSpace]
+            if (folder.usableSpace < 100L * 1024 * 1024) throw IllegalStateException("Armazenamento insuficiente para gravar")
+                       ~~~~~~~~~~~
+
+   Explanation for issues of type "UsableSpace":
+   When you need to allocate disk space for large files, consider using the
+   new allocateBytes(FileDescriptor, long) API, which will automatically clear
+   cached files belonging to other apps (as needed) to meet your request.
+
+   When deciding if the device has enough disk space to hold your new data,
+   call getAllocatableBytes(UUID) instead of using getUsableSpace(), since the
+   former will consider any cached data that the system is willing to clear on
+   your behalf.
+
+   Note that these methods require API level 26. If your app is running on
+   older devices, you will probably need to use both APIs, conditionally
+   switching on Build.VERSION.SDK_INT. Lint only looks in the same compilation
+   unit to see if you are already using both APIs, so if it warns even though
+   you are already using the new API, consider moving the calls to the same
+   file or suppressing the warning.
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/AndroidManifest.xml:9: Warning: Should explicitly set android:icon, there is no default [MissingApplicationIcon]
+ <application android:label="DashCam ADAS PRO" android:theme="@android:style/Theme.Material.NoActionBar" android:allowBackup="false" android:usesCleartextTraffic="false">
+  ~~~~~~~~~~~
+
+   Explanation for issues of type "MissingApplicationIcon":
+   You should set an icon for the application as whole because there is no
+   default. This attribute must be set as a reference to a drawable resource
+   containing the image (for example @drawable/icon).
+
+   https://developer.android.com/studio/publish/preparing#publishing-configure
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:387: Warning: onTouch lambda should call View#performClick when a click is detected [ClickableViewAccessibility]
+        laneOverlay = LaneAssistView(this).apply { setOnTouchListener { _, _ -> false } }
+                                                                      ~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:406: Warning: Custom view `TextureView` has setOnTouchListener called on it but does not override performClick [ClickableViewAccessibility]
+        texture.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:406: Warning: onTouch lambda should call View#performClick when a click is detected [ClickableViewAccessibility]
+        texture.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/PremiumMenuActivity.kt:42: Warning: Custom view MenuSurface overrides onTouchEvent but not performClick [ClickableViewAccessibility]
+  override fun onTouchEvent(event: MotionEvent): Boolean {
+               ~~~~~~~~~~~~
+
+   Explanation for issues of type "ClickableViewAccessibility":
+   If a View that overrides onTouchEvent or uses an OnTouchListener does not
+   also implement performClick and call it when clicks are detected, the View
+   may not handle accessibility actions properly. Logic handling the click
+   actions should ideally be placed in View#performClick as some accessibility
+   services invoke performClick when a click action should occur.
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:184: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+            text = "$message\n${error.javaClass.simpleName}: ${error.message ?: "sem detalhes"}\nVerifique logcat: DashCamStartup"
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:184: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            text = "$message\n${error.javaClass.simpleName}: ${error.message ?: "sem detalhes"}\nVerifique logcat: DashCamStartup"
+                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:223: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        if (::gpsRec.isInitialized) gpsRec.text = "GPS " + (if (lastGps != null) "OK" else "--") + " · " + (if (recording) "● REC" else "REC OFF")
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:223: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        if (::gpsRec.isInitialized) gpsRec.text = "GPS " + (if (lastGps != null) "OK" else "--") + " · " + (if (recording) "● REC" else "REC OFF")
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:223: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+        if (::gpsRec.isInitialized) gpsRec.text = "GPS " + (if (lastGps != null) "OK" else "--") + " · " + (if (recording) "● REC" else "REC OFF")
+                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:223: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        if (::gpsRec.isInitialized) gpsRec.text = "GPS " + (if (lastGps != null) "OK" else "--") + " · " + (if (recording) "● REC" else "REC OFF")
+                                                   ~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:497: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            text = "REC"; textSize = 12f; isEnabled = false
+                    ~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:543: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+            alertMessage.text = "$title\n$detail"
+                                ~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:769: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                        record.text = "STOP"
+                                       ~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:794: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        record.text = "REC"
+                       ~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:841: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+                override fun onProviderDisabled(provider: String) { lastGps = null; updateHud(); speed.text = "-- km/h" }
+                                                                                                               ~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:847: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        } catch (_: Exception) { speed.text = "GPS indisponível" }
+                                               ~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:858: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        wrapper.addView(TextView(this).apply {text="Limite (km/h)"});wrapper.addView(limit)
+                                                    ~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:859: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        wrapper.addView(TextView(this).apply {text="Tipo"});wrapper.addView(type)
+                                                    ~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:889: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+            if (::record.isInitialized) record.text = "REC"
+                                                       ~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:74: Warning: Do not concatenate text displayed with setText. Use resource string with placeholders. [SetTextI18n]
+   text="TESTE • ${label.uppercase()}\n$voice"
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:74: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+   text="TESTE • ${label.uppercase()}\n$voice"
+         ~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt:35: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        root.addView(Button(this).apply {text="TESTAR AVISO (com música tocando)";setOnClickListener {audio.announce("Teste de áudio ADAS sem interromper a multimídia",true)}})
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt:48: Warning: String literal in setText can not be translated. Use Android resources instead. [SetTextI18n]
+        root.addView(Button(this).apply {text="SALVAR";setOnClickListener {audio.configure(modes[selector.selectedItemPosition],voice.progress,sound.progress);getSharedPreferences("camera",MODE_PRIVATE).edit().putInt("segment",segments[segmentSelector.selectedItemPosition]).putInt("controls_timeout",timeouts[timeoutSelector.selectedItemPosition]).putInt("storage_mb",storageLimits[storageSelector.selectedItemPosition]).apply();Toast.makeText(this@SettingsActivity,"Preferências salvas",Toast.LENGTH_SHORT).show();finish()}})
+                                               ~~~~~~
+
+   Explanation for issues of type "SetTextI18n":
+   When calling TextView#setText
+   * Never call Number#toString() to format numbers; it will not handle
+   fraction separators and locale-specific digits properly. Consider using
+   String#format with proper format specifications (%d or %f) instead.
+   * Do not pass a string literal (e.g. "Hello") to display text. Hardcoded
+   text can not be properly translated to other languages. Consider using
+   Android resource strings instead.
+   * Do not build messages by concatenating text chunks. Such messages can not
+   be properly translated.
+
+   https://developer.android.com/guide/topics/resources/localization.html
+
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:438: Warning: Use "Gravity.START" instead of "Gravity.LEFT" to ensure correct behavior in right-to-left locales [RtlHardcoded]
+            Gravity.TOP or Gravity.LEFT).apply {
+                                   ~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:443: Warning: Use "Gravity.END" instead of "Gravity.RIGHT" to ensure correct behavior in right-to-left locales [RtlHardcoded]
+            Gravity.TOP or Gravity.RIGHT).apply { setMargins(0, dp(8), dp(10), 0) })
+                                   ~~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:450: Warning: Use "Gravity.START" instead of "Gravity.LEFT" to ensure correct behavior in right-to-left locales [RtlHardcoded]
+            Gravity.BOTTOM or Gravity.LEFT).apply { setMargins(dp(10), 0, 0, dp(10)) })
+                                      ~~~~
+/workspace/DashCam_ADAS_PRO_V4_8_FAIXAS_EXPERIMENTAL_FONTE/app/src/main/java/br/com/dashcamadas/MainActivity.kt:453: Warning: Use "Gravity.END" instead of "Gravity.RIGHT" to ensure correct behavior in right-to-left locales [RtlHardcoded]
+            Gravity.BOTTOM or Gravity.RIGHT).apply { setMargins(0, 0, dp(10), dp(10)) })
+                                      ~~~~~
+
+   Explanation for issues of type "RtlHardcoded":
+   Using Gravity#LEFT and Gravity#RIGHT can lead to problems when a layout is
+   rendered in locales where text flows from right to left. Use Gravity#START
+   and Gravity#END instead. Similarly, in XML gravity and layout_gravity
+   attributes, use start rather than left.
+
+   For XML attributes such as paddingLeft and layout_marginLeft, use
+   paddingStart and layout_marginStart. NOTE: If your minSdkVersion is less
+   than 17, you should add both the older left/right attributes as well as the
+   new start/end attributes. On older platforms, where RTL is not supported
+   and the start/end attributes are unknown and therefore ignored, you need
+   the older left/right attributes. There is a separate lint check which
+   catches that type of error.
+
+   (Note: For Gravity#LEFT and Gravity#START, you can use these constants even
+   when targeting older platforms, because the start bitmask is a superset of
+   the left bitmask. Therefore, you can use gravity="start" rather than
+   gravity="left|start".)
+
+1 errors, 35 warnings
