@@ -26,7 +26,7 @@ object NeonDialogs {
     }
     fun styleContent(view:View){
         if(view is TextView)view.setTextColor(PremiumVisuals.WHITE)
-        if(view is Spinner)view.popupBackgroundDrawable=NeonSurface(view.context)
+        if(view is Spinner)view.setPopupBackgroundDrawable(NeonSurface(view.context))
         if(view is ViewGroup)for(i in 0 until view.childCount)styleContent(view.getChildAt(i))
     }
     @Suppress("DEPRECATION")

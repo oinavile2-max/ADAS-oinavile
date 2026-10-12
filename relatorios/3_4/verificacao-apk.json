@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-12",
+  "apk": "APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+  "sha256": "71c3f6ae05bd4b6ca43f23a6fc363e82527ff522e21cfe1210de2e1605726323",
+  "bytes": 37728541,
+  "version_code": 34,
+  "min_sdk": 24,
+  "target_sdk": 35,
+  "abis": [
+    "armeabi-v7a"
+  ],
+  "tests": {
+    "tests": 81,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "Warning": 79
+  },
+  "v1_verified_forced_api23": true,
+  "v2_verified_api25": true,
+  "v1_forced_api_note": "Verifier setting only; application minSdk remains 24.",
+  "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+  "zipalign_verified": true,
+  "jni": {
+    "apk": "DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+    "native_profile": true,
+    "abis": [
+      "armeabi-v7a"
+    ],
+    "jni_methods_verified": 25,
+    "callback_methods_verified": 23,
+    "model_sha256_verified": true,
+    "lane_model_sha256_verified": true,
+    "native_runtime_tested": false
+  },
+  "libraries": [
+    "lib/armeabi-v7a/libmycamera.so",
+    "lib/armeabi-v7a/libonnxruntime.so",
+    "lib/armeabi-v7a/libonnxruntime4j_jni.so",
+    "lib/armeabi-v7a/libtensorflowlite_jni.so"
+  ],
+  "models_packaged_and_hash_verified": true,
+  "neural_inference_test_real_host_cpu": true,
+  "android_hardware_tested": false,
+  "android_ui_pixel_identity_verified": false,
+  "background_recording_on_device_verified": false,
+  "original_install_error_cause_identified": false
+}

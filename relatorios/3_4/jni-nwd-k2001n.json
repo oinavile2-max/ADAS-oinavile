@@ -1,0 +1,12 @@
+{
+  "apk": "DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+  "native_profile": true,
+  "abis": [
+    "armeabi-v7a"
+  ],
+  "jni_methods_verified": 25,
+  "callback_methods_verified": 23,
+  "model_sha256_verified": true,
+  "lane_model_sha256_verified": true,
+  "native_runtime_tested": false
+}

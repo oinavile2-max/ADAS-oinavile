@@ -1,4 +1,6 @@
-# Prévia da interface — sem build Android
+# Prévia da interface — histórico visual e build 3.4
+
+**Atualização:** o usuário autorizou o build posteriormente. A versão 3.4 compilou, com 81 testes aprovados e lint sem erros. O registro abaixo descreve a etapa anterior sem build; capturas continuam sendo maquetes, não screenshots Android. Evidências atuais: ../../relatorios/3_4.
 
 Referências: imagens fornecidas pelo usuário em 12/10/2026. Central: NWD K2001N, Android 7.1.1.
 

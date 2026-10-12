@@ -594,3 +594,7 @@ Central informada pelo usuário: **NWD K2001N, Android 7.1.1 (API 25)**. A refer
 | Regra máxima de build | Hashes dos modelos e teste JVM de inferência real obrigatórios antes de empacotar | Dependências Gradle não executadas nesta revisão |
 
 O ensaio adicional do SSD no host executou 27 inferências reais; um candidato pessoa com confiança 0,5 não satisfaz o limiar de aviso 0,6. Não mede precisão. Nenhum novo APK foi produzido.
+
+## Build 3.4 autorizado — 12/10/2026
+
+A revisão acima foi compilada após autorização posterior do usuário: 81 testes passaram (incluindo oito novos), hashes/inferência real obrigatórios executados antes do empacotamento e lint sem erros (79 avisos). APK NWD K2001N ARM32 com V1/V2 e fonte atualizados. Essas verificações substituem o estado “não executado/sem build” da revisão anterior; validação Android física/visual e precisão em estrada continuam pendentes. Evidências: relatorios/3_4.

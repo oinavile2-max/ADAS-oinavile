@@ -1,60 +1,42 @@
-# DashCam ADAS PRO — 3.3 neural experimental
+# DashCam ADAS PRO — 3.4 neon neural experimental
 
-**Branch de prévia visual, sem build:** a interface Android foi atualizada com neon vermelho, alvo na tela direita e ajustes das faixas. A classe pessoa do SSD foi integrada ao código. Nada desta revisão foi compilado no Android. Veja [prévia dos popups](design/preview/LEIA-ME.md). Os APKs e o ZIP de fonte nos downloads abaixo pertencem à entrega 3.3 anterior à alteração visual; os 73 testes citados também correspondem àquela entrega.
-
-Redes neurais locais para **faixas/área dirigível** (YOLOP) e **veículos** (SSD MobileNet). Processamento no Android, sem internet e sem aprendizagem automática durante a condução.
+Build para **NWD K2001N, Android 7.1.1 (API 25), ARM32**. Interface LIVE atualizada segundo as referências, popups com neon vermelho, foco no alvo real na tela direita e controles de sensibilidade/espessura das faixas. Redes locais YOLOP (faixas/área dirigível) e SSD MobileNet (veículos/pessoas), sem internet ou treinamento durante a condução.
 
 ## Downloads
 
-- [APK NWD K2001N ARM32 — assinaturas V1 + V2](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NWD_K2001N_ARM32_V1_V2_DEBUG.apk)
-- [APK genérico — celular/tablet/emulador](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
-- [Código-fonte completo](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 3.4 NWD K2001N ARM32 — V1 + V2](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [Código-fonte completo 3.4](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK genérico 3.3 histórico, anterior à nova interface](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
-A identificação correta da central é **NWD K2001N, Android 7.1.1 (API 25)**. Os arquivos antigos e a opção de compilação `k2000Native` permanecem como identificadores históricos para preservar os downloads existentes. CPU/ABI e câmera ainda precisam de confirmação física.
-
-APKs debug assinados. minSdk 24, targetSdk/compileSdk 35. Driver do APK fornecido habilitado somente no perfil ARM32 e Android 7/8 (API 24–27); compatibilidade real ainda precisa de teste na NWD K2001N, informada pelo usuário como Android 7.1.1 (API 25).
-
-O APK genérico exige páginas de memória de 4 KB: a ponte JNI ARM64 do ONNX Runtime 1.20.0 não suporta dispositivos configurados com páginas de 16 KB. Essa restrição não se aplica ao perfil ARM32 da NWD K2001N Android 7.1.1.
+APK debug, versionCode 34, minSdk 24, targetSdk/compileSdk 35. O perfil ARM32 inclui o driver do APK fornecido, habilitado em API 24–27. O identificador de compilação `k2000Native` é histórico. CPU/ABI e câmera da central ainda precisam de confirmação física. O APK genérico histórico não suporta páginas de memória de 16 KB.
 
 ## Usar
 
-1. Na NWD K2001N, instale o APK ARM32. Abra **CONFIG → CONFIG → AUTORIZAR USB — ABRIR LIVE COM IA**, selecione a câmera e conceda a autorização USB do Android. Também pode selecionar a fonte no botão CÂMERA da LIVE. O APK genérico usa Camera2.
-2. Confira a orientação em **GIRAR / ESPELHAR**. A rede exige imagem da estrada orientada horizontalmente.
-3. Com o veículo parado, calibre pelo botão **ADAS**, usando medidas reais. Detecções podem aparecer sem GPS; os alertas LDW/FCW exigem GPS válido, calibração e resultados recentes.
-4. A indicação **IA ativa** corresponde a inferências realmente executadas. Se a análise exceder 500 ms, o app avisa e suspende os alertas dependentes desse resultado.
-5. Use **REC** para gravar. O serviço mantém captura, análise e codificação ao sair da Activity. Continuidade em segundo plano/tela apagada depende do sistema e do hardware e ainda precisa de teste físico.
-6. Em áudio, permanecem os seis padrões de bip, frequência, duração e volume ajustáveis, com prévia antes de salvar.
+1. Instale o APK ARM32. Na LIVE, abra o ícone de câmera lateral para selecionar a fonte ou use CONFIG → CONFIG → AUTORIZAR USB — ABRIR LIVE COM IA. Conceda a permissão USB solicitada pelo Android.
+2. No menu da câmera, ajuste rotação e espelhamento para mostrar a estrada horizontalmente. **Sensibilidade e espessura das faixas** abre os controles: 0–100% (padrão 50%) e 1–12 dp (padrão 4). A espessura altera o desenho; a sensibilidade ajusta a margem LDW sem dispensar confiança/GPS/calibração.
+3. Com o veículo parado, calibre em ADAS usando medidas reais. Alertas LDW/FCW/pedestre exigem GPS válido, calibração, confiança, confirmação temporal e resultados recentes.
+4. **IA ativa** depende de inferências executadas. Análises acima de 500 ms suspendem os alertas dependentes desses resultados. Sem dados, o HUD exibe `--`; resolução e sensores refletem a fonte real.
+5. Toque no botão superior esquerdo para gravar; toque longo protege o clipe. REC também está no menu da câmera. Captura, análise e gravação pertencem ao serviço foreground; continuidade em segundo plano/tela apagada ainda precisa de teste na central.
+6. Áudio oferece seis padrões de bip, frequência, duração, volume e prévia.
 
-## Melhorias
-
-YOLOP produz máscaras neurais de faixas e área dirigível; curvas são ajustadas aos pixels observados, com confirmação temporal e suporte de estrada ao lado. Pontos de cada borda são escolhidos separadamente, preservando marcações tracejadas quando falta um trecho próximo da câmera. Trechos fora do quadro não são extrapolados para gerar alertas. Veículos fora da área dirigível têm a associação de risco restringida.
-
-USB autorizado agora alimenta **o mesmo serviço** usado pela LIVE e pelos modelos. O driver entrega quadros RGBA a um ImageReader independente da tela. Um renderizador EGL do app envia esses quadros reais ao MediaRecorder/H.264; a gravação não depende de um modo de codificação não documentado do driver. Perda de quadros USB finaliza a gravação e suspende ADAS. Nenhuma dessas combinações EGL/driver/encoder foi validada fisicamente nesta nuvem.
-
-Resultados da IA são desenhados sobre o próprio quadro analisado, evitando caixas/faixas de um quadro antigo sobre outra imagem. Quadros uniformes e saídas inválidas não fornecem evidência de faixas. Os pesos têm checksum verificado no carregamento.
+A tela direita apresenta o mesmo quadro real analisado com foco no alvo, não uma segunda câmera. Os destaques vermelhos correspondem a risco confirmado e desaparecem ao perder dados recentes. Faixas/corredor/seta usam curvas observadas. Não há bordas de estrada fictícias ou distância métrica inventada. O aviso de pedestre é experimental; semáforos, placas e ciclistas com alertas completos continuam pendentes.
 
 ## Compilar e verificar
 
-JDK 17, Gradle 8.9, Android Platform 35 e Build Tools 35.0.0.
+JDK 17, Gradle 8.9, SDK Platform 35 e Build Tools 35.0.0:
 
-- Genérico: `./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`.
-- ARM32: acrescente `-Pk2000Native=true` ao comando.
-- Windows: `GERAR APK.bat` ou `GERAR APK K2000N.bat`. Execução Windows não realizada nesta nuvem.
+```sh
+./gradlew --no-daemon -Pk2000Native=true :app:assembleDebug :app:lintDebug
+```
 
-Os testes JVM usam ONNX Runtime para computador apenas em testRuntimeOnly. O APK inclui exclusivamente o runtime Android. Bibliotecas JNI são comprimidas e extraídas na instalação, preservando ARM32/ARM64/x86/x86_64 no APK genérico.
+Hashes dos dois modelos e `testDebugUnitTest` são dependências obrigatórias do empacotamento. O teste da rede de faixas executa o modelo real em ONNX Runtime CPU. Runtime de computador permanece apenas no escopo dos testes; APK contém runtime Android ARM32. No Windows: `GERAR APK K2000N.bat`; execução Windows não validada nesta nuvem.
 
-## Evidências
+## Evidências e instalação
 
-73 testes passaram, incluindo inferência real do modelo pelo mesmo RoadNeuralSession usado no app. Vídeo recebido: 82 execuções neurais, 66 quadros com candidatos a curvas e sete pares confirmados pelo critério interno; a versão 3.2 teve zero pares. Isso **não é medida de precisão**: não há marcações de referência, GPS ou calibração nesse vídeo. Nenhum risco crítico foi produzido sem esses dados.
+**81 testes passaram**, sem falhas/erros/skips; lint sem erros, 79 avisos. Modelos e contrato JNI conferidos no APK, com assinaturas V1/V2 e certificado igual às entregas 3.2/3.3. [Relatório técnico](RELATORIO_TECNICO.md) e `relatorios/3_4` registram os resultados. [Prévias](design/preview/LEIA-ME.md) são maquetes HTML/SVG, não capturas Android; identidade pixel a pixel ainda não comprovada.
 
-Veja [RELATORIO_TECNICO.md](RELATORIO_TECNICO.md), `relatorios/3_3`, [proveniência YOLOP](app/src/main/assets/MODEL_PROVENANCE_YOLOP.md) e [referência do driver](referencias_nativas/PROVENIENCIA.md). GPS, câmera, áudio/FM, interface, driver USB e gravação continuam sem validação física. Não houve aparelho conectado à nuvem.
+O vídeo recebido foi analisado no host; não há anotações para medir precisão. O ensaio SSD encontrou um candidato pessoa com confiança 0,5, abaixo do limiar de aviso 0,6. Testes de inferência no computador não comprovam latência em ARM32.
 
-Teste físico preparado: `python3 build-tools/test_android_device.py --help`. Para USB, autorize a fonte na interface antes do teste e use --native-usb; --require-realtime exige o limite de 500 ms. O teste verifica avanço das duas redes em segundo plano e o MP4 real.
+Nenhum Android conectado à nuvem: instalação, interface, GPS, USB, áudio/FM e gravação em segundo plano ainda precisam de teste físico. `python3 build-tools/test_android_device.py --help` descreve o teste preparado. O erro de instalação anterior não teve causa identificada; V1/V2 não comprova a solução no aparelho. `adb install -r arquivo.apk` fornece o erro detalhado. Versões compiladas em outro computador podem usar certificado diferente.
 
-YOLOP: licença MIT preservada. SSD: licença Apache-2.0 preservada. A licença comercial da biblioteca do APK fornecido não foi verificada. Placas, semáforos, pedestres e ciclistas com alertas completos continuam fora desta revisão.
-
-## Instalação na NWD K2001N
-
-Após relato de erro de instalação, foi preparado um APK ARM32 com assinaturas V1 e V2, mantendo o mesmo applicationId, versionCode e certificado da versão 3.3 anterior. O APK anterior tinha somente V2, válido para Android 7.1.1; a assinatura adicional amplia a compatibilidade com instaladores antigos, mas a causa do erro relatado ainda não foi identificada. O aparelho não está conectado à nuvem.
-
-A versão 3.2 publicada neste repositório e a 3.3 usam o mesmo certificado. Versões compiladas em outro computador podem ter certificado diferente. Para diagnosticar, informe a mensagem exata, o nome do APK e se existe versão anterior instalada. Se houver ADB disponível, `adb install -r arquivo.apk` fornece o código detalhado da falha. `adb shell getprop ro.build.version.sdk` e `adb shell getprop ro.product.cpu.abilist` conferem API e ABIs reais da central.
+YOLOP preserva licença MIT; SSD, Apache-2.0. Proveniências estão em `app/src/main/assets` e `referencias_nativas/PROVENIENCIA.md`. A licença comercial do driver fornecido continua sem confirmação.
