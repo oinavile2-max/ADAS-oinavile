@@ -1,0 +1,5 @@
+<resources>
+    <item type="id" name="neon_role" />
+    <item type="id" name="neon_primary" />
+    <item type="id" name="neon_border_width" />
+</resources>

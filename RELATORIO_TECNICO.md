@@ -29,3 +29,11 @@ Comando por perfil: compileDebugKotlin, testDebugUnitTest, lintDebug e verifyNat
 Os ensaios de vídeo da 3.3 e do SSD no host continuam históricos. O pacote Python LiteRT não possui versão 1.4.2 publicada; não foi alegado um teste de inferência Android SSD com esse runtime. A API do Interpreter compilou, os modelos/hash foram verificados, e a execução Android ainda depende do aparelho. Relatório histórico do APK 3.4: relatorios/HISTORICO/RELATORIO_3_4.md.
 
 Resultado final: ambos os perfis compilaram, 84 testes passaram por perfil, lint sem erros e 91 avisos por perfil. Seis bibliotecas ELF64 com alinhamento16KB verificadas; modelo YOLOP real executado pelo teste compartilhado no host. APK3.4 anterior preservado.
+
+## Temas neon — código 3.6, 13/10/2026
+
+NeonThemeSettings centraliza seis presets, deslocamento de matiz ±30°, transparências independentes 0–80% e opção de cor para popups comuns. NeonTheme mantém uma paleta imutável em cache e listener em preferências de applicationContext; não lê disco a cada frame. Somente preenchimentos recebem alfa: textos/ícones/bordas permanecem legíveis. Banners de eventos têm cor vermelha fixa; preenchimento crítico tem alfa mínimo 191/255 (75% nominal).
+
+Aplicado aos botões internos, seis botões LIVE, botões com ícone, bordas da câmera, marca no cabeçalho, sliders/switches, HUD, diálogos, menus suspensos e avisos. O registro de estilo não substitui os ícones dos botões da câmera/gravação nem os controles Switch. Salvar atualiza a tela e a LIVE ao retornar; prévia e restauração operam em rascunhos antes de salvar. Alterações de IA, fontes/encoder e Android SDK não fazem parte deste ajuste visual.
+
+89 testes passaram em cada perfil, sem falhas/skips; compilação Kotlin, lint e alinhamento de bibliotecas conferidos sem gerar APK. Cinco testes adicionais cobrem padrão histórico, adesão explícita de popup ao tema, independência de alfa, proteção vermelha/opacidade dos eventos e normalização de limites. Prévias do navegador verificadas; Android físico ainda não testado. Evidências: relatorios/temas-neon.

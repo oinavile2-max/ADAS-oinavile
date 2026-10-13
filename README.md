@@ -1,16 +1,24 @@
-# DashCam ADAS PRO — 3.5, aparência comercial e compatibilidade
+# DashCam ADAS PRO — 3.6, temas neon e aparência comercial
 
-Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles ciano e popups com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
+Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**Esta entrega é de código-fonte, sem novo APK.** Os APKs publicados são entregas anteriores. Compilação do código, testes e lint desta revisão têm evidências em `relatorios/comercial-android-atual`. Aparência no aparelho e execução em todas as versões ainda precisam de teste físico.
+**Esta entrega é de código-fonte, sem novo APK.** Os APKs publicados são entregas anteriores. Compilação do código, testes e lint desta revisão têm evidências em `relatorios/temas-neon`. Aparência no aparelho e execução em todas as versões ainda precisam de teste físico.
 
 ## Downloads
 
-- [Código-fonte atualizado 3.5](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [Código-fonte atualizado 3.6](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
-Os APKs antigos não contêm a tela comercial 3.5 nem a atualização de bibliotecas desta revisão. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+Os APKs antigos não contêm a tela comercial e temas 3.6 nem a atualização de bibliotecas desta revisão. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+
+## Temas neon
+
+Em **CONFIG → Aparência**, escolha ciano, violeta, rosa, verde, laranja ou vermelho. Ajuste o tom entre −30° e +30° e a transparência do fundo dos botões e popups entre 0% e 80%. A prévia muda antes de salvar; textos, ícones e bordas não são apagados pela transparência. Salvar aplica o tema às telas e à LIVE, com preferências persistidas.
+
+**Popups comuns acompanham o tema** é opcional e vem desativado para manter o vermelho aprovado. Habilitar aplica a cor escolhida a HUD, diálogos, listas e avisos comuns. Banners de evento continuam vermelhos; fundos dos avisos mantêm uma opacidade mínima nominal de 75%. O botão Restaurar cores e transparência prepara o padrão; pressione Salvar para persistir.
+
+[Prévia dos temas](design/comercial/temas-neon.png) · [Maquete interativa](design/comercial/temas-neon.html). Renderizadas no navegador, não são capturas Android. **89 testes aprovados por perfil**, com lint sem erros nesta revisão; logs em `relatorios/temas-neon`. Nenhum novo APK.
 
 ## Android 7.1 até o Android atual
 

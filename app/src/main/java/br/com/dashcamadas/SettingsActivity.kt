@@ -71,6 +71,9 @@ class SettingsActivity : Activity() {
                 "voice" -> "Volume da voz"
                 "frequency" -> "Frequência do bip"
                 "duration" -> "Duração de cada tom"
+                "neon_tone" -> "Ajuste de tom do neon"
+                "neon_buttons" -> "Transparência do fundo dos botões"
+                "neon_popups" -> "Transparência do fundo dos popups"
                 else -> id
             }
             progressTintList = ColorStateList.valueOf(PremiumVisuals.CYAN)
@@ -199,15 +202,46 @@ class SettingsActivity : Activity() {
     }
     private fun appearance(parent: LinearLayout) {
         val prefs = getSharedPreferences("ui_appearance", MODE_PRIVATE)
-        val identity = page.card("Identidade visual", "Preto profundo, controles ciano e popups com neon vermelho.", "sun")
-        fun toggle(id: String, title: String, initial: Boolean): Switch {
+        val identity = page.card("Identidade visual", "Tema neon, superfícies em vidro e controles de leitura.", "sun")
+        fun toggle(id: String, title: String, initial: Boolean, host: LinearLayout = identity): Switch {
             val view = Switch(this).apply { text = title; setTextColor(PremiumVisuals.WHITE); textSize = 15f; minimumHeight = page.dp(52)
                 thumbTintList = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()), intArrayOf(PremiumVisuals.CYAN, CommercialPage.MUTED))
                 trackTintList = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()), intArrayOf(Color.rgb(7, 78, 111), Color.rgb(49, 66, 88)))
                 isChecked = (restored?.getInt(id, if (initial) 1 else 0) ?: if (initial) 1 else 0) == 1
                 setOnCheckedChangeListener { _, _ -> changed() } }
-            identity.addView(view); draftInts[id] = { if (view.isChecked) 1 else 0 }; return view
+            host.addView(view); draftInts[id] = { if (view.isChecked) 1 else 0 }; return view
         }
+        val theme = NeonTheme.read(this)
+        val paletteCard = page.card("Tema neon", "Escolha a cor e ajuste o tom antes de salvar.", "sun")
+        val palette = picker(paletteCard, "neon_selection", NeonColor.entries.map { it.title }, theme.color.ordinal)
+        palette.contentDescription = "Cor do tema neon"
+        var previewChanged: (() -> Unit)? = null
+        val tone = slider(paletteCard, "neon_tone", 60, theme.tone + 30, { "Tom · ${it - 30}°" }, { previewChanged?.invoke() })
+        val opacityCard = page.card("Transparência", "Ajusta só o fundo; textos, ícones e bordas permanecem legíveis.", "gear")
+        val buttons = slider(opacityCard, "neon_buttons", 80, theme.buttonTransparency, { "Botões · $it%" }, { previewChanged?.invoke() })
+        val popups = slider(opacityCard, "neon_popups", 80, theme.popupTransparency, { "Popups · $it%" }, { previewChanged?.invoke() })
+        page.pair(parent, paletteCard, opacityCard)
+        val sampleCard = page.card("Prévia do tema", "O quadriculado permite conferir a transparência do fundo.", "gear")
+        val follows = toggle("neon_follow", "Popups comuns acompanham o tema", theme.popupFollowsTheme, sampleCard)
+        val preview = NeonThemePreviewView(this)
+        fun selectedTheme() = NeonThemeSettings(NeonColor.entries[palette.selectedItemPosition], tone.progress - 30, buttons.progress, popups.progress, follows.isChecked)
+        previewChanged = { preview.settings = selectedTheme() }
+        sampleCard.addView(preview, LinearLayout.LayoutParams(-1, -2))
+        val selectionListener = palette.onItemSelectedListener
+        palette.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectionListener?.onItemSelected(parent, view, position, id); previewChanged?.invoke()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        follows.setOnCheckedChangeListener { _, _ -> changed(); previewChanged?.invoke() }
+        sampleCard.addView(page.action("Restaurar cores e transparência") {
+            palette.setSelection(0); tone.progress = 30; buttons.progress = 0; popups.progress = 0; follows.isChecked = false
+            changed(); previewChanged?.invoke()
+        })
+        page.addCard(parent, sampleCard)
+        previewChanged.invoke()
+        page.note(parent, "Banners de evento permanecem vermelhos. Avisos críticos mantêm pelo menos 75% de opacidade no fundo.")
         val night = toggle("night", "Modo noturno", prefs.getBoolean("night", false))
         identity.addView(page.label("Reduz o brilho somente enquanto o aplicativo está aberto.", 12f, CommercialPage.MUTED))
         val animations = toggle("animations", "Animações suaves", prefs.getBoolean("animations", true))
@@ -224,6 +258,7 @@ class SettingsActivity : Activity() {
         saves["APARENCIA"] = {
             prefs.edit().putBoolean("night", night.isChecked).putBoolean("animations", animations.isChecked).apply()
             getSharedPreferences("camera", MODE_PRIVATE).edit().putInt("controls_timeout", times[timeout.selectedItemPosition]).apply()
+            NeonTheme.save(this, selectedTheme())
             CommercialUi.applyAppearance(this); saved()
         }
     }

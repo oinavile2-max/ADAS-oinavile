@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-13",
+  "revision": "3.6 source only",
+  "themes": [
+    "Ciano",
+    "Violeta",
+    "Rosa",
+    "Verde",
+    "Laranja",
+    "Vermelho"
+  ],
+  "tone_range": [
+    -30,
+    30
+  ],
+  "button_transparency_range": [
+    0,
+    80
+  ],
+  "popup_transparency_range": [
+    0,
+    80
+  ],
+  "popup_theme_color_requires_opt_in": true,
+  "event_borders_always_red": true,
+  "critical_popup_minimum_alpha": 191,
+  "foreground_text_icon_border_fades": false,
+  "preferences": "ui_appearance / neon_*",
+  "profiles": {
+    "generic": {
+      "tests": {
+        "tests": 89,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 96
+      },
+      "code_compiled": true,
+      "neural_models_hashes_checked": true,
+      "real_neural_lane_inference_test": true,
+      "native_page_alignment_checked": true,
+      "new_apk_generated": false
+    },
+    "native": {
+      "tests": {
+        "tests": 89,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 96
+      },
+      "code_compiled": true,
+      "neural_models_hashes_checked": true,
+      "real_neural_lane_inference_test": true,
+      "native_page_alignment_checked": true,
+      "new_apk_generated": false
+    }
+  },
+  "physical_android_ui_tested": false,
+  "browser_preview_tested": true
+}

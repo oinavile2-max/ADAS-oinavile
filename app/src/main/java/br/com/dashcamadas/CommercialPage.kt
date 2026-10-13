@@ -55,8 +55,8 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
         val header = LinearLayout(activity).apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(ImageView(activity).apply { setImageResource(R.mipmap.ic_launcher); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(dp(44), dp(44)))
         val name = "DashCam ADAS PRO"
-        val brand = SpannableString(name).apply { setSpan(ForegroundColorSpan(PremiumVisuals.CYAN), name.length - 3, name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
-        header.addView(label(brand, 20f).apply { setPadding(dp(10), 0, 0, 0) }, LinearLayout.LayoutParams(0, -2, 1f))
+        val brand = SpannableString(name).apply { setSpan(ForegroundColorSpan(NeonTheme.read(activity).accent), name.length - 3, name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
+        header.addView(label(brand, 20f).apply { setPadding(dp(10), 0, 0, 0); setTag(R.id.neon_role, "brand") }, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(action("‹ Voltar") { activity.finish() })
         root.addView(header)
         root.addView(label(title, 25f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); setPadding(0, dp(14), 0, dp(4)) })
@@ -79,8 +79,7 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
         text = value; textSize = size; setTextColor(color); setLineSpacing(0f, 1.12f)
     }
     fun action(value: String, primary: Boolean = false, click: () -> Unit): Button = Button(activity).apply {
-        text = value; CommercialUi.button(this)
-        if (primary) backgroundTintList = ColorStateList.valueOf(Color.rgb(7, 95, 142))
+        text = value; CommercialUi.button(this, primary)
         setOnClickListener { click() }
     }
     fun tab(value: String, icon: String, click: () -> Unit): Button {
@@ -98,7 +97,7 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
     fun selected(button: Button) {
         tabButtons.forEach { (item, _) ->
             item.isSelected = item === button
-            item.backgroundTintList = if (item === button) ColorStateList.valueOf(Color.rgb(7, 71, 105)) else null
+            CommercialUi.refreshTheme(item)
             item.setTextColor(if (item === button) PremiumVisuals.WHITE else MUTED)
         }
     }

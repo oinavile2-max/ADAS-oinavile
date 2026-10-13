@@ -312,7 +312,8 @@ class MainActivity : ComponentActivity() {
             val edge=View(this)
             view.place(edge,0f,0f,referenceWidth,623f)
             edge.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->
-                edge.background=GradientDrawable().apply { setColor(Color.TRANSPARENT);cornerRadius=24f*edge.width/referenceWidth;setStroke((2.8f*edge.width/referenceWidth).toInt().coerceAtLeast(1),PremiumVisuals.CYAN) }
+                edge.setTag(R.id.neon_border_width, (2.8f*edge.width/referenceWidth).toInt().coerceAtLeast(1))
+                edge.background=GradientDrawable().apply { setColor(Color.TRANSPARENT);cornerRadius=24f*edge.width/referenceWidth;setStroke((2.8f*edge.width/referenceWidth).toInt().coerceAtLeast(1),NeonTheme.read(this@MainActivity).accent) }
             }
         }
         val cameraFrame=cameraPanel(1195f)

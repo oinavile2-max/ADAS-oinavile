@@ -56,15 +56,16 @@ class LiveHudView(context: Context, private val visuals: PremiumVisuals) : View(
         super.onDraw(canvas)
         val scale=minOf(width/514f,height/146f);if(scale<=0f)return
         canvas.save();canvas.translate((width-514f*scale)/2,(height-146f*scale)/2);canvas.scale(scale,scale)
-        paint.style=Paint.Style.FILL;paint.shader=LinearGradient(0f,1f,0f,144f,intArrayOf(Color.argb(242,39,57,75),Color.argb(242,9,18,29),Color.argb(245,6,20,34)),floatArrayOf(0f,.38f,1f),Shader.TileMode.CLAMP)
+        val theme=NeonTheme.read(context)
+        paint.style=Paint.Style.FILL;paint.shader=LinearGradient(0f,1f,0f,144f,intArrayOf(Color.argb(242,39,57,75),Color.argb(242,9,18,29),Color.argb(245,6,20,34)).map { theme.popupFill(it) }.toIntArray(),floatArrayOf(0f,.38f,1f),Shader.TileMode.CLAMP)
         canvas.drawRoundRect(RectF(8f,8f,506f,138f),24f,24f,paint)
-        paint.shader=null;paint.color=PremiumVisuals.RED;paint.style=Paint.Style.STROKE;paint.strokeWidth=2.4f;paint.setShadowLayer(7f,0f,0f,PremiumVisuals.RED)
+        paint.shader=null;paint.color=theme.popupAccent;paint.style=Paint.Style.STROKE;paint.strokeWidth=2.4f;paint.setShadowLayer(7f,0f,0f,theme.popupAccent)
         canvas.drawRoundRect(RectF(8f,8f,506f,138f),24f,24f,paint);paint.clearShadowLayer()
         val gauge=requireNotNull(PathParser.createPathFromPathData("M35 116 A60 60 0 0 1 124 34"))
         paint.color=Color.rgb(57,67,77);paint.strokeWidth=6f;canvas.drawPath(gauge,paint)
         val measure=PathMeasure(gauge,false);val progress=Path()
         measure.getSegment(0f,measure.length*(if(measuredSpeed!=null)displayedSpeed/100f else 0f).coerceIn(0f,1f),progress,true)
-        paint.color=Color.rgb(0,202,250);canvas.drawPath(progress,paint)
+        paint.color=theme.accent;canvas.drawPath(progress,paint)
         paint.style=Paint.Style.FILL;paint.color=PremiumVisuals.WHITE;paint.textAlign=Paint.Align.CENTER;paint.typeface=Typeface.create("sans-serif-condensed",Typeface.BOLD);paint.textSize=54f
         canvas.drawText(if(measuredSpeed!=null)"%.0f".format(Locale.US,displayedSpeed) else "--",82f,89f,paint)
         paint.typeface=Typeface.create("sans-serif-condensed",Typeface.NORMAL);paint.textSize=24f;canvas.drawText("km/h",82f,119f,paint)
@@ -103,7 +104,7 @@ class DashboardHeaderView(context:Context,private val visuals:PremiumVisuals):Vi
         super.onDraw(canvas);if(width<=0 || height<=0)return
         canvas.save();canvas.scale(width/1679f,height/120f)
         paint.color=PremiumVisuals.WHITE;paint.typeface=Typeface.create("sans-serif",Typeface.NORMAL);paint.textSize=40f
-        val title="DashCam ADAS ";canvas.drawText(title,119f,70f,paint);val end=119f+paint.measureText(title);paint.color=PremiumVisuals.CYAN;canvas.drawText("PRO",end,70f,paint)
+        val title="DashCam ADAS ";canvas.drawText(title,119f,70f,paint);val end=119f+paint.measureText(title);paint.color=NeonTheme.read(context).accent;canvas.drawText("PRO",end,70f,paint)
         visuals.icon(canvas,"device",1304f,37f,40f,if(usbConnected)PremiumVisuals.WHITE else Color.rgb(96,116,137))
         // Capture is currently silent: microphone status must not imply audio recording.
         visuals.icon(canvas,"mic",1367f,39f,38f,Color.rgb(96,116,137))

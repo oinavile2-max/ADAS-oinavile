@@ -8,7 +8,7 @@ import androidx.core.graphics.PathParser
 import org.json.JSONObject
 
 /** Shared vector paths are also used by the visual HTML preview. No emoji/font substitution. */
-class PremiumVisuals(context: Context) {
+class PremiumVisuals(val context: Context) {
     private data class Shape(val path: Path, val filled: Boolean, val stroke: Float)
     private val icons = mutableMapOf<String, List<Shape>>()
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -76,18 +76,19 @@ class EventPopupView(context: Context, private val visuals: PremiumVisuals) : Vi
         val scale = minOf(width / 752f, height / 194f)
         if (scale <= 0f) return
         canvas.save(); canvas.translate((width - 752f * scale) / 2f, (height - 194f * scale) / 2f); canvas.scale(scale, scale)
+        val theme = NeonTheme.read(context)
         val edge = PremiumVisuals.RED
         paint.style = Paint.Style.STROKE; paint.strokeWidth = 3f; paint.color = edge; paint.shader = null
         paint.setShadowLayer(13f, 0f, 0f, edge)
         canvas.drawRoundRect(box, 19f, 19f, paint)
         paint.clearShadowLayer(); paint.style = Paint.Style.FILL
         paint.shader = LinearGradient(0f, 16f, 0f, 178f,
-            intArrayOf(Color.argb(230,145,40,49), Color.argb(242,33,13,20), Color.argb(245,80,32,43)),
+            intArrayOf(Color.argb(230,145,40,49), Color.argb(242,33,13,20), Color.argb(245,80,32,43)).map { theme.popupFill(it, critical = true) }.toIntArray(),
             floatArrayOf(0f,.6f,1f), Shader.TileMode.CLAMP)
         canvas.drawRoundRect(box, 19f, 19f, paint)
         paint.shader = null; paint.style = Paint.Style.STROKE; paint.color = edge; paint.strokeWidth = 2.4f
         paint.setShadowLayer(3f, 0f, 0f, edge); canvas.drawRoundRect(box, 19f, 19f, paint); paint.clearShadowLayer()
-        paint.style = Paint.Style.FILL; paint.color = Color.argb(184,24,7,13)
+        paint.style = Paint.Style.FILL; paint.color = theme.popupFill(Color.argb(184,24,7,13), critical = true)
         canvas.drawRoundRect(RectF(49f,37f,185f,160f),28f,28f,paint)
         visuals.icon(canvas,presentation.icon,61f,32f,113f,edge)
         paint.color = Color.rgb(255,219,224)
@@ -115,17 +116,18 @@ class PremiumNavigationView(context: Context, private val visuals: PremiumVisual
         super.onDraw(canvas)
         if (width == 0 || height == 0) return
         canvas.save(); canvas.scale(width / 252f, height / 89f)
-        val colors = if (active) intArrayOf(Color.rgb(0,184,244),Color.rgb(0,105,172),Color.rgb(0,65,119),Color.rgb(0,34,81),Color.rgb(0,113,202))
-            else intArrayOf(Color.rgb(83,97,112),Color.rgb(40,54,68),Color.rgb(23,34,48),Color.rgb(3,11,21),Color.rgb(16,30,44))
+        val theme = NeonTheme.read(context)
+        val colors = (if (active) intArrayOf(Color.rgb(0,184,244),Color.rgb(0,105,172),Color.rgb(0,65,119),Color.rgb(0,34,81),Color.rgb(0,113,202))
+            else intArrayOf(Color.rgb(83,97,112),Color.rgb(40,54,68),Color.rgb(23,34,48),Color.rgb(3,11,21),Color.rgb(16,30,44))).map { theme.buttonFill(it, active) }.toIntArray()
         paint.style = Paint.Style.FILL; paint.shader = LinearGradient(0f,0f,0f,89f,colors,floatArrayOf(0f,.25f,.49f,.51f,1f),Shader.TileMode.CLAMP)
         canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)
-        paint.shader=null; paint.style=Paint.Style.STROKE; paint.color=if(isFocused)Color.rgb(140,231,255) else if(active)PremiumVisuals.CYAN else Color.rgb(105,120,138); paint.strokeWidth=if(isFocused)3f else 1.6f
+        paint.shader=null; paint.style=Paint.Style.STROKE; paint.color=if(isFocused)NeonThemeSettings.blend(PremiumVisuals.WHITE,theme.accent,.65f) else if(active)theme.accent else NeonThemeSettings.blend(Color.rgb(105,120,138),theme.accent,.25f); paint.strokeWidth=if(isFocused)3f else 1.6f
         canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)
         // A narrow glass highlight preserves the reference finish without a large blurred layer.
         paint.color=Color.argb(if(active)135 else 65,210,239,255);paint.strokeWidth=1f
         canvas.drawLine(22f,3f,230f,3f,paint)
         if(isPressed){paint.style=Paint.Style.FILL;paint.color=Color.argb(45,255,255,255);canvas.drawRoundRect(RectF(1f,1f,251f,88f),17f,17f,paint)}
-        visuals.icon(canvas,icon,45f,22f,42f,if(active)Color.rgb(120,222,255) else PremiumVisuals.WHITE)
+        visuals.icon(canvas,icon,45f,22f,42f,if(active)NeonThemeSettings.blend(PremiumVisuals.WHITE,theme.accent,.65f) else PremiumVisuals.WHITE)
         paint.style=Paint.Style.FILL;paint.color=PremiumVisuals.WHITE;paint.typeface=Typeface.create("sans-serif-condensed",Typeface.NORMAL);paint.textAlign=Paint.Align.LEFT;paint.textSize=29f
         val textWidth=paint.measureText(label); if(textWidth>139f)paint.textSize*=139f/textWidth
         canvas.drawText(label,112f,56f,paint);canvas.restore()
@@ -137,7 +139,8 @@ class PremiumIconDrawable(private val visuals: PremiumVisuals, private val icon:
     private val paint=Paint(Paint.ANTI_ALIAS_FLAG)
     override fun draw(canvas:Canvas){
         canvas.save();canvas.translate(bounds.left.toFloat(),bounds.top.toFloat());canvas.scale(bounds.width()/100f,bounds.height()/100f)
-        if(shell){paint.color=if(active())Color.rgb(96,20,38) else Color.rgb(0,69,120);paint.style=Paint.Style.FILL;canvas.drawRoundRect(RectF(1f,1f,99f,99f),22f,22f,paint);paint.style=Paint.Style.STROKE;paint.strokeWidth=3f;paint.color=if(active())PremiumVisuals.RED else PremiumVisuals.CYAN;canvas.drawRoundRect(RectF(1f,1f,99f,99f),22f,22f,paint)}
+        val theme=NeonTheme.read(visuals.context)
+        if(shell){paint.color=theme.buttonFill(if(active())Color.rgb(96,20,38) else Color.rgb(0,69,120));paint.style=Paint.Style.FILL;canvas.drawRoundRect(RectF(1f,1f,99f,99f),22f,22f,paint);paint.style=Paint.Style.STROKE;paint.strokeWidth=3f;paint.color=if(active())PremiumVisuals.RED else theme.accent;canvas.drawRoundRect(RectF(1f,1f,99f,99f),22f,22f,paint)}
         visuals.icon(canvas,icon,19f,19f,62f,PremiumVisuals.WHITE);canvas.restore()
     }
     override fun setAlpha(alpha:Int){}

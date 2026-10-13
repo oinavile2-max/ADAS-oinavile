@@ -1,0 +1,31 @@
+# DashCam ADAS PRO — código 3.5 comercial, Android 7.1–atual
+
+12/10/2026. Conceito aprovado pelo usuário aplicado em widgets Android nativos. Sem novo APK; versionCode 35 reservado no código. Downloads de APK permanecem das versões anteriores.
+
+## Interface
+
+CommercialPage compartilha marca, novo ícone, superfícies em vidro, cabeçalhos, botões e cards. Configurações têm quatro abas, sidebar em largura >=900 dp e faixa horizontal rolável em telas menores. Pares de cards ficam lado a lado somente com >=580 dp disponíveis; nos demais casos empilham. Área do conteúdo rola independentemente do cabeçalho e do botão Salvar. Componentes respeitam densidade, áreas de toque e insets. Tudo é nativo, sem WebView.
+
+Os controles reais preservam os mesmos nomes de preferências: adas_tuning, audio e camera. Cada aba salva seu grupo; rascunhos sobrevivem à troca de aba e à recriação da Activity. Limites técnicos ADAS ficam recolhidos, com validação conjunta e bloqueio de gravação em movimento. Exemplo das linhas é rotulado como visual e não se apresenta como inferência.
+
+Modo noturno usa brilho da janela sem alterar configurações globais. Preferência de animação altera apenas transições/arco decorativo do HUD; não muda risco, confirmação, avisos, captura ou gravação. Mídia lista somente clipes finalizados sem arquivo de lock; eventos usam registros reais e mantêm origem de teste. USB continua autorização no serviço existente.
+
+## Ícone
+
+Arte original gerada para o aplicativo: lente ciano, estrada e detalhe vermelho. PNG transparente preservado, com qualificador xxxhdpi para escala pelo Android. Android 7.1 usa layer-list clássico; Android 8+ usa foreground/background adaptativos com margem adicional, evitando corte do indicador pela máscara circular; Android 13+ recebe recurso monocromático. Prévias de launcher são renderizações em navegador, não capturas Android.
+
+## Compatibilidade
+
+minSdk 25, compileSdk 37.2, targetSdk 37, sem maxSdk. Plataforma 37.2 verificada no canal estável oficial. AGP 9.4.1 e Gradle 9.6.0, checksum oficial da distribuição conferido. Navegação fullscreen migrou de onBackPressed para ComponentActivity/OnBackPressedDispatcher (AndroidX Activity 1.13.0, minSdk 23).
+
+ONNX Runtime 1.31.0 tem minSdk 24 e mantém as quatro ABIs. LiteRT 1.4.2 tem minSdk 21, o mesmo pacote Interpreter e as quatro ABIs. A ponte ONNX antiga ARM64 e o TensorFlow Lite antigo x86_64 não satisfaziam o alinhamento de 16 KB. A tarefa verifyNativePageAlignment confere segmentos LOAD ELF de todas as dependências 64 bits mescladas antes dos filtros de empacotamento, e é obrigatória para futuros builds. As seis bibliotecas passam. O driver específico original ARM32 só é carregado em API 24–27; o app inicia em API 25. Isso não oferece UVC universal para Android atual.
+
+A atualização ONNX acrescenta inicializador de telemetria e permissão de internet no AAR. Ambos são removidos do manifesto do app, e RoadNeuralSession desativa telemetria. O manifesto mesclado foi inspecionado. Pesos dos modelos e limiares de risco permanecem preservados.
+
+## Evidências
+
+Comando por perfil: compileDebugKotlin, testDebugUnitTest, lintDebug e verifyNativePageAlignment. Nenhuma tarefa de assemble/package foi solicitada nesta etapa. Relatórios atuais: relatorios/comercial-android-atual. Testes incluem inferência real YOLOP no runtime atualizado e três novos casos de validação de preferências. Não há Android conectado; nenhum teste físico de launcher/interface/GPS/USB/gravação ou latência ARM32 foi realizado.
+
+Os ensaios de vídeo da 3.3 e do SSD no host continuam históricos. O pacote Python LiteRT não possui versão 1.4.2 publicada; não foi alegado um teste de inferência Android SSD com esse runtime. A API do Interpreter compilou, os modelos/hash foram verificados, e a execução Android ainda depende do aparelho. Relatório histórico do APK 3.4: relatorios/HISTORICO/RELATORIO_3_4.md.
+
+Resultado final: ambos os perfis compilaram, 84 testes passaram por perfil, lint sem erros e 91 avisos por perfil. Seis bibliotecas ELF64 com alinhamento16KB verificadas; modelo YOLOP real executado pelo teste compartilhado no host. APK3.4 anterior preservado.

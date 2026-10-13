@@ -602,3 +602,7 @@ A revisão acima foi compilada após autorização posterior do usuário: 81 tes
 ## Conceito comercial aplicado e Android 7.1–atual
 
 Quatro abas nativas com cards responsivos, controles reais, salvamento por categoria e rascunhos; mídia/eventos/USB com identidade comum. Novo ícone clássico/adaptativo/monocromático. Modo noturno e preferência de movimento decorativo implementados. minSdk25, compileSdk37.2 estável e targetSdk37, sem maxSdk. ONNX1.31/LiteRT1.4.2 com verificação ELF16KB obrigatória antes de empacotar. Navegação de voltar compatível com Android moderno. Evidências em relatorios/comercial-android-atual; sem novo APK e sem validação física desta revisão.
+
+## Temas neon — 13/10/2026
+
+Seis cores, matiz ±30°, transparências independentes 0–80%, prévia/rascunho, restauração e persistência aplicadas. Textos/ícones não são apagados; popups comuns só mudam de cor com adesão explícita. Banners vermelhos preservados. 89 testes aprovados por perfil; evidências em relatorios/temas-neon. Sem novo APK e sem Android físico.

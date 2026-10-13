@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.CameraTransformTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-13T10:04:45.077Z" hostname="8a60e457805d" time="0.002">
+  <properties/>
+  <testcase name="fitLetterboxesWithoutDistortion" classname="br.com.dashcamadas.CameraTransformTest" time="0.001"/>
+  <testcase name="mirrorIsInDisplayCoordinates" classname="br.com.dashcamadas.CameraTransformTest" time="0.0"/>
+  <testcase name="quarterTurnMapsCorners" classname="br.com.dashcamadas.CameraTransformTest" time="0.0"/>
+  <testcase name="centerAlwaysMapsToCenter" classname="br.com.dashcamadas.CameraTransformTest" time="0.001"/>
+  <testcase name="fillCropsWithoutDistortion" classname="br.com.dashcamadas.CameraTransformTest" time="0.0"/>
+  <testcase name="mappingRoundTripsForAllModes" classname="br.com.dashcamadas.CameraTransformTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
