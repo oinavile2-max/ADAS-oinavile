@@ -8,7 +8,7 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 
 /** Quantized SSD MobileNet v2 COCO, Apache-2.0; CPU execution for ARM32/ARM64. */
-class VehicleDetector(context:Context):AutoCloseable {
+class VehicleDetector(context:Context,threads:Int=2):AutoCloseable {
     private val interpreter:Interpreter
     private val input=ByteBuffer.allocateDirect(300*300*3).order(ByteOrder.nativeOrder())
     private val locations=Array(1){Array(20){FloatArray(4)}}
@@ -21,7 +21,7 @@ class VehicleDetector(context:Context):AutoCloseable {
         val hash=MessageDigest.getInstance("SHA-256").digest(bytes).joinToString(""){"%02x".format(it.toInt() and 255)}
         require(hash=="42fb3d70ffb7bb37dd518f730f7be784b831c2078f30c497d0019cc2e987fa26") {"Model integrity failure"}
         val model=ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).apply{put(bytes);rewind()}
-        interpreter=Interpreter(model,Interpreter.Options().setNumThreads(2))
+        interpreter=Interpreter(model,Interpreter.Options().setNumThreads(threads.coerceIn(1,2)))
         require(interpreter.getInputTensor(0).shape().contentEquals(intArrayOf(1,300,300,3)))
     }
     fun detect(bitmap:Bitmap):List<Vehicle> = detectScene(bitmap).vehicles

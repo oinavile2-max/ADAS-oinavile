@@ -8,7 +8,7 @@ import org.junit.Test
 class RoadNeuralSessionTest {
     @Test fun pretrainedWeightsExecuteThroughSameSessionUsedByApp(){
         val model=File("src/main/assets/road_lanes_yolop_320.onnx").readBytes()
-        RoadNeuralSession(model).use{network->
+        for(threads in listOf(1,2)) RoadNeuralSession(model,threads).use{network->
             val pixels=IntArray(320*180){i->val y=i/320;val x=i%320;0xff000000.toInt() or ((x*255/320) shl 16) or ((y*255/180) shl 8) or 80}
             val result=network.detect(pixels,320,180)
             assertEquals(320,result.width);assertEquals(180,result.height)

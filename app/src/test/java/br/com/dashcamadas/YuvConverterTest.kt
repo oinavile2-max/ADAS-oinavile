@@ -24,4 +24,16 @@ class YuvConverterTest {
         assertEquals(0xffffffff.toInt(),YuvConverter.rgb(1,1,3,0,y,uv,uv)[0])
         assertEquals(1,luma.position());assertEquals(1,chroma.position())
     }
+    @Test fun reusedOutputIsFullyReplacedWithoutChangingPreviousCopy() {
+        val luma=ByteBuffer.wrap(byteArrayOf(16,235.toByte()))
+        val y=YuvConverter.Plane(luma,2,1)
+        val uv=YuvConverter.Plane(ByteBuffer.wrap(byteArrayOf(128.toByte())),1,1)
+        val out=IntArray(2)
+        assertSame(out,YuvConverter.rgbInto(2,1,0,0,y,uv,uv,out))
+        val previous=out.copyOf()
+        luma.put(0,235.toByte());luma.put(1,16)
+        YuvConverter.rgbInto(2,1,0,0,y,uv,uv,out)
+        assertArrayEquals(intArrayOf(0xffffffff.toInt(),0xff000000.toInt()),out)
+        assertArrayEquals(intArrayOf(0xff000000.toInt(),0xffffffff.toInt()),previous)
+    }
 }

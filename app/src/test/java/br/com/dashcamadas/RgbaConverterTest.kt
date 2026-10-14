@@ -12,4 +12,12 @@ class RgbaConverterTest {
         assertEquals(0xff14283c.toInt(),RgbaConverter.rgb(1,1,1,1,b,32,8)[0])
     }
     @Test(expected=IllegalArgumentException::class) fun truncatedBufferIsRejected(){RgbaConverter.rgb(2,2,0,0,ByteBuffer.allocate(5),8,4)}
+    @Test fun reusedOutputHasNoPixelsFromThePreviousFrame() {
+        val buffer=ByteBuffer.wrap(byteArrayOf(255.toByte(),0,0,0,0,255.toByte(),0,0))
+        val out=IntArray(2)
+        assertSame(out,RgbaConverter.rgbInto(2,1,0,0,buffer,8,4,out))
+        buffer.put(0,0);buffer.put(2,255.toByte());buffer.put(5,0)
+        RgbaConverter.rgbInto(2,1,0,0,buffer,8,4,out)
+        assertArrayEquals(intArrayOf(0xff0000ff.toInt(),0xff000000.toInt()),out)
+    }
 }

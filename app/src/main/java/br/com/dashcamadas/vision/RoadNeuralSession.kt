@@ -6,7 +6,7 @@ import java.nio.ByteOrder
 import java.security.MessageDigest
 
 /** Genuine pretrained YOLOP road/lane heads, CPU execution including ARM32. */
-class RoadNeuralSession(model:ByteArray):AutoCloseable {
+class RoadNeuralSession @JvmOverloads constructor(model:ByteArray,threads:Int=2):AutoCloseable {
     private val environment=OrtEnvironment.getEnvironment()
     private val input=ByteBuffer.allocateDirect(3*320*320*4).order(ByteOrder.nativeOrder()).asFloatBuffer()
     private val session:OrtSession
@@ -15,7 +15,7 @@ class RoadNeuralSession(model:ByteArray):AutoCloseable {
         require(hash=="f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe"){"Lane model integrity failure"}
         environment.setTelemetry(false)
         OrtSession.SessionOptions().use{options->
-            options.setIntraOpNumThreads(2);options.setInterOpNumThreads(1)
+            options.setIntraOpNumThreads(threads.coerceIn(1,2));options.setInterOpNumThreads(1)
             options.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
             session=environment.createSession(model,options)
         }

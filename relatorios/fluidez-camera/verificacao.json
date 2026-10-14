@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-14",
+  "revision": "3.7 source only",
+  "reported_device": "phone/tablet integrated camera APK 3.3",
+  "reported_scenario": "LIVE without recording",
+  "profiles": {
+    "generic": {
+      "tests": {
+        "tests": 97,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 95
+      },
+      "compiled": true,
+      "neural_models_hashes_checked": true,
+      "real_yolop_cpu_inference_threads": [
+        1,
+        2
+      ],
+      "native_64_bit_page_alignment_checked": true
+    },
+    "native": {
+      "tests": {
+        "tests": 97,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 95
+      },
+      "compiled": true,
+      "neural_models_hashes_checked": true,
+      "real_yolop_cpu_inference_threads": [
+        1,
+        2
+      ],
+      "native_64_bit_page_alignment_checked": true
+    }
+  },
+  "physical_device_connected": false,
+  "physical_preview_fps_measured": false,
+  "new_apk_generated": false
+}

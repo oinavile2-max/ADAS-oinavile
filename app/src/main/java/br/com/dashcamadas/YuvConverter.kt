@@ -6,8 +6,10 @@ import java.nio.ByteBuffer
 object YuvConverter {
     data class Plane(val buffer:ByteBuffer,val rowStride:Int,val pixelStride:Int,val offset:Int=buffer.position())
     fun rgb(width:Int,height:Int,left:Int,top:Int,y:Plane,u:Plane,v:Plane):IntArray {
-        require(width>0 && height>0 && left>=0 && top>=0)
-        val out=IntArray(width*height)
+        return rgbInto(width,height,left,top,y,u,v,IntArray(width*height))
+    }
+    fun rgbInto(width:Int,height:Int,left:Int,top:Int,y:Plane,u:Plane,v:Plane,out:IntArray):IntArray {
+        require(width>0 && height>0 && left>=0 && top>=0 && out.size>=width*height)
         for(row in 0 until height) for(col in 0 until width) {
             val x=left+col;val yy=top+row
             val c=(y.buffer.get(y.offset+yy*y.rowStride+x*y.pixelStride).toInt() and 255)-16

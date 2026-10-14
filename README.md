@@ -1,16 +1,34 @@
-# DashCam ADAS PRO — 3.6, temas neon e aparência comercial
+# DashCam ADAS PRO — 3.7, fluidez da câmera e temas neon
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**Esta entrega é de código-fonte, sem novo APK.** Os APKs publicados são entregas anteriores. Compilação do código, testes e lint desta revisão têm evidências em `relatorios/temas-neon`. Aparência no aparelho e execução em todas as versões ainda precisam de teste físico.
+**Esta entrega é de código-fonte, sem novo APK.** Os APKs publicados são entregas anteriores. Compilação do código, testes e lint desta revisão têm evidências em `relatorios/fluidez-camera`. **97 testes passaram por perfil**, com lint sem erros (95 avisos por perfil). Aparência, fluidez no aparelho e execução em todas as versões ainda precisam de teste físico.
 
 ## Downloads
 
-- [Código-fonte atualizado 3.6](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [Código-fonte atualizado 3.7](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
-Os APKs antigos não contêm a tela comercial e temas 3.6 nem a atualização de bibliotecas desta revisão. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+Os APKs antigos não contêm os temas 3.6 nem as correções de fluidez 3.7 e a atualização das bibliotecas. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+
+## Fluidez da LIVE — câmera integrada
+
+Correção motivada pelo teste em celular/tablet com câmera integrada e APK 3.3, que travava na LIVE mesmo sem gravar. O código limitava a prévia a cinco quadros por segundo e ignorava imagens novas enquanto havia um resultado recente da IA. Esses bloqueios foram removidos; desempenho físico ainda não medido.
+
+Camera2 envia a imagem principal diretamente para TextureView pela GPU, sem converter cada quadro em bitmap para a LIVE. Uma saída menor continua alimentando as redes neurais. Se o aparelho rejeitar a combinação de saídas, o serviço tenta novamente com a prévia alternativa. Rotação, espelhamento e preencher/ajustar são preservados; sair da LIVE remove somente sua superfície de exibição.
+
+A prévia alternativa recebe o quadro mais recente, com uma única atualização pendente. **CONFIG → Câmera e gravação → Fluidez da LIVE** oferece 10/15/24/30 quadros/s, padrão 15. Esse limite se aplica à alternativa em bitmap e ao USB; a prévia direta acompanha a câmera, sem promessa de 30 fps em qualquer aparelho. Quando a prévia direta está ativa, a cópia para o painel auxiliar é limitada a 4 quadros/s para reduzir conversões.
+
+A IA continua executando os modelos locais. Seu ritmo se adapta à duração da análise, e aparelhos com até quatro núcleos ou até 2,5 GiB de RAM usam uma thread por modelo. Buffers de conversão e leitura de pixels são reutilizados, preservando bitmaps imutáveis para exibição. Resultados antigos nunca substituem o vídeo principal. Na prévia direta, as linhas e caixas precisas aparecem no painel direito, sobre o próprio quadro analisado; não são sobrepostas a um quadro mais novo. No caminho alternativo, a sobreposição principal só ocorre quando os timestamps coincidem. Avisos atrasados continuam suspensos pelo limite de 500 ms.
+
+Diagnóstico debug registra quadros recebidos, atualizações efetivamente desenhadas, FPS da prévia, pausas, tempo de conversão e inferência. O roteiro físico agora permite medir **LIVE sem gravação**:
+
+```sh
+python3 build-tools/test_android_device.py --serial SERIAL --live-only --min-preview-fps 12 --output resultados-live
+```
+
+Exige um APK futuro desta revisão instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
 
 ## Temas neon
 
@@ -18,7 +36,7 @@ Em **CONFIG → Aparência**, escolha ciano, violeta, rosa, verde, laranja ou ve
 
 **Popups comuns acompanham o tema** é opcional e vem desativado para manter o vermelho aprovado. Habilitar aplica a cor escolhida a HUD, diálogos, listas e avisos comuns. Banners de evento continuam vermelhos; fundos dos avisos mantêm uma opacidade mínima nominal de 75%. O botão Restaurar cores e transparência prepara o padrão; pressione Salvar para persistir.
 
-[Prévia dos temas](design/comercial/temas-neon.png) · [Maquete interativa](design/comercial/temas-neon.html). Renderizadas no navegador, não são capturas Android. **89 testes aprovados por perfil**, com lint sem erros nesta revisão; logs em `relatorios/temas-neon`. Nenhum novo APK.
+[Prévia dos temas](design/comercial/temas-neon.png) · [Maquete interativa](design/comercial/temas-neon.html). Renderizadas no navegador, não são capturas Android. **89 testes aprovados por perfil na revisão 3.6**, com lint sem erros; logs históricos em `relatorios/temas-neon`. Nenhum novo APK.
 
 ## Android 7.1 até o Android atual
 
@@ -39,7 +57,7 @@ CONFIG na LIVE abre diretamente as quatro abas:
 
 - **Assistente de faixa:** sensibilidade 0–100%, espessura 1–12 dp, exemplo visual do traço, calibração e limites avançados recolhíveis.
 - **Áudio e alertas:** modo de aviso, volume, seis padrões reais de bip, frequência, duração e reprodução do bip selecionado.
-- **Câmera e gravação:** segmentos de 1/3/5 minutos, quota de armazenamento, orientação/seleção na LIVE e USB no perfil compatível.
+- **Câmera e gravação:** segmentos de 1/3/5 minutos, quota de armazenamento, limite da prévia alternativa, orientação/seleção na LIVE e USB no perfil compatível.
 - **Aparência:** modo noturno (brilho da janela do app), animações decorativas do HUD, recolhimento dos controles e informações do aparelho.
 
 O salvamento é específico da aba; alternar abas preserva rascunhos. Valores avançados inválidos rejeitam a gravação inteira dos limites ADAS. Ajustes de risco continuam bloqueados em movimento. Câmera, redes, alertas e gravação mantêm os serviços existentes.

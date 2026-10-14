@@ -44,16 +44,21 @@ class MainActivity : ComponentActivity() {
     private var captureService:DashCamForegroundService?=null
     private var captureBound=false
     private var latestVision:VisionFrame?=null
+    private val previewTimeline=PreviewTimeline()
     private var captureState=DashCamForegroundService.State()
     private val captureCallback=object:DashCamForegroundService.Callback {
         override fun onState(state:DashCamForegroundService.State) {
             captureState=state;recording=state.recording
+            texture.requestDirectPreview(state.connected && state.cameraId.isNotEmpty() && !state.cameraId.startsWith("usb:") && !state.directPreviewUnavailable)
+            texture.showDirectPreview(state.directPreview,state.livePreviewWidth,state.livePreviewHeight,state.previewRotation)
+            if(state.directPreview)laneOverlay.result=null
             record.isSelected=recording
             record.background.invalidateSelf()
             record.contentDescription=if(recording) "Parar gravação" else "Iniciar gravação"
             record.isEnabled=state.connected
             updateHud();showStatus(state.message)
             if(!state.connected || state.message.startsWith("Sem quadros")) {
+                previewTimeline.reset()
                 texture.frame=null;laneOverlay.result=null;latestVision=null
                 auxiliaryPreview.frame=null;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
                 auxiliaryPlaceholder.visibility=View.VISIBLE
@@ -62,11 +67,13 @@ class MainActivity : ComponentActivity() {
             if(state.message.contains("ADAS suspenso") || state.message.startsWith("IA indisponível")){laneOverlay.result=null;auxiliaryOverlay.result=null;auxiliaryPreview.focusBox=null;latestVision=null}
         }
         override fun onPreview(bitmap:android.graphics.Bitmap,timestampMs:Long) {
+            if(!texture.directActive && !previewTimeline.accept(timestampMs))return
             val analyzed=latestVision
-            if(analyzed!=null && SystemClock.elapsedRealtime()-analyzed.timestampMs<1200)return
-            texture.timestampMs=timestampMs;texture.frame=bitmap
+            if(!texture.directActive){texture.timestampMs=timestampMs;texture.frame=bitmap}
             laneOverlay.result=null
-            auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
+            if(analyzed==null || SystemClock.elapsedRealtime()-analyzed.timestampMs>1200) {
+                auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
+            }
             auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
@@ -75,8 +82,9 @@ class MainActivity : ComponentActivity() {
             if(SystemClock.elapsedRealtime()-frame.timestampMs>1200 || (latestVision?.timestampMs ?: -1)>frame.timestampMs)return
             latestVision=frame
             if(::alertPopup.isInitialized && alertPopup.presentation.critical && frame.risk.risks.isEmpty())alertPopup.visibility=View.GONE
-            // Display the analyzed bitmap with its own detections; no old boxes on a new image.
-            texture.timestampMs=frame.timestampMs;texture.frame=frame.bitmap;laneOverlay.result=frame
+            // The main video never waits for inference or rewinds to an older analyzed bitmap.
+            // Exact-frame overlays belong on the auxiliary analyzed view; main overlays require equality.
+            if(!texture.directActive && previewTimeline.matches(frame.timestampMs))laneOverlay.result=frame
             auxiliaryPreview.timestampMs=frame.timestampMs;auxiliaryPreview.frame=frame.bitmap;auxiliaryOverlay.result=frame
             auxiliaryPreview.focusBox=when{
                 br.com.dashcamadas.vision.Risk.PEDESTRIAN in frame.risk.risks->frame.risk.pedestrianTarget?.box
@@ -97,6 +105,7 @@ class MainActivity : ComponentActivity() {
             captureService=(binder as DashCamForegroundService.LocalBinder).service
             captureService?.callback=captureCallback
             captureService?.state?.let{captureCallback.onState(it)}
+            captureService?.attachPreviewTexture(texture.directTexture())
         }
         override fun onServiceDisconnected(name:android.content.ComponentName) {
             captureService=null;captureCallback.onState(DashCamForegroundService.State(message="Serviço de câmera indisponível"))
@@ -317,7 +326,10 @@ class MainActivity : ComponentActivity() {
             }
         }
         val cameraFrame=cameraPanel(1195f)
-        texture=CameraPreviewView(this)
+        texture=CameraPreviewView(this,true).apply {
+            onFrameDrawn={timestamp -> captureService?.reportPreviewDrawn(timestamp)}
+            onSurfaceChanged={surface -> captureService?.attachPreviewTexture(surface)}
+        }
         cameraFrame.place(texture,0f,0f,1195f,623f)
         laneOverlay=RiskOverlayView(this).apply { preview=texture;showCaption=false;setOnTouchListener { _,_->false } }
         cameraFrame.place(laneOverlay,0f,0f,1195f,623f)
@@ -588,11 +600,13 @@ class MainActivity : ComponentActivity() {
         radarService = null
         if (radarBound) { unbindService(radarConnection); radarBound=false }
         if(captureService?.callback===captureCallback)captureService?.callback=null
+        captureService?.attachPreviewTexture(null)
         captureService=null
         if(captureBound){unbindService(captureConnection);captureBound=false}
         latestVision=null
         if(::texture.isInitialized)texture.frame=null
         if(::laneOverlay.isInitialized)laneOverlay.result=null
+        previewTimeline.reset()
         if(::auxiliaryPreview.isInitialized)auxiliaryPreview.frame=null
         if(::auxiliaryOverlay.isInitialized)auxiliaryOverlay.result=null
         super.onStop()

@@ -11,16 +11,20 @@ import argparse,json,subprocess,shutil,sys,time,shlex
 parser=argparse.ArgumentParser()
 parser.add_argument('--serial',required=True);parser.add_argument('--apk',type=Path)
 parser.add_argument('--install',action='store_true');parser.add_argument('--grant-test-permissions',action='store_true')
+parser.add_argument('--live-only',action='store_true',help='Measure foreground LIVE without starting a recording')
+parser.add_argument('--min-preview-fps',type=float,help='Require actual LIVE draw rate, independent of neural inference count')
 parser.add_argument('--require-gps',action='store_true');parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--native-usb',action='store_true',help='Require native source previously selected/authorized in the app')
 parser.add_argument('--require-realtime',action='store_true',help='Require neural processing within the 500 ms alert budget')
-args=parser.parse_args();package='br.com.dashcamadas'
+args=parser.parse_args()
+if args.min_preview_fps is not None and not 0 < args.min_preview_fps <= 60:parser.error('--min-preview-fps must be above 0 and at most 60')
+package='br.com.dashcamadas'
 adb=shutil.which('adb') or '/workspace/android-sdk/platform-tools/adb'
 def run(*cmd): return subprocess.check_output([adb,'-s',args.serial,*cmd],text=True,stderr=subprocess.STDOUT).strip()
 devices=subprocess.check_output([adb,'devices'],text=True)
 if args.serial+'\tdevice' not in devices: raise SystemExit('No connected/authorized Android with this serial; no physical tests executed')
 if run('shell','getprop','ro.kernel.qemu')=='1':raise SystemExit('An emulator is not a physical Android; these physical tests are not executed')
-if not shutil.which('ffprobe'): raise SystemExit('ffprobe required to verify actual encoded video')
+if not args.live_only and not shutil.which('ffprobe'): raise SystemExit('ffprobe required to verify actual encoded video')
 args.output.mkdir(parents=True,exist_ok=True)
 if args.install:
     if not args.apk or not args.apk.is_file():raise SystemExit('Provide --apk for installation')
@@ -51,6 +55,21 @@ def command(value):
     run('shell','run-as',package,'sh','-c',shlex.quote(snippet))
 initial=wait_for(lambda d:d['connected'] and d['processed_frames']>=2 and d['model_loaded'] and d.get('lane_neural_inferences',0)>=2 and d.get('vehicle_neural_inferences',0)>=2 and (not args.native_usb or d.get('source_kind')=='USB_NATIVE_RGBA'))
 if initial['recording']:raise SystemExit('An existing recording is active; test will not interrupt it')
+if args.live_only or args.min_preview_fps is not None:
+    samples=[]
+    for _ in range(8):
+        time.sleep(1)
+        sample=diagnostic();samples.append(sample)
+        if sample['recording'] or not sample['connected']:raise RuntimeError('LIVE measurement requires connected camera without recording')
+    first,last=samples[0],samples[-1]
+    elapsed=(last['observed_elapsed_ms']-first['observed_elapsed_ms'])/1000
+    if elapsed<=0 or 'preview_rendered_frames' not in first:raise RuntimeError('Install source revision 3.7 or newer for preview diagnostics')
+    observed_fps=(last['preview_rendered_frames']-first['preview_rendered_frames'])/elapsed
+    live={'duration_seconds':elapsed,'observed_draw_fps':observed_fps,'minimum_requested_fps':args.min_preview_fps,'direct_gpu':last.get('preview_direct_gpu'),'samples':samples}
+    (args.output/'live-preview.json').write_text(json.dumps(live,indent=2))
+    if args.min_preview_fps is not None and observed_fps<args.min_preview_fps:raise RuntimeError('LIVE draw rate below requested minimum; see live-preview.json')
+    if args.live_only:
+        print(json.dumps(live,indent=2));raise SystemExit(0)
 try:
     command('START_RECORD')
     started=wait_for(lambda d:d['recording'] and d['recording_capture_frames']>0)

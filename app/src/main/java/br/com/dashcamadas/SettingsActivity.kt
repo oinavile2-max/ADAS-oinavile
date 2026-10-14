@@ -194,11 +194,15 @@ class SettingsActivity : Activity() {
         val storageCard = page.card("Armazenamento", "Clipes protegidos ficam fora da limpeza automática.", "folder")
         val storage = picker(storageCard, "storage", listOf("Sem exclusão automática", "512 MB", "1 GB", "2 GB", "4 GB"), limits.indexOf(prefs.getInt("storage_mb", 0)))
         page.pair(parent, segmentCard, storageCard)
+        val fluency = page.card("Fluidez da LIVE", "Câmera integrada usa prévia direta quando disponível. O limite abaixo controla a prévia alternativa; reduza se houver lentidão.", "camera")
+        val rates = listOf(10, 15, 24, 30)
+        val fps = picker(fluency, "preview_fps", rates.map { "$it quadros/s" }, rates.indexOf(prefs.getInt("preview_fps", 15)))
+        page.addCard(parent, fluency)
         val orientation = page.card("Orientação da câmera", "Rotação, espelhamento e seleção de fonte ficam no menu da câmera da LIVE.", "camera")
         orientation.addView(page.action("Abrir controles na LIVE") { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)) })
         if (BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27) orientation.addView(page.action("Autorizar câmera USB") { startActivity(Intent(this, NativeUsbActivity::class.java)) })
         page.addCard(parent, orientation)
-        saves["CAMERA"] = { prefs.edit().putInt("segment", segments[segment.selectedItemPosition]).putInt("storage_mb", limits[storage.selectedItemPosition]).apply(); saved() }
+        saves["CAMERA"] = { prefs.edit().putInt("segment", segments[segment.selectedItemPosition]).putInt("storage_mb", limits[storage.selectedItemPosition]).putInt("preview_fps", rates[fps.selectedItemPosition]).apply(); saved() }
     }
     private fun appearance(parent: LinearLayout) {
         val prefs = getSharedPreferences("ui_appearance", MODE_PRIVATE)

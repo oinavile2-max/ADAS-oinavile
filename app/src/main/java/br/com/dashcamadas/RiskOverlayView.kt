@@ -29,6 +29,7 @@ class RiskOverlayView(context:Context):View(context) {
         super.onDraw(canvas)
         val frame=result ?: return
         if(SystemClock.elapsedRealtime()-frame.timestampMs>1200)return
+        if(preview?.timestampMs!=frame.timestampMs)return
         val transform=preview?.mapping() ?: return
         val period=tuning.getLong("blink_ms",500).coerceIn(250,1000)
         val pulse=if(SystemClock.uptimeMillis()%period<period/2)255 else 160
