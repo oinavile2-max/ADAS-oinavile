@@ -26,6 +26,8 @@ class CameraPreviewView(context:Context,allowDirect:Boolean=false):FrameLayout(c
     private val destination=FloatArray(6)
     private val matrix=Matrix()
     private val gpuMatrix=Matrix()
+    private val producerMatrix=FloatArray(16)
+    private var producerOrientation=TextureBufferOrientation()
     var fill=false
         set(value){if(field==value)return;field=value;updateDirectTransform();invalidate()}
     var mirror=false
@@ -37,10 +39,14 @@ class CameraPreviewView(context:Context,allowDirect:Boolean=false):FrameLayout(c
         gpu?.let { view ->
             view.isOpaque=false;view.visibility=View.INVISIBLE
             view.surfaceTextureListener=object:TextureView.SurfaceTextureListener {
-                override fun onSurfaceTextureAvailable(texture:SurfaceTexture,w:Int,h:Int){if(directWanted)onSurfaceChanged?.invoke(texture);updateDirectTransform()}
-                override fun onSurfaceTextureSizeChanged(texture:SurfaceTexture,w:Int,h:Int){updateDirectTransform()}
+                override fun onSurfaceTextureAvailable(texture:SurfaceTexture,w:Int,h:Int){producerOrientation=TextureBufferOrientation();if(directWanted)onSurfaceChanged?.invoke(texture);updateDirectTransform()}
+                override fun onSurfaceTextureSizeChanged(texture:SurfaceTexture,w:Int,h:Int){if(rawWidth>0 && rawHeight>0)texture.setDefaultBufferSize(rawWidth,rawHeight);updateDirectTransform()}
                 override fun onSurfaceTextureDestroyed(texture:SurfaceTexture):Boolean {onSurfaceChanged?.invoke(null);return true}
-                override fun onSurfaceTextureUpdated(texture:SurfaceTexture){if(directActive){timestampMs=SystemClock.elapsedRealtime();onFrameDrawn?.invoke(timestampMs)}}
+                override fun onSurfaceTextureUpdated(texture:SurfaceTexture){
+                    texture.getTransformMatrix(producerMatrix)
+                    val actual=TextureBufferOrientation.fromSurfaceMatrix(producerMatrix)
+                    if(actual!=null && actual!=producerOrientation){producerOrientation=actual;updateDirectTransform()}
+                    if(directActive){timestampMs=SystemClock.elapsedRealtime();onFrameDrawn?.invoke(timestampMs)}}
             }
             addView(view,LayoutParams(-1,-1))
         }
@@ -67,7 +73,9 @@ class CameraPreviewView(context:Context,allowDirect:Boolean=false):FrameLayout(c
         val points=floatArrayOf(0f,0f,rawWidth.toFloat(),0f,0f,rawHeight.toFloat())
         val target=FloatArray(6)
         for(i in 0..2){val point=transform.project(points[i*2],points[i*2+1]);target[i*2]=point.first;target[i*2+1]=point.second}
-        gpuMatrix.setPolyToPoly(floatArrayOf(0f,0f,width.toFloat(),0f,0f,height.toFloat()),0,target,0,3)
+        // Map the corners as TextureView actually displays them, compensating the producer once.
+        val displayed=producerOrientation.displayTriangle(width,height)
+        gpuMatrix.setPolyToPoly(displayed,0,target,0,3)
         view.setTransform(gpuMatrix)
     }
     fun mapping():CameraTransform? = frame?.let { bitmap->

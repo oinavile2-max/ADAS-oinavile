@@ -48,10 +48,11 @@ class DashCamForegroundService:Service() {
     private val evidence=Executors.newSingleThreadExecutor()
     private val busy=AtomicBoolean(false)
     private val uiPending=AtomicBoolean(false)
-    private data class PreviewPacket(val callback:Callback,val bitmap:Bitmap,val timestamp:Long,val epoch:Int)
+    private data class PreviewPacket(val callback:Callback,val bitmap:Bitmap,val timestamp:Long,val epoch:Int,val orientationEpoch:Int)
     private val previews=LatestFrameMailbox<PreviewPacket>()
     private val cadence=CaptureCadence()
     private val previewMeter=PreviewFrameMeter()
+    private val auxiliaryMeter=PreviewFrameMeter()
     private var conversionPixels=IntArray(0)
     @Volatile private var previewFps=15
     @Volatile private var sessionStartedAt=0L
@@ -65,6 +66,9 @@ class DashCamForegroundService:Service() {
     }
     fun reportPreviewDrawn(timestamp:Long) {
         if(callback!=null && timestamp>=sessionStartedAt && !closing)previewMeter.drawn(timestamp,SystemClock.elapsedRealtime())
+    }
+    fun reportAuxiliaryDrawn(timestamp:Long) {
+        if(callback!=null && timestamp>=sessionStartedAt && !closing)auxiliaryMeter.drawn(timestamp,SystemClock.elapsedRealtime())
     }
     fun previewMetrics():PreviewFrameMeter.Snapshot=previewMeter.snapshot(SystemClock.elapsedRealtime())
     private val engine=AdasEngine()
@@ -88,6 +92,8 @@ class DashCamForegroundService:Service() {
     private var captureAttempt=0
     private var opening=false
     private var analysisRotation=0
+    @Volatile private var orientationGeneration=0
+    private var rotateCropNone=false
     private var videoSize=Size(1280,720)
     private var imageSize=Size(640,360)
     private var liveSize=Size(640,360)
@@ -133,15 +139,18 @@ class DashCamForegroundService:Service() {
     private fun diagnostics() {
         if(!BuildConfig.DEBUG || closing)return
         val preview=previewMetrics()
+        val auxiliary=auxiliaryMeter.snapshot(SystemClock.elapsedRealtime())
         val value=JSONObject().put("camera_id",currentId).put("connected",state.connected).put("recording",isRecording)
             .put("processed_frames",processedFrames).put("recording_capture_frames",recordingFrames).put("completed_segments",completedSegments)
             .put("last_frame_elapsed_ms",lastFrame).put("observed_elapsed_ms",SystemClock.elapsedRealtime())
             .put("last_completed_clip",lastCompletedClip).put("model_loaded",detector!=null && laneNetwork!=null).put("gps_speed_available",DrivingContext.speed()!=null)
             .put("lane_model_loaded",laneNetwork!=null).put("vehicle_model_loaded",detector!=null)
             .put("lane_neural_inferences",laneInferences).put("vehicle_neural_inferences",vehicleInferences).put("last_inference_ms",inferenceMs)
+            .put("analysis_width",imageSize.width).put("analysis_height",imageSize.height).put("rotate_and_crop_disabled",rotateCropNone)
             .put("camera_received_frames",capturedFrames).put("max_source_gap_ms",maxSourceGap).put("last_conversion_ms",conversionMs)
             .put("preview_rendered_frames",preview.frames).put("preview_render_fps",preview.fps)
             .put("preview_max_draw_gap_ms",preview.maxGapMs).put("preview_last_draw_gap_ms",preview.lastGapMs)
+            .put("auxiliary_rendered_frames",auxiliary.frames).put("auxiliary_render_fps",auxiliary.fps).put("auxiliary_max_draw_gap_ms",auxiliary.maxGapMs).put("auxiliary_analysis_view",cameraPreferences.getBoolean("aux_analysis",false))
             .put("preview_direct_gpu",directActive).put("preview_fps_limit",previewFps).put("neural_interval_ms",cadence.analysisIntervalMs()).put("neural_threads_per_model",modelThreads)
             .put("native_rgba_frames",nativeFrames).put("source_kind",if(currentId.startsWith("usb:"))"USB_NATIVE_RGBA" else "CAMERA2_YUV")
         try {File(filesDir,"capture-diagnostics.json").writeText(value.toString())}catch(e:Exception){android.util.Log.w("DashCamDiagnostics","Diagnóstico não salvo",e)}
@@ -248,11 +257,12 @@ class DashCamForegroundService:Service() {
                 .minByOrNull{kotlin.math.abs(it.width.toLong()*it.height-1280L*720L)} ?: Size(0,0)
             val preferredRatio=if(videoSize.width>0) videoSize.width.toFloat()/videoSize.height else 16f/9
             imageSize=yuv.filter{kotlin.math.abs(it.width.toFloat()/it.height-preferredRatio)<.025f}
-                .minByOrNull{kotlin.math.abs(it.width.toLong()*it.height-640L*360L)} ?: yuv.minByOrNull{it.width*it.height} ?: error("Câmera sem saída YUV compatível")
+                .minByOrNull{AnalysisResolution.score(it.width,it.height)} ?: yuv.minByOrNull{AnalysisResolution.score(it.width,it.height)} ?: error("Câmera sem saída YUV compatível")
             val ratio=imageSize.width.toFloat()/imageSize.height
             liveSize=map.getOutputSizes(SurfaceTexture::class.java).orEmpty()
                 .filter{it.width<=1280 && it.height<=720 && kotlin.math.abs(it.width.toFloat()/it.height-ratio)<.025f}
                 .maxByOrNull{it.width*it.height} ?: imageSize
+            rotateCropNone=if(Build.VERSION.SDK_INT>=31)chars.get(CameraCharacteristics.SCALER_AVAILABLE_ROTATE_AND_CROP_MODES)?.contains(CameraMetadata.SCALER_ROTATE_AND_CROP_NONE)==true else false
             updateRotation(chars)
             reader=ImageReader.newInstance(imageSize.width,imageSize.height,ImageFormat.YUV_420_888,3).apply {
                 setOnImageAvailableListener({ source -> receive(source,epoch) },cameraHandler)
@@ -271,7 +281,7 @@ class DashCamForegroundService:Service() {
         if(currentId==id && nativeCapture!=null){updateNativeRotation();return}
         closeCapture();recordWanted=false;currentId=id;opening=true
         captureStartDeadline=SystemClock.elapsedRealtime()+10000
-        updateNativeRotation();videoSize=Size(640,360)
+        updateNativeRotation();videoSize=Size(640,360);imageSize=videoSize
         val epoch=generation
         val capture=NativeUsbCapture(this,cameraHandler,{source->receive(source,epoch)},
             {if(epoch==generation){opening=false;holdCapturePower();publish(State(cameraId=id,message="USB inicializada; aguardando imagem real"))}},
@@ -284,7 +294,7 @@ class DashCamForegroundService:Service() {
     private fun updateNativeRotation(){
         val before=analysisRotation
         analysisRotation=getSharedPreferences("camera_orientation",MODE_PRIVATE).getInt("rotation_$currentId",0).takeIf{it in listOf(0,90,180,270)} ?: 0
-        if(before!=analysisRotation){getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply();analysis.execute{engine.reset()}}
+        if(before!=analysisRotation){orientationGeneration++;getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply();analysis.execute{engine.reset()}}
     }
     private fun updateRotation(chars:CameraCharacteristics) {
         val prefs=getSharedPreferences("camera_orientation",MODE_PRIVATE)
@@ -292,7 +302,9 @@ class DashCamForegroundService:Service() {
         val sensor=chars.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
         val display=prefs.getInt("display_rotation_$currentId",90)
         val front=chars.get(CameraCharacteristics.LENS_FACING)==CameraCharacteristics.LENS_FACING_FRONT
+        val before=analysisRotation
         analysisRotation=if(override in listOf(0,90,180,270)) override else if(front) (sensor+display)%360 else (sensor-display+360)%360
+        if(before!=analysisRotation)orientationGeneration++
     }
     fun orientationChanged(){cameraHandler.post{
         if(currentId.isNotEmpty()) {
@@ -319,7 +331,10 @@ class DashCamForegroundService:Service() {
             if(recordWanted && recorder==null) prepareRecorder()
             val outputs=listOfNotNull(source,liveSurface,if(recordWanted) recordSurface else null)
             val recordingRequest=recordWanted && recordSurface!=null
-            val req=device.createCaptureRequest(if(recordWanted) CameraDevice.TEMPLATE_RECORD else CameraDevice.TEMPLATE_PREVIEW).apply{outputs.forEach{addTarget(it)}}
+            val req=device.createCaptureRequest(if(recordWanted) CameraDevice.TEMPLATE_RECORD else CameraDevice.TEMPLATE_PREVIEW).apply{
+                outputs.forEach{addTarget(it)}
+                if(Build.VERSION.SDK_INT>=31 && rotateCropNone)set(CaptureRequest.SCALER_ROTATE_AND_CROP,CameraMetadata.SCALER_ROTATE_AND_CROP_NONE)
+            }
             device.createCaptureSession(outputs,object:CameraCaptureSession.StateCallback() {
                 override fun onConfigured(value:CameraCaptureSession) {
                     if(attempt!=captureAttempt || camera!==device){value.close();return}
@@ -434,7 +449,7 @@ class DashCamForegroundService:Service() {
                 if(!state.connected)publish(State(true,isRecording,currentId,"LIVE — USB com quadros RGBA"))
             }
             val previewCallback=callback
-            val showPreview=previewCallback!=null && cadence.claimPreview(now,if(directActive)4 else previewFps)
+            val showPreview=previewCallback!=null && cadence.claimPreview(now,previewFps)
             val analyze=(laneNetwork!=null || detector!=null) && cadence.analysisDue(now) && busy.compareAndSet(false,true)
             analysisClaimed=analyze
             if(!showPreview && !analyze)return
@@ -442,18 +457,19 @@ class DashCamForegroundService:Service() {
             val started=SystemClock.elapsedRealtime()
             val bitmap=convert(image)
             val rotation=analysisRotation
+            val orientationEpoch=orientationGeneration
             val oriented=if(rotation==0) bitmap else Bitmap.createBitmap(bitmap,0,0,bitmap.width,bitmap.height,Matrix().apply{postRotate(rotation.toFloat())},true)
             if(oriented!==bitmap)bitmap.recycle()
             conversionMs=SystemClock.elapsedRealtime()-started
-            if(showPreview && previewCallback!=null && previews.offer(PreviewPacket(previewCallback,oriented,now,epoch)))main.post {
+            if(showPreview && previewCallback!=null && previews.offer(PreviewPacket(previewCallback,oriented,now,epoch,orientationEpoch)))main.post {
                 val next=previews.take() ?: return@post
-                if(callback===next.callback && next.epoch==generation && !closing)next.callback.onPreview(next.bitmap,next.timestamp)
+                if(callback===next.callback && next.epoch==generation && next.orientationEpoch==orientationGeneration && !closing)next.callback.onPreview(next.bitmap,next.timestamp)
             }
             if(!analyze)return
             val cameraId=currentId
             analysis.execute {
                 try {
-                    if(epoch!=generation || closing)return@execute
+                    if(epoch!=generation || orientationEpoch!=orientationGeneration || closing)return@execute
                     if(SystemClock.elapsedRealtime()-now>500){engine.reset();return@execute}
                     if(oriented.width<oriented.height){engine.reset();publish(state.copy(message="Gire a câmera para a estrada horizontal; ADAS suspenso"));return@execute}
                     val masks=laneNetwork?.detect(oriented)
@@ -472,17 +488,17 @@ class DashCamForegroundService:Service() {
                     val laneResult=outcome.lanes
                     val evaluated=outcome.risk
                     val frame=VisionFrame(oriented,laneResult,vehicles,evaluated,now,masks!=null,detector!=null,inferenceMs,actualMask.lanePixels,actualMask.roadPixels,scene.pedestrians)
-                    if(epoch!=generation || closing)return@execute
+                    if(epoch!=generation || orientationEpoch!=orientationGeneration || closing)return@execute
                     processedFrames++
                     for(kind in evaluated.newAlerts) {
                         val message=when(kind){Risk.PEDESTRIAN->"Atenção! Pedestre à frente!";Risk.COLLISION->"Atenção! Risco de colisão à frente!";Risk.LEFT_DEPARTURE->"Atenção! Saída de faixa à esquerda!";Risk.RIGHT_DEPARTURE->"Atenção! Saída de faixa à direita!"}
-                        main.post{if(epoch==generation && !closing){audio?.announce(message,true);callback?.onAlert(message);EventStore(this).add(kind.name,"Risco estimado por visão; câmera $cameraId","VISION / EXPERIMENTAL",true)}}
-                        cameraHandler.post{if(epoch==generation && isRecording)rotateSegment(true)}
+                        main.post{if(epoch==generation && orientationEpoch==orientationGeneration && !closing){audio?.announce(message,true);callback?.onAlert(message);EventStore(this).add(kind.name,"Risco estimado por visão; câmera $cameraId","VISION / EXPERIMENTAL",true)}}
+                        cameraHandler.post{if(epoch==generation && orientationEpoch==orientationGeneration && isRecording)rotateSegment(true)}
                     }
                     val cb=callback
-                    if(cb!=null && uiPending.compareAndSet(false,true))main.post{try{if(callback===cb && epoch==generation)cb.onFrame(frame)}finally{uiPending.set(false)}}
+                    if(cb!=null && uiPending.compareAndSet(false,true))main.post{try{if(callback===cb && epoch==generation && orientationEpoch==orientationGeneration)cb.onFrame(frame)}finally{uiPending.set(false)}}
                 } catch(e:Exception){engine.reset();publish(state.copy(message="IA indisponível: ${e.message}"));android.util.Log.e("DashCamVision","Análise suspensa",e)}
-                finally{if(epoch==generation)cadence.analysisFinished(SystemClock.elapsedRealtime()-now);busy.set(false)}
+                finally{if(epoch==generation && orientationEpoch==orientationGeneration)cadence.analysisFinished(SystemClock.elapsedRealtime()-now);busy.set(false)}
             }
         } catch(e:Exception){if(analysisClaimed)busy.set(false);android.util.Log.e("DashCamFrame","Falha no quadro",e)}
         finally{image.close()}
@@ -507,7 +523,7 @@ class DashCamForegroundService:Service() {
         finishRecorder();directActive=false;liveSurface?.release();liveSurface=null;nativeCapture?.close();nativeCapture=null;camera?.close();camera=null
         reader?.setOnImageAvailableListener(null,null);reader?.close();reader=null
         lastFrame=0;processedFrames=0;recordingFrames=0;nativeFrames=0
-        capturedFrames=0;maxSourceGap=0;cadence.reset();previewMeter.reset();sessionStartedAt=SystemClock.elapsedRealtime()
+        capturedFrames=0;maxSourceGap=0;cadence.reset();previewMeter.reset();auxiliaryMeter.reset();sessionStartedAt=SystemClock.elapsedRealtime()
         analysis.execute{engine.reset()}
     }
     override fun onUnbind(intent:Intent?):Boolean{callback=null;attachPreviewTexture(null);return super.onUnbind(intent)}

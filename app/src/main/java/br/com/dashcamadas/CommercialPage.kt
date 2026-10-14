@@ -16,7 +16,26 @@ import android.widget.*
 
 /** Native presentation of the approved commercial concept. No browser or simulated service data. */
 class CommercialPage(val activity: Activity, title: String, subtitle: String) {
-    val root = LinearLayout(activity)
+    private lateinit var header:LinearLayout
+    private lateinit var pageTitle:TextView
+    private lateinit var pageSubtitle:TextView
+    private var compactLevel=-1
+    val root = object:LinearLayout(activity){
+        override fun onMeasure(w:Int,h:Int){
+            val available=MeasureSpec.getSize(h)-paddingTop-paddingBottom
+            val next=if(available<dp(260))2 else if(available<dp(420))1 else 0
+            if(next!=compactLevel && ::header.isInitialized){
+                compactLevel=next
+                header.visibility=if(next==2)View.GONE else View.VISIBLE
+                pageSubtitle.visibility=if(next==0)View.VISIBLE else View.GONE
+                pageTitle.visibility=if(next==2)View.GONE else View.VISIBLE
+                pageTitle.textSize=if(next==0)25f else 20f
+                pageTitle.setPadding(0,dp(if(next==0)14 else 4),0,dp(4))
+                workspace.requestLayout()
+            }
+            super.onMeasure(w,h)
+        }
+    }
     val body = LinearLayout(activity)
     val scroll = ScrollView(activity)
     val footer = LinearLayout(activity)
@@ -25,11 +44,12 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
     private val tabColumn = LinearLayout(activity)
     private val tabHost = FrameLayout(activity)
     private var verticalTabs: Boolean? = null
+    private var tabCompact=-1
     private val workspace = object : LinearLayout(activity) {
         override fun onMeasure(w: Int, h: Int) {
-            val wide = MeasureSpec.getSize(w) >= dp(900)
-            if (tabButtons.isNotEmpty() && verticalTabs != wide) {
-                verticalTabs = wide
+            val wide = MeasureSpec.getSize(w) >= dp(900) && compactLevel<2
+            if (tabButtons.isNotEmpty() && (verticalTabs != wide || tabCompact!=compactLevel)) {
+                verticalTabs = wide;tabCompact=compactLevel
                 orientation = if (wide) HORIZONTAL else VERTICAL
                 (tabColumn.parent as? ViewGroup)?.removeView(tabColumn)
                 tabHost.removeAllViews()
@@ -37,7 +57,7 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
                 val container: ViewGroup = if (wide) ScrollView(activity) else HorizontalScrollView(activity).apply { isHorizontalScrollBarEnabled = false }
                 container.addView(tabColumn)
                 tabHost.addView(container, FrameLayout.LayoutParams(-1, -1))
-                tabHost.layoutParams = LayoutParams(if (wide) dp(196) else -1, if (wide) -1 else dp(68))
+                tabHost.layoutParams = LayoutParams(if (wide) dp(196) else -1, if (wide) -1 else dp(if(compactLevel==0)68 else 60))
                 scroll.layoutParams = LayoutParams(if (wide) 0 else -1, if (wide) -1 else 0, 1f)
                 tabButtons.forEach { (button, _) ->
                     button.layoutParams = LayoutParams(if (wide) -1 else -2, -2).apply {
@@ -52,15 +72,17 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
         root.orientation = LinearLayout.VERTICAL
         root.setPadding(dp(18), dp(10), dp(18), dp(10))
         root.background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.rgb(12, 30, 47), Color.rgb(5, 13, 24)))
-        val header = LinearLayout(activity).apply { gravity = Gravity.CENTER_VERTICAL }
+        header = LinearLayout(activity).apply { gravity = Gravity.CENTER_VERTICAL }
         header.addView(ImageView(activity).apply { setImageResource(R.mipmap.ic_launcher); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(dp(44), dp(44)))
         val name = "DashCam ADAS PRO"
         val brand = SpannableString(name).apply { setSpan(ForegroundColorSpan(NeonTheme.read(activity).accent), name.length - 3, name.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
-        header.addView(label(brand, 20f).apply { setPadding(dp(10), 0, 0, 0); setTag(R.id.neon_role, "brand") }, LinearLayout.LayoutParams(0, -2, 1f))
+        header.addView(label(brand, 20f).apply { setPadding(dp(10), 0, 0, 0); setTag(R.id.neon_role, "brand");isSingleLine=true;ellipsize=android.text.TextUtils.TruncateAt.END }, LinearLayout.LayoutParams(0, -2, 1f))
         header.addView(action("‹ Voltar") { activity.finish() })
         root.addView(header)
-        root.addView(label(title, 25f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); setPadding(0, dp(14), 0, dp(4)) })
-        root.addView(label(subtitle, 13f, MUTED).apply { setPadding(0, 0, 0, dp(12)) })
+        pageTitle=label(title,25f).apply { typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setPadding(0,dp(14),0,dp(4)) }
+        root.addView(pageTitle)
+        pageSubtitle=label(subtitle,13f,MUTED).apply {setPadding(0,0,0,dp(12))}
+        root.addView(pageSubtitle)
         workspace.orientation = LinearLayout.HORIZONTAL
         body.orientation = LinearLayout.VERTICAL
         body.setPadding(dp(4), dp(4), dp(4), dp(8))
@@ -110,7 +132,7 @@ class CommercialPage(val activity: Activity, title: String, subtitle: String) {
             }
             val heading = LinearLayout(activity).apply { gravity = Gravity.CENTER_VERTICAL }
             heading.addView(ImageView(activity).apply { setImageDrawable(PremiumIconDrawable(visuals, icon)); importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, LinearLayout.LayoutParams(dp(23), dp(23)))
-            heading.addView(label(title, 17f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); setPadding(dp(10), 0, 0, 0) })
+            heading.addView(label(title, 17f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); setPadding(dp(10), 0, 0, 0) },LinearLayout.LayoutParams(0,-2,1f))
             addView(heading)
             if (detail.isNotEmpty()) addView(label(detail, 13f, MUTED).apply { setPadding(0, dp(8), 0, dp(12)) })
         }

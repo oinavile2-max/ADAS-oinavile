@@ -1,0 +1,24 @@
+{
+  "apk": "APKS/DashCam_ADAS_PRO_3_8_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+  "profile": "native",
+  "bytes": 44766121,
+  "sha256": "65625a6340444ed1f4ea75be2e37571dd6d2d7ac6f3fb338201de490e76708b6",
+  "version_code": 38,
+  "min_sdk": 25,
+  "target_sdk": 37,
+  "abis": [
+    "armeabi-v7a"
+  ],
+  "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+  "signature_api25_verified": true,
+  "signature_api37_verified": true,
+  "v1_forced_api23_verified": true,
+  "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+  "zipalign_verified": true,
+  "packaged_models_hashes_verified": true,
+  "packaged_elf64_16kb_verified": 0,
+  "physical_installation_tested": false,
+  "new_camera_helpers_embedded": true,
+  "record_stop_and_rotate_labels_embedded": true,
+  "vendor_driver_only_in_native_profile": true
+}

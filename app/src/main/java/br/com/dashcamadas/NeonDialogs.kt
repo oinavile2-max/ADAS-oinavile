@@ -20,7 +20,9 @@ object NeonDialogs {
     fun decorate(dialog:AlertDialog){
         val window=dialog.window ?: return
         window.setBackgroundDrawable(NeonSurface(dialog.context))
-        window.decorView.setLayerType(View.LAYER_TYPE_SOFTWARE,null)
+        val density=dialog.context.resources.displayMetrics.density
+        val screen=dialog.context.resources.displayMetrics.widthPixels
+        window.setLayout(minOf((720*density).toInt(),screen-(32*density).toInt()),ViewGroup.LayoutParams.WRAP_CONTENT)
         styleContent(window.decorView)
         listOf(AlertDialog.BUTTON_POSITIVE,AlertDialog.BUTTON_NEGATIVE,AlertDialog.BUTTON_NEUTRAL).forEach { dialog.getButton(it)?.let { button -> CommercialUi.button(button) } }
     }
@@ -50,6 +52,9 @@ class NeonSurface(private val context:Context):Drawable(){
         for((width,alpha) in listOf(8f to 30,4f to 80,1.6f to 255)){
             paint.strokeWidth=width*density;paint.color=(theme.popupAccent and 0xffffff) or (alpha shl 24);canvas.drawRoundRect(box,15f*density,15f*density,paint)
         }
+    }
+    override fun getPadding(padding:Rect):Boolean {
+        val inset=(12*density).toInt();padding.set(inset,inset,inset,inset);return true
     }
     override fun setAlpha(alpha:Int){}
     override fun setColorFilter(filter:ColorFilter?){}

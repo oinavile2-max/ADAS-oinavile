@@ -18,7 +18,8 @@ object SafeInsets {
                 val cutout=insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.displayCutout())
                 androidx.core.graphics.Insets.of(maxOf(bars.left,cutout.left),maxOf(bars.top,cutout.top),maxOf(bars.right,cutout.right),maxOf(bars.bottom,cutout.bottom))
             } else insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-            view.setPadding(left+safe.left,top+safe.top,right+safe.right,bottom+safe.bottom)
+            val ime=if(immersive)0 else insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            view.setPadding(left+safe.left,top+safe.top,right+safe.right,bottom+maxOf(safe.bottom,ime))
             insets
         }
         ViewCompat.requestApplyInsets(root)

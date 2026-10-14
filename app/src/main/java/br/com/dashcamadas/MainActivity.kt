@@ -37,6 +37,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var auxiliaryOverlay: RiskOverlayView
     private lateinit var auxiliaryPlaceholder: TextView
     private lateinit var record: Button
+    private lateinit var recordBadge: Button
+    private lateinit var auxiliaryMode: Button
+    private var auxiliaryAnalysis=false
+    private val auxiliaryTimeline=PreviewTimeline()
+    private var latestPreview:Pair<android.graphics.Bitmap,Long>?=null
     private lateinit var manager: CameraManager
     private val handler=Handler(Looper.getMainLooper())
     private var recording=false
@@ -48,17 +53,18 @@ class MainActivity : ComponentActivity() {
     private var captureState=DashCamForegroundService.State()
     private val captureCallback=object:DashCamForegroundService.Callback {
         override fun onState(state:DashCamForegroundService.State) {
+            if(captureState.cameraId!=state.cameraId || captureState.previewRotation!=state.previewRotation){
+                latestVision=null;latestPreview=null;auxiliaryTimeline.reset()
+                auxiliaryOverlay.result=null;auxiliaryPreview.frame=null;auxiliaryPreview.focusBox=null
+            }
             captureState=state;recording=state.recording
             texture.requestDirectPreview(state.connected && state.cameraId.isNotEmpty() && !state.cameraId.startsWith("usb:") && !state.directPreviewUnavailable)
             texture.showDirectPreview(state.directPreview,state.livePreviewWidth,state.livePreviewHeight,state.previewRotation)
             if(state.directPreview)laneOverlay.result=null
-            record.isSelected=recording
-            record.background.invalidateSelf()
-            record.contentDescription=if(recording) "Parar gravação" else "Iniciar gravação"
-            record.isEnabled=state.connected
+            updateRecordingControls()
             updateHud();showStatus(state.message)
             if(!state.connected || state.message.startsWith("Sem quadros")) {
-                previewTimeline.reset()
+                previewTimeline.reset();auxiliaryTimeline.reset();latestPreview=null
                 texture.frame=null;laneOverlay.result=null;latestVision=null
                 auxiliaryPreview.frame=null;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
                 auxiliaryPlaceholder.visibility=View.VISIBLE
@@ -68,10 +74,11 @@ class MainActivity : ComponentActivity() {
         }
         override fun onPreview(bitmap:android.graphics.Bitmap,timestampMs:Long) {
             if(!texture.directActive && !previewTimeline.accept(timestampMs))return
+            latestPreview=bitmap to timestampMs
             val analyzed=latestVision
             if(!texture.directActive){texture.timestampMs=timestampMs;texture.frame=bitmap}
             laneOverlay.result=null
-            if(analyzed==null || SystemClock.elapsedRealtime()-analyzed.timestampMs>1200) {
+            if(AuxiliaryPanelPolicy.wantsPreview(auxiliaryAnalysis,analyzed?.timestampMs,SystemClock.elapsedRealtime()) && auxiliaryTimeline.accept(timestampMs)) {
                 auxiliaryPreview.timestampMs=timestampMs;auxiliaryPreview.frame=bitmap;auxiliaryPreview.focusBox=null;auxiliaryOverlay.result=null
             }
             auxiliaryPlaceholder.visibility=View.GONE
@@ -85,12 +92,8 @@ class MainActivity : ComponentActivity() {
             // The main video never waits for inference or rewinds to an older analyzed bitmap.
             // Exact-frame overlays belong on the auxiliary analyzed view; main overlays require equality.
             if(!texture.directActive && previewTimeline.matches(frame.timestampMs))laneOverlay.result=frame
-            auxiliaryPreview.timestampMs=frame.timestampMs;auxiliaryPreview.frame=frame.bitmap;auxiliaryOverlay.result=frame
-            auxiliaryPreview.focusBox=when{
-                br.com.dashcamadas.vision.Risk.PEDESTRIAN in frame.risk.risks->frame.risk.pedestrianTarget?.box
-                br.com.dashcamadas.vision.Risk.COLLISION in frame.risk.risks->frame.risk.target?.box
-                else->null
-            }
+            if(auxiliaryAnalysis)showAuxiliaryAnalysis(frame)
+            else if(AuxiliaryPanelPolicy.mayAnnotate(false,frame.timestampMs,auxiliaryTimeline.timestamp))auxiliaryOverlay.result=frame
             auxiliaryPlaceholder.visibility=View.GONE
             cameraPlaceholder.visibility=View.GONE
             updateCameraTransform()
@@ -206,7 +209,6 @@ class MainActivity : ComponentActivity() {
         if (!cameraFullscreen && ::footerBar.isInitialized) {
             controlsHidden = true
             footerBar.visibility = View.GONE
-            sidePanel.visibility = View.GONE
         }
     }
     private fun revealControls() {
@@ -250,9 +252,15 @@ class MainActivity : ComponentActivity() {
         cameraFill = orientationPrefs().getBoolean("fill_$id", false)
         cameraMirror = orientationPrefs().getBoolean("mirror_$id", cameraFacing == CameraCharacteristics.LENS_FACING_FRONT)
     }
-    private fun cycleCameraRotation() {
+    private fun cycleCameraRotation(){
+        val base=if(cameraRotationOverride in listOf(0,90,180,270))cameraRotationOverride else captureState.previewRotation
+        setCameraRotation((base+90)%360)
+    }
+    private fun setCameraRotation(angle:Int) {
         val id = selectedId ?: return
-        cameraRotationOverride = when(cameraRotationOverride) { -1 -> 0; 0 -> 90; 90 -> 180; 180 -> 270; else -> -1 }
+        cameraRotationOverride=angle
+        latestVision=null;latestPreview=null;auxiliaryTimeline.reset()
+        laneOverlay.result=null;auxiliaryOverlay.result=null;auxiliaryPreview.focusBox=null
         orientationPrefs().edit().putInt("rotation_$id", cameraRotationOverride).apply()
         updateCameraTransform()
         captureService?.orientationChanged()
@@ -299,14 +307,14 @@ class MainActivity : ComponentActivity() {
         headerBar=header
         headerSurface=DashboardHeaderView(this,visuals)
         header.place(headerSurface,0f,0f,1679f,120f)
-        record=Button(this).apply {
+        recordBadge=Button(this).apply {
             text="";isEnabled=false;setPadding(0,0,0,0)
             background=PremiumIconDrawable(visuals,"lens",true){recording}
             contentDescription="Iniciar gravação"
             setOnClickListener { if(recording)stopRecording() else startRecording() }
             setOnLongClickListener { protectCurrentClip();true }
         }
-        header.place(record,38f,27f,57f,57f)
+        header.place(recordBadge,38f,27f,57f,57f)
         root.place(header,0f,0f,1679f,120f)
 
         fun cameraPanel(referenceWidth:Float):ReferenceDashboardLayout {
@@ -356,6 +364,26 @@ class MainActivity : ComponentActivity() {
         }
         qualityTag.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->qualityTag.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,40f*qualityTag.width/177f) }
         cameraFrame.place(qualityTag,24f,20f,177f,63f)
+        val persistentControls=FrameLayout(this)
+        record=Button(this).apply {
+            text="● REC";textSize=15f;isAllCaps=false;isEnabled=false;setTextColor(Color.WHITE)
+            typeface=Typeface.create("sans-serif-medium",Typeface.NORMAL);setPadding(dp(6),0,dp(6),0)
+            backgroundTintList=null
+            background=android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(Color.argb(60,255,40,75)),
+                GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,intArrayOf(Color.rgb(85,19,37),Color.rgb(30,9,20))).apply {
+                    cornerRadius=dp(12).toFloat();setStroke(dp(2),PremiumVisuals.RED)
+                },null)
+            contentDescription="Iniciar gravação"
+            setOnClickListener { if(recording)stopRecording() else startRecording() }
+            setOnLongClickListener { protectCurrentClip();true }
+        }
+        persistentControls.addView(record,FrameLayout.LayoutParams(dp(112),dp(48),Gravity.BOTTOM or Gravity.END).apply {setMargins(dp(12),dp(12),dp(12),dp(12))})
+        val rotateButton=Button(this).apply {
+            text="GIRAR";CommercialUi.button(this);setPadding(dp(6),0,dp(6),0)
+            contentDescription="Girar os dois painéis da câmera em 90 graus";setOnClickListener { cycleCameraRotation() }
+        }
+        persistentControls.addView(rotateButton,FrameLayout.LayoutParams(dp(96),dp(48),Gravity.BOTTOM or Gravity.START).apply {setMargins(dp(12),dp(12),dp(12),dp(12))})
+        cameraFrame.place(persistentControls,0f,0f,1195f,623f)
         alertPopup=EventPopupView(this,visuals).apply { visibility=View.GONE }
         cameraFrame.place(alertPopup,408f,68f,752f,194f)
         border(cameraFrame,1195f)
@@ -364,7 +392,8 @@ class MainActivity : ComponentActivity() {
         val side=cameraPanel(402f)
         sidePanel=side
         // This is an ADAS view of the actual primary frame, not a fabricated second camera.
-        auxiliaryPreview=CameraPreviewView(this).apply { fill=true }
+        auxiliaryAnalysis=getSharedPreferences("camera",MODE_PRIVATE).getBoolean("aux_analysis",false)
+        auxiliaryPreview=CameraPreviewView(this).apply { fill=true;onFrameDrawn={timestamp -> captureService?.reportAuxiliaryDrawn(timestamp)} }
         side.place(auxiliaryPreview,0f,0f,402f,623f)
         auxiliaryOverlay=RiskOverlayView(this).apply { preview=auxiliaryPreview;showCaption=false }
         side.place(auxiliaryOverlay,0f,0f,402f,623f)
@@ -375,6 +404,14 @@ class MainActivity : ComponentActivity() {
             contentDescription="Controles e seleção de câmera";setOnClickListener { showCameraControls() }
         }
         side.place(cameraButton,313f,14f,72f,72f)
+        val modeHost=FrameLayout(this)
+        auxiliaryMode=Button(this).apply {
+            text=if(auxiliaryAnalysis)"ANÁLISE" else "LIVE";CommercialUi.button(this);textSize=12f;setPadding(dp(4),0,dp(4),0)
+            contentDescription="Alternar painel auxiliar entre vídeo ao vivo e quadro analisado"
+            setOnClickListener { toggleAuxiliaryMode() }
+        }
+        modeHost.addView(auxiliaryMode,FrameLayout.LayoutParams(dp(80),dp(48),Gravity.TOP or Gravity.START).apply {setMargins(dp(6),dp(6),0,0)})
+        side.place(modeHost,0f,0f,402f,623f)
         border(side,402f)
         root.place(side,1247f,120f,402f,623f)
 
@@ -383,10 +420,13 @@ class MainActivity : ComponentActivity() {
         hud.setOnClickListener { calibrateAdas() }
         val pages=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
         repeat(3){index->pages.addView(View(this).apply { background=GradientDrawable().apply { setColor(if(index==0)Color.rgb(0,219,255) else Color.rgb(53,88,120));cornerRadius=dp(3).toFloat() } },LinearLayout.LayoutParams(0,-1,1f).apply { if(index<2)rightMargin=dp(8) })}
-        root.place(pages,785f,767f,104f,7f)
+        root.place(pages,785f,756f,104f,7f)
         status=uiText("Câmera: verificando disponibilidade",10f,Color.rgb(149,180,204))
         statusBar=status
-        root.place(status,29f,778f,1620f,22f)
+        status.isSingleLine=true;status.includeFontPadding=false;status.ellipsize=android.text.TextUtils.TruncateAt.END
+        status.addOnLayoutChangeListener { _,_,_,_,_,_,_,_,_ ->status.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX,20f*status.height/30f) }
+        status.setOnClickListener { NeonDialogs.Builder(this).setTitle("Estado da câmera e do assistente").setMessage(status.text).setPositiveButton("Fechar",null).show() }
+        root.place(status,29f,772f,1620f,30f)
 
         val controls=ReferenceDashboardLayout(this,1679f,89f)
         fun add(label:String,icon:String,x:Float,w:Float,active:Boolean=false,action:()->Unit){
@@ -394,7 +434,7 @@ class MainActivity : ComponentActivity() {
             controls.place(tile,x,0f,w,89f)
         }
         add("LIVE","play",29f,258f,true){chooseCamera()}
-        add("ADAS","car",312f,238f){calibrateAdas()}
+        add("ADAS","car",312f,238f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","ADAS"))}
         add("RADARES","radar_wave",575f,252f){listRadars()}
         add("MÍDIA","media",851f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","MIDIA"))}
         add("EVENTOS","folder",1128f,252f){startActivity(Intent(this,PremiumSectionActivity::class.java).putExtra("section","EVENTOS"))}
@@ -404,8 +444,38 @@ class MainActivity : ComponentActivity() {
         setContentView(root);SafeInsets.apply(this,immersive=true);revealControls()
     }
 
+    private fun updateRecordingControls(){
+        for(control in listOf(record,recordBadge)){
+            control.isSelected=recording;control.isEnabled=captureState.connected
+            control.contentDescription=if(recording)"Parar gravação" else "Iniciar gravação"
+            control.alpha=if(captureState.connected)1f else .5f;control.background.invalidateSelf()
+        }
+        record.text=if(recording)"■ PARAR" else "● REC"
+        val theme=NeonTheme.read(this)
+        ((record.background as? android.graphics.drawable.RippleDrawable)?.getDrawable(0) as? GradientDrawable)?.colors=
+            intArrayOf(Color.rgb(85,19,37),Color.rgb(30,9,20)).map{theme.buttonFill(it,recording)}.toIntArray()
+    }
+    private fun showAuxiliaryAnalysis(frame:VisionFrame){
+        auxiliaryPreview.timestampMs=frame.timestampMs;auxiliaryPreview.frame=frame.bitmap;auxiliaryOverlay.result=frame
+        auxiliaryPreview.focusBox=when{
+            br.com.dashcamadas.vision.Risk.PEDESTRIAN in frame.risk.risks->frame.risk.pedestrianTarget?.box
+            br.com.dashcamadas.vision.Risk.COLLISION in frame.risk.risks->frame.risk.target?.box
+            else->null
+        }
+    }
+    private fun toggleAuxiliaryMode(){
+        auxiliaryAnalysis=!auxiliaryAnalysis
+        getSharedPreferences("camera",MODE_PRIVATE).edit().putBoolean("aux_analysis",auxiliaryAnalysis).apply()
+        auxiliaryMode.text=if(auxiliaryAnalysis)"ANÁLISE" else "LIVE"
+        auxiliaryTimeline.reset();auxiliaryOverlay.result=null;auxiliaryPreview.focusBox=null
+        val analyzed=latestVision
+        if(auxiliaryAnalysis && analyzed!=null && SystemClock.elapsedRealtime()-analyzed.timestampMs<=1200)showAuxiliaryAnalysis(analyzed)
+        else latestPreview?.let{(bitmap,time)->auxiliaryTimeline.accept(time);auxiliaryPreview.timestampMs=time;auxiliaryPreview.frame=bitmap}
+        showStatus(if(auxiliaryAnalysis)"Painel direito: quadro analisado pela IA" else "Painel direito: vídeo ao vivo")
+    }
+
     private fun showCameraControls(){
-        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia","Sensibilidade e espessura das faixas")
+        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia","Sensibilidade e espessura das faixas","Restaurar orientação automática")
         NeonDialogs.Builder(this).setTitle("Câmera").setItems(options){_,which->when(which){
             0->chooseCamera()
             1->cycleCameraRotation()
@@ -415,6 +485,7 @@ class MainActivity : ComponentActivity() {
             5->protectCurrentClip()
             6->toggleFullscreen()
             7->startActivity(Intent(this,SettingsActivity::class.java).putExtra("section","FAIXAS"))
+            8->setCameraRotation(-1)
         }}.setNegativeButton("Fechar",null).show()
     }
 
@@ -520,7 +591,7 @@ class MainActivity : ComponentActivity() {
             }
             if (ids.isEmpty()) {
                 selectedId = null
-                if (::record.isInitialized) record.isEnabled = false
+                if (::record.isInitialized) {record.isEnabled=false;recordBadge.isEnabled=false}
                 showStatus(if(availableNativeUsb().isNotEmpty())"Selecione USB pelo botão CÂMERA para autorizar e iniciar a IA" else "Nenhuma câmera disponível")
                 cameraPlaceholder.visibility = View.VISIBLE
                 return
@@ -603,7 +674,7 @@ class MainActivity : ComponentActivity() {
         captureService?.attachPreviewTexture(null)
         captureService=null
         if(captureBound){unbindService(captureConnection);captureBound=false}
-        latestVision=null
+        latestVision=null;latestPreview=null;auxiliaryTimeline.reset()
         if(::texture.isInitialized)texture.frame=null
         if(::laneOverlay.isInitialized)laneOverlay.result=null
         previewTimeline.reset()
@@ -643,6 +714,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         CommercialUi.applyAppearance(this)
+        if(::record.isInitialized)updateRecordingControls()
         if(!::hud.isInitialized)return
         revealControls()
         if(::hud.isInitialized){hud.startSensors();handler.removeCallbacks(hudTick);handler.post(hudTick);startGps()}

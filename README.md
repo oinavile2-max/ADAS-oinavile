@@ -1,18 +1,30 @@
-# DashCam ADAS PRO — 3.7, fluidez da câmera e temas neon
+# DashCam ADAS PRO — 3.8, orientação, gravação e painéis
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**APKs 3.7 gerados após autorização do usuário.** Perfil genérico para celular/tablet e perfil ARM32 para NWD K2001N. Ambos usam versionCode 37, minSdk 25 e targetSdk 37. Evidências da compilação, testes, assinaturas e conteúdo dos pacotes em `relatorios/build-3_7`; correções de fluidez documentadas em `relatorios/fluidez-camera`. **97 testes passaram por perfil**, com lint sem erros (95 avisos por perfil). Assinaturas conferidas para API 25 e 37, com o mesmo certificado debug dos APKs anteriores. Modelos embarcados íntegros; seis bibliotecas ELF64 do genérico suportam páginas de 16 KB. Aparência, instalação e fluidez no aparelho ainda precisam de teste físico.
+**APKs 3.8 gerados após autorização do usuário.** Perfil genérico para celular/tablet e perfil ARM32 para NWD K2001N. Ambos usam versionCode 38, minSdk 25 e targetSdk 37. Evidências da compilação, testes, assinaturas e conteúdo dos pacotes em `relatorios/build-3_8`; correções de fluidez documentadas em `relatorios/fluidez-camera`. Assinaturas conferidas para API 25 e 37, com o mesmo certificado debug dos APKs anteriores. Modelos embarcados íntegros; seis bibliotecas ELF64 do genérico suportam páginas de 16 KB. **109 testes passaram em cada perfil**, com lint sem erros (98 avisos por perfil). Aparência, instalação e fluidez no aparelho ainda precisam de teste físico.
 
 ## Downloads
 
-- [APK 3.7 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_7_NEURAL_GENERIC_DEBUG.apk)
-- [APK 3.7 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_7_NWD_K2001N_ARM32_NEON_DEBUG.apk)
-- [Código-fonte atualizado 3.7](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 3.8 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_8_NEURAL_GENERIC_DEBUG.apk)
+- [APK 3.8 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_8_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [Código-fonte atualizado 3.8](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
-Os APKs antigos não contêm os temas 3.6 nem as correções de fluidez 3.7 e a atualização das bibliotecas. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+Os APKs históricos 3.3/3.4 não contêm os temas e as correções das revisões 3.6–3.8 nem a atualização das bibliotecas. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+
+## Controles e painéis — correções 3.8
+
+**REC / PARAR** agora tem botão textual na câmera principal, com indicação vermelha, disponível também em tela cheia e quando o rodapé é recolhido. Só é habilitado após conexão da fonte. Pressionar inicia/encerra a gravação do serviço; pressionar e segurar mantém a proteção de clipe existente. O pequeno ícone do cabeçalho continua como atalho.
+
+**GIRAR** fica na câmera principal e aplica um quarto de volta aos dois painéis. O menu CÂMERA oferece Restaurar orientação automática. Na prévia direta, a orientação que o Android já aplica à TextureView é compensada antes de aplicar a orientação escolhida; o vídeo não deve receber duas rotações nem escalas diferentes em cada eixo. Transições de tamanho restauram a resolução da superfície. Em API31+, rotate-and-crop é desativado quando o dispositivo informa suporte ao modo NONE. Resultados da orientação anterior são descartados.
+
+O botão **LIVE / ANÁLISE** no painel direito alterna entre vídeo contínuo (padrão) e o quadro realmente analisado, com suas caixas e faixas. A rede continua executando em ambos os modos. ANÁLISE acompanha a velocidade da inferência e pode atualizar mais devagar; não é promessa de IA a 30 fps. O modo LIVE não congela ao receber uma inferência demorada nem desenha caixas de outro instante.
+
+Painéis internos adaptam o cabeçalho à altura disponível, preservam a rolagem e afastam o formulário do teclado. Títulos de cards quebram linha dentro da largura; a linha de status da LIVE não corta o texto verticalmente e permite consultar a mensagem completa com um toque. ADAS na LIVE abre seu painel, e CONFIG no menu antigo abre as configurações. Diálogos neon têm largura ajustada à tela e padding interno; recolher controles não esconde o painel auxiliar.
+
+Instalação, orientação final, toques e fluidez precisam de confirmação física no aparelho do usuário. O relato de bugs nos menus não incluiu tela ou sequência específica até esta revisão; os ajustes tratam os cortes e rotas identificados no código e na captura fornecida.
 
 ## Fluidez da LIVE — câmera integrada
 
@@ -20,17 +32,17 @@ Correção motivada pelo teste em celular/tablet com câmera integrada e APK 3.3
 
 Camera2 envia a imagem principal diretamente para TextureView pela GPU, sem converter cada quadro em bitmap para a LIVE. Uma saída menor continua alimentando as redes neurais. Se o aparelho rejeitar a combinação de saídas, o serviço tenta novamente com a prévia alternativa. Rotação, espelhamento e preencher/ajustar são preservados; sair da LIVE remove somente sua superfície de exibição.
 
-A prévia alternativa recebe o quadro mais recente, com uma única atualização pendente. **CONFIG → Câmera e gravação → Fluidez da LIVE** oferece 10/15/24/30 quadros/s, padrão 15. Esse limite se aplica à alternativa em bitmap e ao USB; a prévia direta acompanha a câmera, sem promessa de 30 fps em qualquer aparelho. Quando a prévia direta está ativa, a cópia para o painel auxiliar é limitada a 4 quadros/s para reduzir conversões.
+A prévia alternativa recebe o quadro mais recente, com uma única atualização pendente. **CONFIG → Câmera e gravação → Fluidez da LIVE** oferece 10/15/24/30 quadros/s, padrão 15. Esse limite se aplica à alternativa em bitmap e ao USB; a prévia direta acompanha a câmera, sem promessa de 30 fps em qualquer aparelho. O painel auxiliar em LIVE acompanha essa cadência independentemente da IA. Camera2 prefere uma saída de análise próxima de 320×180 quando suportada, mantendo a proporção da gravação e evitando quadros menores se houver opção adequada. A prévia principal direta mantém sua resolução independente.
 
-A IA continua executando os modelos locais. Seu ritmo se adapta à duração da análise, e aparelhos com até quatro núcleos ou até 2,5 GiB de RAM usam uma thread por modelo. Buffers de conversão e leitura de pixels são reutilizados, preservando bitmaps imutáveis para exibição. Resultados antigos nunca substituem o vídeo principal. Na prévia direta, as linhas e caixas precisas aparecem no painel direito, sobre o próprio quadro analisado; não são sobrepostas a um quadro mais novo. No caminho alternativo, a sobreposição principal só ocorre quando os timestamps coincidem. Avisos atrasados continuam suspensos pelo limite de 500 ms.
+A IA continua executando os modelos locais. Seu ritmo se adapta à duração da análise, e aparelhos com até quatro núcleos ou até 2,5 GiB de RAM usam uma thread por modelo. Buffers de conversão e leitura de pixels são reutilizados, preservando bitmaps imutáveis para exibição. Resultados antigos nunca substituem o vídeo principal. No modo ANÁLISE do painel direito, as linhas e caixas aparecem sobre o próprio quadro analisado; não são sobrepostas a um quadro mais novo. No caminho alternativo, a sobreposição principal só ocorre quando os timestamps coincidem. Avisos atrasados continuam suspensos pelo limite de 500 ms.
 
 Diagnóstico debug registra quadros recebidos, atualizações efetivamente desenhadas, FPS da prévia, pausas, tempo de conversão e inferência. O roteiro físico agora permite medir **LIVE sem gravação**:
 
 ```sh
-python3 build-tools/test_android_device.py --serial SERIAL --live-only --min-preview-fps 12 --output resultados-live
+python3 build-tools/test_android_device.py --serial SERIAL --live-only --min-preview-fps 12 --min-auxiliary-fps 12 --output resultados-live
 ```
 
-Exige o APK 3.7 instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
+Exige o APK 3.8 instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
 
 ## Temas neon
 
@@ -82,6 +94,6 @@ O build usa `:app:assembleDebug`, sujeito aos testes neurais, hashes e verifica�
 
 Sem aparelho conectado: instalação, renderização, GPS, desempenho/RAM/temperatura, driver USB, áudio/FM e gravação com tela apagada continuam pendentes. Não há comprovação pixel a pixel das capturas Android. As prévias são HTML/SVG, e os ensaios neurais no host não medem precisão em estrada ou latência ARM32. `build-tools/test_android_device.py` prepara a verificação física quando houver aparelho autorizado.
 
-O erro de instalação anterior não teve causa identificada. Os APKs 3.7/3.4/3.3/3.2 usam o mesmo certificado debug; builds em outro computador podem usar um certificado diferente. `adb install -r arquivo.apk` fornece o diagnóstico detalhado.
+O erro de instalação anterior não teve causa identificada. Os APKs 3.8/3.7/3.4/3.3/3.2 usam o mesmo certificado debug; builds em outro computador podem usar um certificado diferente. `adb install -r arquivo.apk` fornece o diagnóstico detalhado.
 
 YOLOP preserva licença MIT; SSD, Apache-2.0. Proveniências dos modelos e do driver estão no repositório. A licença comercial do driver fornecido continua sem confirmação.

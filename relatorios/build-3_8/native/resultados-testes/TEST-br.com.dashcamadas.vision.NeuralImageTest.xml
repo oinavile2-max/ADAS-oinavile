@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.vision.NeuralImageTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-14T15:40:17.685Z" hostname="8a60e457805d" time="0.134">
+  <properties/>
+  <testcase name="invalidProbabilityIsStillRejected" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.02"/>
+  <testcase name="missingBottomDashDoesNotRemoveVisibleLeftLane" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.01"/>
+  <testcase name="masksMapSourcePixelsInsteadOfSquarePadding" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.025"/>
+  <testcase name="oneUlpSigmoidOvershootIsAcceptedAndClamped" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.011"/>
+  <testcase name="ambiguousClassScoresDoNotBecomeLanePixels" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.01"/>
+  <testcase name="neuralObservedLanesRequireRepeatedFramesAndRoadSupport" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.006"/>
+  <testcase name="rgbAndChannelOrderMatchOfficialImageNetNormalization" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.001"/>
+  <testcase name="landscapeLetterboxPreservesAspectAndExcludesPadding" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.0"/>
+  <testcase name="laneOnNonRoadRegionCannotActivateLdw" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.045"/>
+  <testcase name="nonFiniteOutputIsRejected" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.003"/>
+  <testcase name="paddingIsNormalizedRgb114" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.0"/>
+  <testcase name="blankFramesCannotSupplyLaneEvidence" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.001"/>
+  <testcase name="vehicleAssociationRequiresRoadAtFoot" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.001"/>
+  <testcase name="portraitLetterboxUsesSidePadding" classname="br.com.dashcamadas.vision.NeuralImageTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
