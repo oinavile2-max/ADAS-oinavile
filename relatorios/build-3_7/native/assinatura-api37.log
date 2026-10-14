@@ -1,0 +1,18 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
+Signer #1 certificate SHA-256 digest: 6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8
+Signer #1 certificate SHA-1 digest: 7fd0ba82f38594e842064ec519e2139d5b1ee308
+Signer #1 certificate MD5 digest: 5d383faf98fefa3b4dbe5229e66d3cfa
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: 8246330f5e4ce26fb8a792b7cb8920be584d48bef28bc2f4c6d7edfad82fe7ab
+Signer #1 public key SHA-1 digest: c535be84c53a374da52ffdee78d07c46917f0c76
+Signer #1 public key MD5 digest: a96ee1daae2ec0cfe05c6044c7166c5d

@@ -2,10 +2,12 @@
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**Esta entrega é de código-fonte, sem novo APK.** Os APKs publicados são entregas anteriores. Compilação do código, testes e lint desta revisão têm evidências em `relatorios/fluidez-camera`. **97 testes passaram por perfil**, com lint sem erros (95 avisos por perfil). Aparência, fluidez no aparelho e execução em todas as versões ainda precisam de teste físico.
+**APKs 3.7 gerados após autorização do usuário.** Perfil genérico para celular/tablet e perfil ARM32 para NWD K2001N. Ambos usam versionCode 37, minSdk 25 e targetSdk 37. Evidências da compilação, testes, assinaturas e conteúdo dos pacotes em `relatorios/build-3_7`; correções de fluidez documentadas em `relatorios/fluidez-camera`. **97 testes passaram por perfil**, com lint sem erros (95 avisos por perfil). Assinaturas conferidas para API 25 e 37, com o mesmo certificado debug dos APKs anteriores. Modelos embarcados íntegros; seis bibliotecas ELF64 do genérico suportam páginas de 16 KB. Aparência, instalação e fluidez no aparelho ainda precisam de teste físico.
 
 ## Downloads
 
+- [APK 3.7 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_7_NEURAL_GENERIC_DEBUG.apk)
+- [APK 3.7 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_7_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [Código-fonte atualizado 3.7](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
@@ -28,7 +30,7 @@ Diagnóstico debug registra quadros recebidos, atualizações efetivamente desen
 python3 build-tools/test_android_device.py --serial SERIAL --live-only --min-preview-fps 12 --output resultados-live
 ```
 
-Exige um APK futuro desta revisão instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
+Exige o APK 3.7 instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
 
 ## Temas neon
 
@@ -36,7 +38,7 @@ Em **CONFIG → Aparência**, escolha ciano, violeta, rosa, verde, laranja ou ve
 
 **Popups comuns acompanham o tema** é opcional e vem desativado para manter o vermelho aprovado. Habilitar aplica a cor escolhida a HUD, diálogos, listas e avisos comuns. Banners de evento continuam vermelhos; fundos dos avisos mantêm uma opacidade mínima nominal de 75%. O botão Restaurar cores e transparência prepara o padrão; pressione Salvar para persistir.
 
-[Prévia dos temas](design/comercial/temas-neon.png) · [Maquete interativa](design/comercial/temas-neon.html). Renderizadas no navegador, não são capturas Android. **89 testes aprovados por perfil na revisão 3.6**, com lint sem erros; logs históricos em `relatorios/temas-neon`. Nenhum novo APK.
+[Prévia dos temas](design/comercial/temas-neon.png) · [Maquete interativa](design/comercial/temas-neon.html). Renderizadas no navegador, não são capturas Android. **89 testes aprovados por perfil na revisão 3.6**, com lint sem erros; logs históricos em `relatorios/temas-neon`. Essa etapa visual 3.6 foi entregue somente em código.
 
 ## Android 7.1 até o Android atual
 
@@ -74,12 +76,12 @@ Os dados do HUD e caixas são reais. O quadro direito usa o mesmo bitmap analisa
 
 Para o perfil da central, acrescente `-Pk2000Native=true`. O teste de faixas executa os pesos reais em CPU. `verifyNeuralModelAssets` confere os dois modelos. Nenhum APK é empacotado por esse comando.
 
-Um futuro build autorizado usa `:app:assembleDebug`, sujeito aos testes neurais, hashes e verificação das bibliotecas. Windows: `GERAR APK.bat` e `GERAR APK K2000N.bat` exigem SDK Platform 37.2 e Build Tools 36.0.0; execução Windows não validada nesta nuvem.
+O build usa `:app:assembleDebug`, sujeito aos testes neurais, hashes e verificação das bibliotecas. Windows: `GERAR APK.bat` e `GERAR APK K2000N.bat` exigem SDK Platform 37.2 e Build Tools 36.0.0; execução Windows não validada nesta nuvem.
 
 ## Validação restante
 
 Sem aparelho conectado: instalação, renderização, GPS, desempenho/RAM/temperatura, driver USB, áudio/FM e gravação com tela apagada continuam pendentes. Não há comprovação pixel a pixel das capturas Android. As prévias são HTML/SVG, e os ensaios neurais no host não medem precisão em estrada ou latência ARM32. `build-tools/test_android_device.py` prepara a verificação física quando houver aparelho autorizado.
 
-O erro de instalação anterior não teve causa identificada. Os APKs 3.4/3.3/3.2 usam o mesmo certificado debug; builds em outro computador podem usar um certificado diferente. `adb install -r arquivo.apk` fornece o diagnóstico detalhado.
+O erro de instalação anterior não teve causa identificada. Os APKs 3.7/3.4/3.3/3.2 usam o mesmo certificado debug; builds em outro computador podem usar um certificado diferente. `adb install -r arquivo.apk` fornece o diagnóstico detalhado.
 
 YOLOP preserva licença MIT; SSD, Apache-2.0. Proveniências dos modelos e do driver estão no repositório. A licença comercial do driver fornecido continua sem confirmação.

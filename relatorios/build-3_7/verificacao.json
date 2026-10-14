@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-14",
+  "source_revision": "24c273154755439acfc0717e697023a1b6f57eab",
+  "version": "3.7",
+  "build_authorized_by_user": true,
+  "profiles": {
+    "generic": {
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_3_7_NEURAL_GENERIC_DEBUG.apk",
+        "profile": "generic",
+        "bytes": 99318256,
+        "sha256": "1a4541692a7adb74bf3fe5196a3e98ac0ff4ae3c85ce6192fad9b61eb244e413",
+        "version_code": 37,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "arm64-v8a",
+          "armeabi-v7a",
+          "x86",
+          "x86_64"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 6,
+        "physical_installation_tested": false
+      },
+      "tests": {
+        "tests": 97,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 95
+      },
+      "real_yolop_cpu_inference_threads": [
+        1,
+        2
+      ]
+    },
+    "native": {
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_3_7_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+        "profile": "native",
+        "bytes": 44756805,
+        "sha256": "4bb1817f6317aacae4c905eb73d391714d6aa8b26c41b08f5b086891af03bf5c",
+        "version_code": 37,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "armeabi-v7a"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 0,
+        "physical_installation_tested": false
+      },
+      "tests": {
+        "tests": 97,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 95
+      },
+      "real_yolop_cpu_inference_threads": [
+        1,
+        2
+      ]
+    }
+  },
+  "physical_device_connected": false,
+  "physical_installation_tested": false,
+  "real_world_camera_stability_tested": false
+}
