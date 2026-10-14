@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.vision.RoadNeuralSessionTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-14T16:36:21.134Z" hostname="8a60e457805d" time="0.49">
+  <properties/>
+  <testcase name="changedModelCannotBeExecuted" classname="br.com.dashcamadas.vision.RoadNeuralSessionTest" time="0.161"/>
+  <testcase name="pretrainedWeightsExecuteThroughSameSessionUsedByApp" classname="br.com.dashcamadas.vision.RoadNeuralSessionTest" time="0.329"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

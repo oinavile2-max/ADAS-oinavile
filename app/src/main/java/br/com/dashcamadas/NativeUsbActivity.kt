@@ -41,7 +41,7 @@ class NativeUsbActivity:Activity(){
     private fun choose(){
         if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27){status.text="Use o APK ARM32 no Android 7/8 para o driver enviado";return}
         if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){requestPermissions(arrayOf(Manifest.permission.CAMERA),12);return}
-        val devices=manager.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass})}
+        val devices=manager.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass},it.vendorId,it.productId,it.deviceSubclass)}
         if(devices.isEmpty()){status.text="Nenhuma câmera USB candidata conectada";return}
         val suggested=intent.getStringExtra("device_name")
         val device=devices.firstOrNull{it.deviceName==suggested}

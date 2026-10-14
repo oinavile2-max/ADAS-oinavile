@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.NeonThemeSettingsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-14T16:36:20.966Z" hostname="8a60e457805d" time="0.002">
+  <properties/>
+  <testcase name="corruptedStoredRangesNormalizeBeforeRendering" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.001"/>
+  <testcase name="existingPreferencesKeepCyanAndRedPopupDefaults" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.0"/>
+  <testcase name="criticalPopupKeepsRedPaletteAndOpacityDespiteThemeOrTransparency" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.0"/>
+  <testcase name="themeColorRequiresExplicitPopupOptInAndToneChangesHue" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.0"/>
+  <testcase name="backgroundTransparencyDoesNotFadeOutlineOrChangeOtherControl" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

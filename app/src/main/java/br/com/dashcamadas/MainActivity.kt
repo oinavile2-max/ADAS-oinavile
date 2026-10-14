@@ -540,7 +540,11 @@ class MainActivity : ComponentActivity() {
                 "ID $id • " + when {level==CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "USB/EXTERNA";facing==CameraCharacteristics.LENS_FACING_BACK->"TRASEIRA TABLET";facing==CameraCharacteristics.LENS_FACING_FRONT->"FRONTAL TABLET";else->"OUTRA"}
             }
             val all=ids.toList()+usbIds
-            val labels=cameraLabels+usbIds.map{"USB NATIVO • "+it.removePrefix("usb:")}
+            val usbManager=getSystemService(android.hardware.usb.UsbManager::class.java)
+            val labels=cameraLabels+usbIds.map{source->
+                val device=usbManager.deviceList.values.firstOrNull{it.deviceName==source.removePrefix("usb:")}
+                if(device==null) "USB NATIVO" else "USB NATIVO • %04X:%04X".format(device.vendorId,device.productId)
+            }
             NeonDialogs.Builder(this).setTitle("Selecionar câmera disponível").setItems(labels.toTypedArray()){_,which->
                 val id=all[which]
                 if(id.startsWith("usb:"))startActivity(Intent(this,NativeUsbActivity::class.java).putExtra("device_name",id.removePrefix("usb:")))
@@ -556,7 +560,7 @@ class MainActivity : ComponentActivity() {
     private fun availableNativeUsb():List<String>{
         if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27)return emptyList()
         val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
-        return usb.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass})}.map{"usb:"+it.deviceName}
+        return usb.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass},it.vendorId,it.productId,it.deviceSubclass)}.map{"usb:"+it.deviceName}
     }
 
     private fun showCompatibilityReport() {

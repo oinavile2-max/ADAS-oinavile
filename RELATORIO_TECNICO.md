@@ -28,7 +28,7 @@ Comando por perfil: compileDebugKotlin, testDebugUnitTest, lintDebug e verifyNat
 
 Os ensaios de vídeo da 3.3 e do SSD no host continuam históricos. O pacote Python LiteRT não possui versão 1.4.2 publicada; não foi alegado um teste de inferência Android SSD com esse runtime. A API do Interpreter compilou, os modelos/hash foram verificados, e a execução Android ainda depende do aparelho. Relatório histórico do APK 3.4: relatorios/HISTORICO/RELATORIO_3_4.md.
 
-Resultado final: ambos os perfis compilaram, 84 testes passaram por perfil, lint sem erros e 91 avisos por perfil. Seis bibliotecas ELF64 com alinhamento16KB verificadas; modelo YOLOP real executado pelo teste compartilhado no host. APK3.4 anterior preservado.
+Resultado final: ambos os perfis compilaram, 84 testes passaram por perfil, lint sem erros e 91 avisos por perfil. Seis bibliotecas ELF64 com alinhamento de 16 KB verificadas; modelo YOLOP real executado pelo teste compartilhado no host. APK3.4 anterior preservado.
 
 ## Temas neon — código 3.6, 13/10/2026
 
@@ -80,3 +80,18 @@ Cortes e navegação: status da LIVE passou a ter altura/fontes coerentes com o 
 Testes adicionais: seis testes da transformação do produtor, com oito flags, quatro rotações e FIT/FILL/espelhamento (128 combinações); três testes de continuidade LIVE e associação de sobreposição; três de seleção de resolução. Modelos reais seguem verificados e YOLOP executa em uma/duas threads no host. Diagnóstico acrescenta contadores/FPS do auxiliar, modo de painel, tamanho de análise e rotate-and-crop. Helper físico aceita --min-auxiliary-fps para medir o modo LIVE sem gravar. Evidências finais em relatorios/build-3_8. Sem Android ADB conectado nesta nuvem; validação visual, instalação, câmera e gravação permanecem físicas.
 
 Resultado final 3.8: dois perfis assembleDebug concluídos, 109 testes cada com zero falhas/erros/skips; lint com 98 avisos e zero erros em ambos. Assinaturas V1/V2 e certificado anterior verificados; modelos reais embarcados e seis bibliotecas ELF64 no APK genérico conferidos. Testes físicos continuam pendentes.
+
+
+## DVR USB da NWD — build 3.9, 14/10/2026
+
+A foto do diagnóstico identificou Allwinner T3/NWD, Android 7.1.1/API25, processo ARM32, RAM 2048 MB e USB 3322:6655 com interface 8/6. O filtro anterior oferecia somente interfaces 14/255; ignorava o DVR referenciado no recurso ufd_device_filter do APK fornecido. O novo filtro confere VID/PID/classe/subclasse nos seis registros exatos. 058F:6387, também presente na central, continua excluído como armazenamento não referenciado. A seleção exige ação do usuário e autorização USB separada da permissão CAMERA.
+
+O caminho UFD estava incompleto: um descritor USB bruto não substitui o endpoint JSON/transporte 0 do SDK, e os callbacks umsd* não faziam I/O. DvrUsbStorage agora abre somente o DVR selecionado, descobre seu endpoint de comunicação FAT32 e associa o protocolo original; DvrByteChannel implementa seek/read/write, leitura em chunks, pacing, cancelamento e limites de buffers/tamanho. Comandos não avançam o cursor nem aumentam o arquivo. Nada é criado, excluído, formatado ou redimensionado. Erros são encaminhados ao serviço na thread de câmera, sem escapar dos callbacks JNI. A inicialização do SDK não é confundida com chegada de imagem real.
+
+Transporte por me.jahnen.libaums:core:0.10.0 (Apache-2.0) com DvrUsbCommunication, API USB Host própria e fechamento idempotente. Os JNI antigos usb-lib/errno-lib da dependência são excluídos; não são necessários nesse transporte. O primeiro ensaio de empacotamento encontrou desalinhamento de liberrno-lib e foi rejeitado pelo check obrigatório; a correção removeu esse JNI não utilizado, preservando o check, em vez de alterar sua exigência. A conexão USB é liberada mesmo após falha em descobrir partições. Bibliotecas neurais e driver libmycamera.so permanecem íntegros. Candidatos UVC classe 14 usam nativeCreateUVC; referências UFD usam nativeCreateUFD.
+
+O diagnóstico mostra autorização por USB, identifica referências DVR e explica que uma lista Camera2 inacessível não comprova ausência física de câmera. Inclui mensagem da SecurityException quando disponível. A nova rota não contorna a segurança do sistema nem exige root/permissão de armazenamento global. Reconhecimento por descritores e disponibilidade do arquivo de protocolo não comprovam renderização do driver.
+
+Dois APKs debug 3.9, versionCode 39, minSdk 25 / targetSdk 37: 118 testes por perfil (9 novos; zero falhas/erros/skips), lint com 101 avisos e zero erros. Tests verificam o DVR observado, exclusão do outro USB, os descritores exatos, cursor/chunks/pacing, escrita restrita, limites, erro de I/O, cancelamento e aliases de protocolo. Inferência YOLOP real com 1/2 threads no host mantida. Assinaturas V1/V2/API25/API37 e certificado anterior conferidos; modelos reais/hash e seis bibliotecas ELF64/alinhamento de 16 KB no pacote genérico verificados. Metadados, SHA256 e relatórios em relatorios/build-3_9.
+
+Nenhum Android por ADB está conectado. Não houve ensaio físico de câmera USB, gravação, latência ARM32 ou precisão ADAS nessa central. Teste indicado: APK 3.9 NWD, fechar outro DVR, selecionar CÂMERA/USB NATIVO 3322:6655, autorizar o Android e confirmar primeira imagem. Se falhar, a mensagem diferencia transporte/endpoint; transmitir a foto dessa mensagem/diagnóstico é necessário para a próxima investigação física. Camera2 pode continuar inacessível no firmware.

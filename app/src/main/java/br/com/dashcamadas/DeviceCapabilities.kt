@@ -11,7 +11,8 @@ import android.os.Build
 /** Diagnóstico passivo. Enumerar USB não significa que haja driver ou frames disponíveis. */
 object DeviceCapabilities {
     data class CameraInfo(val id: String, val type: String, val streamSizes: Int)
-    data class UsbInfo(val vendorId: Int, val productId: Int, val deviceClass: Int, val interfaces: String)
+    data class UsbInfo(val vendorId: Int, val productId: Int, val deviceClass: Int, val interfaces: String,
+        val deviceSubclass:Int=0,val permission:Boolean=false)
     data class Report(
         val manufacturer: String, val model: String, val sdk: Int, val memoryMb: Long,
         val profile: String, val cameraPermission: Boolean, val usbHost: Boolean,
@@ -26,7 +27,16 @@ object DeviceCapabilities {
             appendLine("Câmeras Camera2 (${cameras.size}):")
             cameras.forEach { appendLine(" • ID ${it.id}: ${it.type} | resoluções de preview: ${it.streamSizes}") }
             appendLine("USB conectados (${usbDevices.size}):")
-            usbDevices.forEach { appendLine(" • VID %04X PID %04X classe %d interfaces %s".format(it.vendorId, it.productId, it.deviceClass, it.interfaces)) }
+            usbDevices.forEach {
+                appendLine(" • VID %04X PID %04X classe %d/%d interfaces %s | autorização USB: %s".format(it.vendorId, it.productId, it.deviceClass,it.deviceSubclass,it.interfaces,it.permission))
+                if(NativeUsbPolicy.referenceDvr(it.vendorId,it.productId,it.deviceClass,it.deviceSubclass)){
+                    appendLine("   DVR referenciado no APK original (UFD/armazenamento).")
+                    appendLine(if(BuildConfig.K2000_NATIVE && sdk in 24..27) "   CÂMERA → USB NATIVO: selecione e autorize; imagem ainda exige teste." else "   Exige APK NWD ARM32 no Android 7/8.")
+                }else if(!NativeUsbPolicy.cameraCandidate(it.deviceClass,it.interfaces.split(',').mapNotNull{item->item.substringBefore('/').toIntOrNull()},it.vendorId,it.productId,it.deviceSubclass) &&
+                    (it.deviceClass==8 || it.interfaces.split(',').any{item->item.startsWith("8/")})){
+                    appendLine("   Armazenamento USB sem referência DVR; não oferecido como câmera.")
+                }
+            }
             errors.forEach { appendLine("Aviso: $it") }
             appendLine("NOTA: USB enumerado NÃO confirma UVC, decodificação ou acesso a quadros.")
             appendLine("LDW/FCW: implementação experimental com calibração e GPS; exige validação no dispositivo. Pedestres: aviso experimental com pré-condições. Ciclistas, placas e semáforos: sem alertas automáticos integrados.")
@@ -62,12 +72,12 @@ object DeviceCapabilities {
                         ?.getOutputSizes(android.graphics.SurfaceTexture::class.java)?.size ?: 0
                     CameraInfo(id, type, sizes)
                 } catch (e: Exception) {
-                    errors.add("Camera2 ID $id: ${e.javaClass.simpleName}")
+                    errors.add("Camera2 ID $id: ${describe(e)}")
                     null
                 }
             }
         } catch (e: Exception) {
-            errors.add("Camera2: ${e.javaClass.simpleName}")
+            errors.add("Camera2: ${describe(e)}. Lista não acessível; contagem zero não comprova ausência de câmera física.")
             emptyList()
         }
         val usbHost = context.packageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
@@ -78,7 +88,7 @@ object DeviceCapabilities {
                     val item = device.getInterface(index)
                     "${item.interfaceClass}/${item.interfaceSubclass}"
                 }
-                UsbInfo(device.vendorId, device.productId, device.deviceClass, interfaces)
+                UsbInfo(device.vendorId, device.productId, device.deviceClass, interfaces,device.deviceSubclass,manager.hasPermission(device))
             }
         } catch (e: Exception) {
             errors.add("USB: ${e.javaClass.simpleName}")
@@ -87,4 +97,6 @@ object DeviceCapabilities {
         return Report(Build.MANUFACTURER ?: "?", Build.MODEL ?: "?", Build.VERSION.SDK_INT,
             memoryMb, profile, permission, usbHost, cameras, usb, errors)
     }
+    private fun describe(error:Exception)=error.javaClass.simpleName+
+        (error.message?.replace('\n',' ')?.take(240)?.let{": $it"} ?: "")
 }

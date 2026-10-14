@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-14",
+  "version": "3.9",
+  "source_parent_revision": "7fe720e6d248385720a16974e524ecb1f12df0d8",
+  "product_source_sha256": "e20bcc4f999ef27b2038dfaa59df91f30964b76dddedcf18c9523facaa9b5e26",
+  "profiles": {
+    "native": {
+      "tests": {
+        "tests": 118,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 101
+      },
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+        "profile": "native",
+        "bytes": 44858336,
+        "sha256": "c47f4eafa8ea43b6a285dc63f41c7fc47e4595911e9ddb526e20928eed2f0b0f",
+        "version_code": 39,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "armeabi-v7a"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 0,
+        "physical_installation_tested": false
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ]
+    },
+    "generic": {
+      "tests": {
+        "tests": 118,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 101
+      },
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk",
+        "profile": "generic",
+        "bytes": 99414272,
+        "sha256": "c75ea0ce9c8492677af7fb747d8fe7cb1334b50f37ab1629b483dc401444d636",
+        "version_code": 39,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "arm64-v8a",
+          "armeabi-v7a",
+          "x86",
+          "x86_64"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 6,
+        "physical_installation_tested": false
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ]
+    }
+  },
+  "physical_android_connected": false,
+  "physical_dvr_frames_confirmed": false,
+  "physical_dvr_recording_confirmed": false,
+  "reported_hardware": {
+    "manufacturer": "Allwinner",
+    "model": "QUAD-CORE T3 k2001-nwd",
+    "android": "7.1.1",
+    "sdk": 25,
+    "process_bits": 32,
+    "memory_mb": 2048,
+    "usb_ids": [
+      "058F:6387",
+      "3322:6655"
+    ],
+    "camera2_security_exception": true
+  },
+  "reference_dvr_usb_filter_recognizes_3322_6655": true,
+  "ordinary_usb_058f_6387_excluded": true,
+  "ufd_umsd_callbacks_implemented": true,
+  "ufd_endpoint_json_transport_zero": true,
+  "libaums_legacy_jni_excluded": true,
+  "camera2_security_bypass_attempted": false,
+  "source_portable_usb_interface_requires_device_validation": true
+}

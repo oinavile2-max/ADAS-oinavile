@@ -1,0 +1,6 @@
+libaums core 0.10.0 — Magnus Jahnen and contributors.
+https://github.com/magnusja/libaums
+Apache License 2.0: USB_TRANSPORT_LICENSE_APACHE_2_0.txt
+Used for SCSI/FAT32 with this app's Android USB Host communication adapter.
+The library's usb-lib/errno-lib JNI binaries are excluded and never used.
+UFD identifiers and filenames are referenced from the user-supplied com.ankai.cardvr APK; libmycamera.so is unchanged and limited to the NWD ARM32 profile.

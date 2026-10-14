@@ -14,13 +14,14 @@ android {
   enableV2Signing = true
  }
  defaultConfig {
-  applicationId = "br.com.dashcamadas"; minSdk = 25; targetSdk = 37; versionCode = 38
-  versionName = if(k2000Native) "3.8.0-camera-orientation-rec-neural-nwd-k2001n-experimental" else "3.8.0-camera-orientation-rec-neural-experimental"
+  applicationId = "br.com.dashcamadas"; minSdk = 25; targetSdk = 37; versionCode = 39
+  versionName = if(k2000Native) "3.9.0-dvr-usb-neural-nwd-k2001n-experimental" else "3.9.0-dvr-usb-neural-experimental"
   buildConfigField("boolean", "K2000_NATIVE", k2000Native.toString())
   if(k2000Native) ndk { abiFilters += "armeabi-v7a" }
  }
  sourceSets.getByName("main").jniLibs.srcDirs(if(k2000Native) listOf("src/k2000Native/jniLibs") else emptyList<String>())
- packaging { jniLibs { useLegacyPackaging = true } }
+ // libaums uses our USB Host transport. Its unused legacy JNI cannot serve 16 KB devices.
+ packaging { jniLibs { useLegacyPackaging = true; excludes += listOf("**/libusb-lib.so","**/liberrno-lib.so") } }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 
 }
@@ -28,6 +29,7 @@ android {
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 
 dependencies {
+ implementation("me.jahnen.libaums:core:0.10.0")
  implementation("com.google.ai.edge.litert:litert:1.4.2")
  implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.0")
  implementation("androidx.core:core:1.15.0")

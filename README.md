@@ -1,18 +1,30 @@
-# DashCam ADAS PRO — 3.8, orientação, gravação e painéis
+# DashCam ADAS PRO — 3.9, DVR USB da NWD
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**APKs 3.8 gerados após autorização do usuário.** Perfil genérico para celular/tablet e perfil ARM32 para NWD K2001N. Ambos usam versionCode 38, minSdk 25 e targetSdk 37. Evidências da compilação, testes, assinaturas e conteúdo dos pacotes em `relatorios/build-3_8`; correções de fluidez documentadas em `relatorios/fluidez-camera`. Assinaturas conferidas para API 25 e 37, com o mesmo certificado debug dos APKs anteriores. Modelos embarcados íntegros; seis bibliotecas ELF64 do genérico suportam páginas de 16 KB. **109 testes passaram em cada perfil**, com lint sem erros (98 avisos por perfil). Aparência, instalação e fluidez no aparelho ainda precisam de teste físico.
+**Atualização 3.9 para o DVR da NWD.** O USB **3322:6655** mostrado no diagnóstico corresponde ao filtro UFD do APK original. O app agora oferece esse dispositivo e implementa o transporte pela interface de armazenamento, com leitura e comandos no endpoint da câmera. **058F:6387** continua excluído da seleção de câmera. Camera2 pode continuar retornando SecurityException; o caminho nativo é independente dessa API.
+
+APKs NWD ARM32 e genérico com versionCode 39, minSdk 25 e targetSdk 37. Evidências em `relatorios/build-3_9`; os checks exigem testes reais dos modelos e alinhamento das bibliotecas de 64 bits. 118 testes passaram por perfil, com zero falhas/erros/skips; lint teve 101 avisos e zero erros por perfil. Assinaturas V1/V2, certificado anterior, modelos embarcados e seis bibliotecas ELF64 do genérico verificados. O driver original mantém seu hash. Primeira imagem, gravação e desempenho nessa central ainda precisam de teste físico; reconhecer o USB não comprova vídeo disponível.
 
 ## Downloads
 
-- [APK 3.8 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_8_NEURAL_GENERIC_DEBUG.apk)
-- [APK 3.8 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_8_NWD_K2001N_ARM32_NEON_DEBUG.apk)
-- [Código-fonte atualizado 3.8](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 3.9 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
+- [APK 3.9 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [Código-fonte atualizado 3.9](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
 Os APKs históricos 3.3/3.4 não contêm os temas e as correções das revisões 3.6–3.8 nem a atualização das bibliotecas. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
+
+## Testar o DVR na NWD K2001N
+
+1. Instale o **APK 3.9 NWD ARM32**, substituindo a versão anterior.
+2. Feche o outro aplicativo DVR para liberar a interface USB.
+3. Na LIVE, abra **CÂMERA → USB NATIVO • 3322:6655** e autorize o Android.
+4. Aguarde a imagem real. REC permanece desabilitado enquanto a captura não estiver conectada.
+5. Se surgir erro de endpoint/cartão/mode DVR ou de leitura, toque na mensagem de status para ver o texto completo e compartilhe o diagnóstico.
+
+O diagnóstico mostra autorização USB por dispositivo e identifica o DVR do filtro original. Não tenta abrir armazenamento comum como câmera. O transporte usa SCSI/FAT32 e os nomes akfile/elene/kkfile/eefile/jrfile do SDK; procura arquivos existentes na raiz ou na pasta de dados do aplicativo original. Não cria arquivos nem formata o cartão. Implementação e limites em [proveniência nativa](referencias_nativas/PROVENIENCIA.md).
 
 ## Controles e painéis — correções 3.8
 
