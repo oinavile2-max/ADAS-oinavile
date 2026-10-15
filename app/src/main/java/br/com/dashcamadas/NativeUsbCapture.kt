@@ -19,6 +19,11 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
     private var reader:ImageReader?=null
     private var name=""
     private var registered=false
+    private var mountRegistered=false
+    private val mountReceiver=object:BroadcastReceiver(){override fun onReceive(c:Context,i:Intent){
+        val root=i.data?.path ?: return
+        if(name.startsWith(root.trimEnd('/')+"/"))handler.post{if(!closed){close();onFailure("Volume da câmera DVR removido")}}
+    }}
     @Volatile var ready=false;private set
     @Volatile private var closed=false
     private val transportFailure=java.util.concurrent.atomic.AtomicBoolean()
@@ -65,6 +70,7 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
         if(!closed && transportFailure.compareAndSet(false,true))handler.post{if(!closed)onFailure(message)}
     }
     fun open(deviceName:String){
+        if(DvrSources.mounted(deviceName)){openMounted(deviceName);return}
         check(BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27){"Driver legado exige APK ARM32 e Android 7/8"}
         check(handle==0L && !closed)
         val manager=context.getSystemService(UsbManager::class.java)
@@ -84,8 +90,24 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
             connection=manager.openDevice(device) ?: error("USB não pôde ser aberto")
             connectName=deviceName;connectTransport=connection!!.fileDescriptor
         }
+        ContextCompat.registerReceiver(context,receiver,IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED),null,handler,ContextCompat.RECEIVER_NOT_EXPORTED);registered=true
+        startPreview(connectName,connectTransport,!isDvr && (device.deviceClass==14 || 14 in interfaces))
+    }
+    private fun openMounted(source:String){
+        check(BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27 && handle==0L && !closed)
+        val file=MountedDvrDiscovery.validate(context,source)
+        MyCamera.loadAndDescribe(context)
+        name=file.path
+        ContextCompat.registerReceiver(context,mountReceiver,IntentFilter().apply{
+            addAction(Intent.ACTION_MEDIA_UNMOUNTED);addAction(Intent.ACTION_MEDIA_EJECT);addAction(Intent.ACTION_MEDIA_REMOVED);addDataScheme("file")
+        },null,handler,ContextCompat.RECEIVER_NOT_EXPORTED);mountRegistered=true
+        val json=org.json.JSONObject().put("name",file.path).put("dvr",DvrProtocol.type(file.name)).toString()
+        // Original FILE route passes -1; the native SDK performs fileRead/fileWrite itself.
+        startPreview(json,-1,false)
+    }
+    private fun startPreview(connectName:String,connectTransport:Int,uvc:Boolean){
         native=MyCamera()
-        handle=if(!isDvr && (device.deviceClass==14 || 14 in interfaces))MyCamera.nativeCreateUVC(callback) else MyCamera.nativeCreateUFD(callback)
+        handle=if(uvc)MyCamera.nativeCreateUVC(callback) else MyCamera.nativeCreateUFD(callback)
         check(handle!=0L){"Driver não criou sessão USB"}
         reader=ImageReader.newInstance(640,360,PixelFormat.RGBA_8888,3).apply{
             setOnImageAvailableListener({source->
@@ -97,7 +119,6 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
         val preview=reader!!.surface
         // Original SDK view type=0, identity=surface hash.
         native!!.nativeAddPreview(handle,0,preview.hashCode(),preview)
-        ContextCompat.registerReceiver(context,receiver,IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED),null,handler,ContextCompat.RECEIVER_NOT_EXPORTED);registered=true
         native!!.nativeConnect(handle,connectName,connectTransport)
         awaitInitialization(0)
     }
@@ -116,6 +137,7 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
         closed=true;ready=false
         storage?.channel?.cancel()
         if(registered){context.unregisterReceiver(receiver);registered=false}
+        if(mountRegistered){context.unregisterReceiver(mountReceiver);mountRegistered=false}
         val old=handle;handle=0L
         if(old!=0L){
             try{native?.nativeDisconnect(old)}catch(e:Exception){android.util.Log.w("DashCamUSB","Desconexão",e)}

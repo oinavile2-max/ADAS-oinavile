@@ -122,6 +122,14 @@ class SettingsActivity : Activity() {
         parent.addView(view); draftTexts[id] = { view.text.toString() }
         return view
     }
+    private fun check(parent:LinearLayout,id:String,label:String,initial:Boolean):Switch {
+        val view=Switch(this).apply{
+            text=label;setTextColor(PremiumVisuals.WHITE);textSize=15f;minimumHeight=page.dp(52)
+            isChecked=(restored?.getInt(id,if(initial)1 else 0) ?: if(initial)1 else 0)==1
+            setOnCheckedChangeListener{_,_->changed()}
+        }
+        parent.addView(view);draftInts[id]={if(view.isChecked)1 else 0};return view
+    }
     private fun lanes(parent: LinearLayout) {
         val prefs = getSharedPreferences("adas_tuning", MODE_PRIVATE)
         val sensitivityCard = page.card("Sensibilidade", "Ajuste quando o aviso de proximidade da borda aparece.", "lane")
@@ -187,6 +195,15 @@ class SettingsActivity : Activity() {
     }
     private fun camera(parent: LinearLayout) {
         val prefs = getSharedPreferences("camera", MODE_PRIVATE)
+        val lighting=page.card("Dia e noite", "O perfil automático observa a iluminação da imagem, sem depender do horário.", "sun")
+        val lightMode=picker(lighting,"light_mode",CameraLightMode.entries.map{it.label},CameraLightMode.entries.indexOf(CameraLightMode.read(prefs.getString("light_mode","auto"))))
+        val ev=slider(lighting,"night_ev",20,(prefs.getFloat("night_ev",.7f)*10).toInt(),{"Compensação noturna · %.1f EV".format(Locale("pt","BR"),it/10f)})
+        lighting.addView(page.label("Câmera integrada: exposição, faixa de FPS e redução de ruído rápida, quando suportadas. USB NWD: a exposição continua sob controle da própria câmera; este driver não expõe esse ajuste.",12f,CommercialPage.MUTED))
+        page.addCard(parent,lighting)
+        val ready=page.card("Pronto para dirigir", "O início automático é opcional e exige imagem real da fonte já autorizada.", "camera")
+        val auto=check(ready,"auto_record","Gravar automaticamente ao conectar a câmera",prefs.getBoolean("auto_record",false))
+        ready.addView(page.label("Parar manualmente mantém a gravação parada nesta conexão. Não inicia com a ignição nem sem abrir uma sessão autorizada no app.",12f,CommercialPage.MUTED))
+        page.addCard(parent,ready)
         val segments = listOf(1, 3, 5)
         val segmentCard = page.card("Segmentos de gravação", "Vídeos menores facilitam localizar cada trecho.", "camera")
         val segment = picker(segmentCard, "segment", listOf("1 minuto", "3 minutos", "5 minutos"), segments.indexOf(prefs.getInt("segment", 3)))
@@ -200,9 +217,10 @@ class SettingsActivity : Activity() {
         page.addCard(parent, fluency)
         val orientation = page.card("Orientação da câmera", "Rotação, espelhamento e seleção de fonte ficam no menu da câmera da LIVE.", "camera")
         orientation.addView(page.action("Abrir controles na LIVE") { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)) })
-        if (BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27) orientation.addView(page.action("Autorizar câmera USB") { startActivity(Intent(this, NativeUsbActivity::class.java)) })
+        if (BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27) orientation.addView(page.action("Buscar DVR por USB e volumes") { startActivity(Intent(this, NativeUsbActivity::class.java)) })
         page.addCard(parent, orientation)
-        saves["CAMERA"] = { prefs.edit().putInt("segment", segments[segment.selectedItemPosition]).putInt("storage_mb", limits[storage.selectedItemPosition]).putInt("preview_fps", rates[fps.selectedItemPosition]).apply(); saved() }
+        saves["CAMERA"] = { prefs.edit().putInt("segment", segments[segment.selectedItemPosition]).putInt("storage_mb", limits[storage.selectedItemPosition]).putInt("preview_fps", rates[fps.selectedItemPosition])
+            .putString("light_mode",CameraLightMode.entries[lightMode.selectedItemPosition].key).putFloat("night_ev",ev.progress/10f).putBoolean("auto_record",auto.isChecked).apply(); saved() }
     }
     private fun appearance(parent: LinearLayout) {
         val prefs = getSharedPreferences("ui_appearance", MODE_PRIVATE)
@@ -248,6 +266,7 @@ class SettingsActivity : Activity() {
         page.note(parent, "Banners de evento permanecem vermelhos. Avisos críticos mantêm pelo menos 75% de opacidade no fundo.")
         val night = toggle("night", "Modo noturno", prefs.getBoolean("night", false))
         identity.addView(page.label("Reduz o brilho somente enquanto o aplicativo está aberto.", 12f, CommercialPage.MUTED))
+        val automaticBrightness=check(identity,"automatic_brightness","Reduzir brilho automaticamente em pouca luz",prefs.getBoolean("automatic_brightness",false))
         val animations = toggle("animations", "Animações suaves", prefs.getBoolean("animations", true))
         identity.addView(page.label("Desative para reduzir o movimento decorativo do HUD. Os avisos continuam ativos.", 12f, CommercialPage.MUTED))
         page.addCard(parent, identity)
@@ -260,7 +279,7 @@ class SettingsActivity : Activity() {
         page.addCard(parent, device)
         page.note(parent, "A borda vermelha e o ícone do evento preservam a identidade dos popups aprovados.", true)
         saves["APARENCIA"] = {
-            prefs.edit().putBoolean("night", night.isChecked).putBoolean("animations", animations.isChecked).apply()
+            prefs.edit().putBoolean("night", night.isChecked).putBoolean("animations", animations.isChecked).putBoolean("automatic_brightness",automaticBrightness.isChecked).apply()
             getSharedPreferences("camera", MODE_PRIVATE).edit().putInt("controls_timeout", times[timeout.selectedItemPosition]).apply()
             NeonTheme.save(this, selectedTheme())
             CommercialUi.applyAppearance(this); saved()

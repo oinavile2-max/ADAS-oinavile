@@ -1,0 +1,100 @@
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :app
+Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (Read-only file system)
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:verifyNeuralModelAssets
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs
+
+> Task :app:verifyNativePageAlignment
+16 KB ELF alignment verified for 6 merged Android 64-bit libraries before ABI packaging filters.
+
+> Task :app:compileDebugKotlin
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:252:104 'constructor(p0: Context!): Notification.Builder' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:439:20 'fun createCaptureSession(p0: (Mutable)List<Surface!>, p1: CameraCaptureSession.StateCallback, p2: Handler?): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:485:72 'constructor(): MediaRecorder' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:569:31 Condition is always 'true'.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:52 'static field SYSTEM_UI_FLAG_FULLSCREEN: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:86 'static field SYSTEM_UI_FLAG_HIDE_NAVIGATION: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:125 'static field SYSTEM_UI_FLAG_IMMERSIVE_STICKY: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:165 'static field SYSTEM_UI_FLAG_LAYOUT_STABLE: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:522:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:522:45 The corresponding parameter in the supertype 'ComponentActivity' is named 'requestCode'. This may cause problems when calling this function with named arguments.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:522:84 The corresponding parameter in the supertype 'ComponentActivity' is named 'grantResults'. This may cause problems when calling this function with named arguments.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:523:15 'fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray): Unit' is deprecated. This method has been deprecated in favor of using the Activity Result API
+      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt
+      contracts for common intents available in
+      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for
+      testing, and allow receiving results in separate, testable classes independent from your
+      activity. Use
+      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)} passing
+      in a {@link RequestMultiplePermissions} object for the {@link ActivityResultContract} and
+      handling the result in the {@link ActivityResultCallback#onActivityResult(Object) callback}.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:636:40 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt:34:35 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbActivity.kt:42:83 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/NativeUsbCapture.kt:31:17 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:76:57 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:94:62 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:95:42 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/PremiumSectionActivity.kt:119:125 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt:141:29 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt:200:130 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
+
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:generateDebugAndroidTestLintModel
+> Task :app:generateDebugLintReportModel
+> Task :app:generateDebugUnitTestLintModel
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+[0;93m2026-10-15 10:58:37.035204853 [W:onnxruntime:ort-java, telemetry_1ds.cc:600 operator()] Failed to persist telemetry device ID; using an in-memory identifier[m
+
+> Task :app:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :app:lintAnalyzeDebugAndroidTest
+Warning: Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (Read-only file system)
+
+> Task :app:lintAnalyzeDebugUnitTest
+> Task :app:lintAnalyzeDebug
+
+> Task :app:lintReportDebug
+Wrote HTML report to file:///workspace/ADAS-oinavile/app/build/reports/lint-results-debug.html
+Wrote SARIF report to file:///workspace/ADAS-oinavile/app/build/reports/lint-results-debug.sarif
+
+> Task :app:lintDebug
+
+BUILD SUCCESSFUL in 1m
+39 actionable tasks: 24 executed, 15 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

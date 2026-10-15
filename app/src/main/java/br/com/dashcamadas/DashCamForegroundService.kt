@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /** Owns Camera2 or native USB, encoder and both neural models independently of LIVE. */
 class DashCamForegroundService:Service() {
-    data class State(val connected:Boolean=false,val recording:Boolean=false,val cameraId:String="",val message:String="Câmera indisponível",val videoWidth:Int=0,val videoHeight:Int=0,val directPreview:Boolean=false,val livePreviewWidth:Int=0,val livePreviewHeight:Int=0,val previewRotation:Int=0,val directPreviewUnavailable:Boolean=false)
+    data class State(val connected:Boolean=false,val recording:Boolean=false,val cameraId:String="",val message:String="Câmera indisponível",val videoWidth:Int=0,val videoHeight:Int=0,val directPreview:Boolean=false,val livePreviewWidth:Int=0,val livePreviewHeight:Int=0,val previewRotation:Int=0,val directPreviewUnavailable:Boolean=false,val nightActive:Boolean=false,val lightLevel:Int?=null,val lightingMessage:String="")
     interface Callback {
         fun onState(state:State)
         fun onPreview(bitmap:Bitmap,timestampMs:Long)
@@ -61,8 +61,26 @@ class DashCamForegroundService:Service() {
     @Volatile private var conversionMs=0L
     @Volatile private var modelThreads=1
     private val cameraPreferences by lazy { getSharedPreferences("camera",MODE_PRIVATE) }
+    private val lightPolicy=CameraLightingPolicy()
+    private val autoRecording=AutoRecordingGate()
+    private var lightMean:Int?=null
+    private var lastLightSample=-1L
+    private var lightingControlsBlocked=false
+    private var lightingDetail=""
+    private var characteristics:CameraCharacteristics?=null
+    private var activeRequest:CaptureRequest.Builder?=null
+    private var baselineRequest:CaptureRequest?=null
+    private fun lightMode()=CameraLightMode.read(cameraPreferences.getString("light_mode","auto"))
+    private fun nightActive()=lightPolicy.night(lightMode())
+    private val captureMonitor=object:CameraCaptureSession.CaptureCallback(){
+        override fun onCaptureCompleted(capture:CameraCaptureSession,request:CaptureRequest,result:TotalCaptureResult){
+            if(capture===session && isRecording)recordingFrames++
+        }
+    }
     private val performanceListener=android.content.SharedPreferences.OnSharedPreferenceChangeListener { prefs,key ->
         if(key=="preview_fps")previewFps=prefs.getInt("preview_fps",15).coerceIn(10,30)
+        if(key in setOf("light_mode","night_ev"))cameraHandler.post{refreshLighting()}
+        if(key=="auto_record" && prefs.getBoolean("auto_record",false))cameraHandler.post{autoRecording.opened()}
     }
     fun reportPreviewDrawn(timestamp:Long) {
         if(callback!=null && timestamp>=sessionStartedAt && !closing)previewMeter.drawn(timestamp,SystemClock.elapsedRealtime())
@@ -152,7 +170,8 @@ class DashCamForegroundService:Service() {
             .put("preview_max_draw_gap_ms",preview.maxGapMs).put("preview_last_draw_gap_ms",preview.lastGapMs)
             .put("auxiliary_rendered_frames",auxiliary.frames).put("auxiliary_render_fps",auxiliary.fps).put("auxiliary_max_draw_gap_ms",auxiliary.maxGapMs).put("auxiliary_analysis_view",cameraPreferences.getBoolean("aux_analysis",false))
             .put("preview_direct_gpu",directActive).put("preview_fps_limit",previewFps).put("neural_interval_ms",cadence.analysisIntervalMs()).put("neural_threads_per_model",modelThreads)
-            .put("native_rgba_frames",nativeFrames).put("source_kind",if(currentId.startsWith("usb:"))"USB_NATIVE_RGBA" else "CAMERA2_YUV")
+            .put("night_active",nightActive()).put("light_mean",lightMean).put("lighting_status",lightingStatus()).put("auto_record_enabled",cameraPreferences.getBoolean("auto_record",false))
+            .put("native_rgba_frames",nativeFrames).put("source_kind",if(DvrSources.mounted(currentId))"FILE_NATIVE_RGBA" else if(DvrSources.native(currentId))"USB_NATIVE_RGBA" else "CAMERA2_YUV")
         try {File(filesDir,"capture-diagnostics.json").writeText(value.toString())}catch(e:Exception){android.util.Log.w("DashCamDiagnostics","Diagnóstico não salvo",e)}
     }
     private var audio:AlertAudio?=null
@@ -208,6 +227,14 @@ class DashCamForegroundService:Service() {
     }
     override fun onBind(intent:Intent):IBinder=binder
     override fun onStartCommand(intent:Intent?,flags:Int,startId:Int):Int {
+        when(intent?.action){
+            RECORD,PAUSE,PROTECT->{
+                if(running && checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED){
+                    when(intent.action){RECORD->startRecording();PAUSE->stopRecording();PROTECT->protect()}
+                }else stopSelf()
+                return START_NOT_STICKY
+            }
+        }
         if(intent?.action==STOP) {cameraHandler.post{running=false;recordWanted=false;closeCapture();publish(State(message="Sessão encerrada"));stopForeground(STOP_FOREGROUND_REMOVE);stopSelf()};return START_NOT_STICKY}
         if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){cameraHandler.post{running=false;recordWanted=false;closeCapture();publish(State(message="Permissão de câmera ausente"));stopForeground(STOP_FOREGROUND_REMOVE);stopSelf()};return START_NOT_STICKY}
         try {
@@ -223,13 +250,25 @@ class DashCamForegroundService:Service() {
         val open=PendingIntent.getActivity(this,2,Intent(this,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val stop=PendingIntent.getService(this,3,Intent(this,DashCamForegroundService::class.java).setAction(STOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val builder=if(Build.VERSION.SDK_INT>=26) Notification.Builder(this,CHANNEL) else Notification.Builder(this)
-        return builder.setSmallIcon(android.R.drawable.ic_menu_camera).setContentTitle("DashCam ADAS PRO")
+        if(state.connected){
+            val command=if(state.recording)PAUSE else RECORD
+            val label=if(state.recording)"Parar gravação" else "Gravar"
+            val rec=PendingIntent.getService(this,4,Intent(this,DashCamForegroundService::class.java).setAction(command),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            builder.addAction(Notification.Action.Builder(null,label,rec).build())
+            if(state.recording){
+                val protect=PendingIntent.getService(this,5,Intent(this,DashCamForegroundService::class.java).setAction(PROTECT),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                builder.addAction(Notification.Action.Builder(null,"Proteger clipe",protect).build())
+            }
+        }
+        return builder.setOnlyAlertOnce(true).setSmallIcon(android.R.drawable.ic_menu_camera).setContentTitle("DashCam ADAS PRO")
             .setContentText(message).setContentIntent(open).setOngoing(true)
             .addAction(Notification.Action.Builder(null,"Encerrar câmera",stop).build()).build()
     }
     private fun publish(value:State) {
-        val snapshot=value.copy(videoWidth=if(value.connected)videoSize.width else 0,videoHeight=if(value.connected)videoSize.height else 0,directPreview=value.connected && directActive,livePreviewWidth=liveSize.width,livePreviewHeight=liveSize.height,previewRotation=analysisRotation,directPreviewUnavailable=directUnavailable)
+        val snapshot=value.copy(videoWidth=if(value.connected)videoSize.width else 0,videoHeight=if(value.connected)videoSize.height else 0,directPreview=value.connected && directActive,livePreviewWidth=liveSize.width,livePreviewHeight=liveSize.height,previewRotation=analysisRotation,directPreviewUnavailable=directUnavailable,nightActive=nightActive(),lightLevel=lightMean,lightingMessage=lightingStatus())
         state=snapshot
+        val runtime=getSharedPreferences("camera_runtime",MODE_PRIVATE)
+        if(runtime.getBoolean("night",false)!=snapshot.nightActive)runtime.edit().putBoolean("night",snapshot.nightActive).apply()
         main.post {
             if(state==snapshot) callback?.onState(snapshot)
             if(running) getSystemService(NotificationManager::class.java).notify(72,notification(state.message))
@@ -238,18 +277,20 @@ class DashCamForegroundService:Service() {
     @SuppressLint("MissingPermission")
     private fun open(id:String,preserveRecording:Boolean=false) {
         if(closing || !running || opening) return
-        if(id.startsWith("usb:")){openNative(id);return}
+        if(DvrSources.native(id)){openNative(id);return}
         if(camera!=null && currentId==id) {
             val before=analysisRotation;updateRotation(manager.getCameraCharacteristics(id))
             if(before!=analysisRotation) {getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply();analysis.execute{engine.reset()};if(isRecording)rotateSegment(false) else publish(state)}
             return
         }
         if(!preserveRecording){recoveryAttempts=0;recoverAllowed=true}
+        if(!preserveRecording)autoRecording.opened()
         val resume=preserveRecording && recordWanted
         closeCapture();recordWanted=resume;currentId=id;opening=true;directUnavailable=false
         val epoch=generation
         try {
             val chars=manager.getCameraCharacteristics(id)
+            characteristics=chars
             val map=chars.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: error("Mapa de captura ausente")
             val yuv=map.getOutputSizes(ImageFormat.YUV_420_888).orEmpty().filter{it.width<=640 && it.height<=480}
             val video=map.getOutputSizes(MediaRecorder::class.java).orEmpty().filter{it.width<=1920 && it.height<=1080}
@@ -279,6 +320,7 @@ class DashCamForegroundService:Service() {
     }
     private fun openNative(id:String){
         if(currentId==id && nativeCapture!=null){updateNativeRotation();return}
+        autoRecording.opened()
         closeCapture();recordWanted=false;currentId=id;opening=true
         captureStartDeadline=SystemClock.elapsedRealtime()+10000
         updateNativeRotation();videoSize=Size(640,360);imageSize=videoSize
@@ -306,16 +348,76 @@ class DashCamForegroundService:Service() {
         analysisRotation=if(override in listOf(0,90,180,270)) override else if(front) (sensor+display)%360 else (sensor-display+360)%360
         if(before!=analysisRotation)orientationGeneration++
     }
+    private fun lightingStatus():String {
+        val name=if(nightActive())"NOITE" else "DIA"
+        if(currentId.isEmpty())return "Aguardando imagem para medir iluminação"
+        return if(DvrSources.native(currentId))"$name · DVR sem ajuste de exposição pelo app"
+            else if(lightingControlsBlocked)"$name · câmera rejeitou ajustes; captura padrão"
+            else "$name · ${lightingDetail.ifEmpty{"exposição da câmera"}}"
+    }
+    private fun observeLighting(image:Image,now:Long){
+        if(lastLightSample>=0 && now-lastLightSample<1000)return
+        lastLightSample=now
+        try {
+            val crop=image.cropRect;val plane=image.planes[0]
+            val mean=CameraLightingPolicy.mean(plane.buffer,plane.rowStride,plane.pixelStride,crop.left,crop.top,crop.width(),crop.height(),image.format==PixelFormat.RGBA_8888)
+            val before=nightActive();lightMean=mean;lightPolicy.observe(mean,now)
+            if(nightActive()!=before)refreshLighting()
+        }catch(e:Exception){android.util.Log.w("DashCamLight","Medição indisponível",e)}
+    }
+    private fun applyLighting(request:CaptureRequest.Builder){
+        val chars=characteristics ?: return
+        if(lightingControlsBlocked)return
+        try {
+        val keys=chars.availableCaptureRequestKeys.orEmpty()
+        val auto=chars.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES)?.contains(CameraMetadata.CONTROL_AE_MODE_ON)==true
+        val details=mutableListOf<String>()
+        if(auto && CaptureRequest.CONTROL_AE_MODE in keys){
+            request.set(CaptureRequest.CONTROL_AE_MODE,CameraMetadata.CONTROL_AE_MODE_ON)
+            val range=chars.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
+            val step=chars.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_STEP)?.toFloat() ?: 0f
+            if(range!=null && CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION in keys){
+                val value=CameraLightingPolicy.exposureSteps(nightActive(),cameraPreferences.getFloat("night_ev",.7f),step,range.lower..range.upper)
+                if(value!=null){request.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION,value);details+="%.1f EV".format(Locale.US,value*step)}
+            }
+            if(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE in keys){
+                val options=chars.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES).orEmpty()
+                val chosen=CameraLightingPolicy.fps(nightActive(),options.map{CameraLightingPolicy.Fps(it.lower,it.upper)})
+                if(chosen!=null){request.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,android.util.Range(chosen.min,chosen.max));details+="${chosen.min}–${chosen.max} fps"}
+            }
+        }
+        if(CaptureRequest.NOISE_REDUCTION_MODE in keys && chars.get(CameraCharacteristics.NOISE_REDUCTION_AVAILABLE_NOISE_REDUCTION_MODES)?.contains(CameraMetadata.NOISE_REDUCTION_MODE_FAST)==true){
+            request.set(CaptureRequest.NOISE_REDUCTION_MODE,CameraMetadata.NOISE_REDUCTION_MODE_FAST);details+="redução de ruído rápida"
+        }
+        lightingDetail=details.joinToString(" · ").ifEmpty{"ajustes de pouca luz não expostos pela câmera"}
+        }catch(e:Exception){lightingControlsBlocked=true;android.util.Log.w("DashCamLight","Parâmetro rejeitado; captura padrão",e)}
+    }
+    private fun installRequest(value:CameraCaptureSession,request:CaptureRequest.Builder){
+        try{value.setRepeatingRequest(if(lightingControlsBlocked)baselineRequest ?: request.build() else request.build(),captureMonitor,cameraHandler)}
+        catch(e:Exception){
+            val baseline=baselineRequest ?: throw e
+            lightingControlsBlocked=true
+            value.setRepeatingRequest(baseline,captureMonitor,cameraHandler)
+            android.util.Log.w("DashCamLight","Captura padrão restaurada",e)
+        }
+    }
+    private fun refreshLighting(){
+        getSharedPreferences("camera_runtime",MODE_PRIVATE).edit().putBoolean("night",nightActive()).apply()
+        val request=activeRequest;val current=session
+        if(request!=null && current!=null && !lightingControlsBlocked)try{applyLighting(request);installRequest(current,request)}
+            catch(e:Exception){android.util.Log.w("DashCamLight","Ajuste rejeitado",e)}
+        publish(state)
+    }
     fun orientationChanged(){cameraHandler.post{
         if(currentId.isNotEmpty()) {
             getSharedPreferences("adas_calibration",MODE_PRIVATE).edit().putBoolean("enabled_$currentId",false).apply()
-            if(currentId.startsWith("usb:"))updateNativeRotation() else updateRotation(manager.getCameraCharacteristics(currentId))
+            if(DvrSources.native(currentId))updateNativeRotation() else updateRotation(manager.getCameraCharacteristics(currentId))
             if(isRecording)rotateSegment(false) else if(camera!=null)publish(state)
         }
         analysis.execute{engine.reset()}
     }}
-    fun startRecording(){cameraHandler.post{if(!state.connected || (camera==null && nativeCapture==null)){publish(state.copy(message="Câmera indisponível para gravar"));return@post};recordWanted=true;configure()}}
-    fun stopRecording(){cameraHandler.post{recordWanted=false;finishRecorder();configure()}}
+    fun startRecording(){cameraHandler.post{autoRecording.manual();if(!state.connected || (camera==null && nativeCapture==null)){publish(state.copy(message="Câmera indisponível para gravar"));return@post};recordWanted=true;configure()}}
+    fun stopRecording(){cameraHandler.post{autoRecording.manual();recordWanted=false;finishRecorder();configure()}}
     fun protect(){cameraHandler.post{if(!isRecording){publish(state.copy(message="Inicie uma gravação para proteger o clipe"));return@post};rotateSegment(true)}}
     private fun configure() {
         if(nativeCapture!=null){configureNative();return}
@@ -330,7 +432,6 @@ class DashCamForegroundService:Service() {
             updateLiveSurface();hadDirect=liveSurface!=null
             if(recordWanted && recorder==null) prepareRecorder()
             val outputs=listOfNotNull(source,liveSurface,if(recordWanted) recordSurface else null)
-            val recordingRequest=recordWanted && recordSurface!=null
             val req=device.createCaptureRequest(if(recordWanted) CameraDevice.TEMPLATE_RECORD else CameraDevice.TEMPLATE_PREVIEW).apply{
                 outputs.forEach{addTarget(it)}
                 if(Build.VERSION.SDK_INT>=31 && rotateCropNone)set(CaptureRequest.SCALER_ROTATE_AND_CROP,CameraMetadata.SCALER_ROTATE_AND_CROP_NONE)
@@ -338,13 +439,10 @@ class DashCamForegroundService:Service() {
             device.createCaptureSession(outputs,object:CameraCaptureSession.StateCallback() {
                 override fun onConfigured(value:CameraCaptureSession) {
                     if(attempt!=captureAttempt || camera!==device){value.close();return}
-                    session=value
+                    session=value;activeRequest=req;baselineRequest=req.build()
                     try {
-                        value.setRepeatingRequest(req.build(),object:CameraCaptureSession.CaptureCallback() {
-                            override fun onCaptureCompleted(capture:CameraCaptureSession,request:CaptureRequest,result:TotalCaptureResult) {
-                                if(attempt==captureAttempt && isRecording && recordingRequest)recordingFrames++
-                            }
-                        },cameraHandler)
+                        applyLighting(req)
+                        installRequest(value,req)
                         if(recordWanted && !isRecording){recorder?.start();isRecording=true;cameraHandler.postDelayed(segmentTimer,segmentMinutes()*60000L)}
                         directActive=hadDirect
                         holdCapturePower()
@@ -400,7 +498,7 @@ class DashCamForegroundService:Service() {
         captureAttempt++
         nativeVideoSink?.close();nativeVideoSink=null
         try{session?.stopRepeating();session?.abortCaptures()}catch(_:Exception){}
-        session?.close();session=null
+        session?.close();session=null;activeRequest=null;baselineRequest=null
         val file=segment
         var valid=false
         if(isRecording) try{recorder?.stop();valid=file?.exists()==true && file.length()>0}catch(_:RuntimeException){}
@@ -442,11 +540,18 @@ class DashCamForegroundService:Service() {
             if(lastFrame>0)maxSourceGap=maxOf(maxSourceGap,now-lastFrame)
             lastFrame=now;capturedFrames++
             captureStartDeadline=0
-            if(currentId.startsWith("usb:")){
+            observeLighting(image,now)
+            if(DvrSources.native(currentId)){
                 nativeFrames++
                 if(isRecording)try{nativeVideoSink?.render(image,SystemClock.elapsedRealtimeNanos());recordingFrames++}
                 catch(e:Exception){recordWanted=false;finishRecorder();publish(state.copy(recording=false,message="Encoder USB falhou: ${e.message}"))}
                 if(!state.connected)publish(State(true,isRecording,currentId,"LIVE — USB com quadros RGBA"))
+            }
+            val startToken=autoRecording.claim(cameraPreferences.getBoolean("auto_record",false),state.connected,recordWanted || isRecording)
+            if(startToken!=null)cameraHandler.post{
+                if(epoch==generation && !closing && autoRecording.valid(startToken) && state.connected && cameraPreferences.getBoolean("auto_record",false)){
+                    recordWanted=true;configure()
+                }
             }
             val previewCallback=callback
             val showPreview=previewCallback!=null && cadence.claimPreview(now,previewFps)
@@ -518,6 +623,9 @@ class DashCamForegroundService:Service() {
     }
     private fun closeCapture() {
         generation++;opening=false
+        lightPolicy.reset();lightMean=null;lastLightSample=-1;lightingControlsBlocked=false;lightingDetail=""
+        characteristics=null;activeRequest=null;baselineRequest=null
+        getSharedPreferences("camera_runtime",MODE_PRIVATE).edit().putBoolean("night",false).apply()
         captureStartDeadline=0
         if(wakeLock.isHeld)wakeLock.release();wakeDeadline=0
         finishRecorder();directActive=false;liveSurface?.release();liveSurface=null;nativeCapture?.close();nativeCapture=null;camera?.close();camera=null
@@ -536,5 +644,5 @@ class DashCamForegroundService:Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
-    companion object {private const val CHANNEL="dashcam_capture";private const val STOP="br.com.dashcamadas.STOP_CAPTURE"}
+    companion object {private const val CHANNEL="dashcam_capture";private const val STOP="br.com.dashcamadas.STOP_CAPTURE";private const val RECORD="br.com.dashcamadas.RECORD";private const val PAUSE="br.com.dashcamadas.PAUSE_RECORD";private const val PROTECT="br.com.dashcamadas.PROTECT"}
 }

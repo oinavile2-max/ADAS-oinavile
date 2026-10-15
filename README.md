@@ -1,30 +1,46 @@
-# DashCam ADAS PRO — 3.9, DVR USB da NWD
+# DashCam ADAS PRO — código 4.0, descoberta DVR e pouca luz
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**Atualização 3.9 para o DVR da NWD.** O USB **3322:6655** mostrado no diagnóstico corresponde ao filtro UFD do APK original. O app agora oferece esse dispositivo e implementa o transporte pela interface de armazenamento, com leitura e comandos no endpoint da câmera. **058F:6387** continua excluído da seleção de câmera. Camera2 pode continuar retornando SecurityException; o caminho nativo é independente dessa API.
+**Código 4.0 integrado; nenhum APK 4.0 foi gerado.** O relatório UCarDVR enviado pelo usuário revelou a ausência da descoberta por arquivo-marcador em volumes montados. A busca agora oferece USB primeiro, volumes primeiro e modos exclusivos; mostra todos os USBs, trata conexão/desconexão e limita o pedido de autorização a 20 segundos. A fonte de volume alimenta o mesmo serviço de captura, gravação e redes neurais. Reconhecer o dispositivo/marcador ainda não comprova imagem no hardware.
 
-APKs NWD ARM32 e genérico com versionCode 39, minSdk 25 e targetSdk 37. Evidências em `relatorios/build-3_9`; os checks exigem testes reais dos modelos e alinhamento das bibliotecas de 64 bits. 118 testes passaram por perfil, com zero falhas/erros/skips; lint teve 101 avisos e zero erros por perfil. Assinaturas V1/V2, certificado anterior, modelos embarcados e seis bibliotecas ELF64 do genérico verificados. O driver original mantém seu hash. Primeira imagem, gravação e desempenho nessa central ainda precisam de teste físico; reconhecer o USB não comprova vídeo disponível.
+As configurações também recebem perfis Automático/Dia/Noite, compensação noturna limitada à câmera integrada, brilho automático opcional, gravação automática opcional e controles de gravar/parar/proteger na notificação. USB/FILE NWD não recebem comandos de exposição presumidos. Aparência neon, modelos e limiares ADAS permanecem preservados.
+
+As alterações são de código-fonte. **Os APKs 3.9 abaixo são entregas anteriores e não contêm a revisão 4.0.** 134 testes passaram em cada perfil, com zero falhas/erros/skips; lint sem erros (117 avisos por perfil), pesos reais e alinhamento ELF64 verificados. Validação e limites em `relatorios/camera-discovery-4_0`; versão de fonte com versionCode 40, minSdk 25 e targetSdk 37. O driver original mantém seu hash. Instalação, primeira imagem, gravação e desempenho na NWD continuam pendentes de teste físico.
 
 ## Downloads
 
-- [APK 3.9 genérico — celular/tablet](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
-- [APK 3.9 NWD K2001N — ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
-- [Código-fonte atualizado 3.9](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 3.9 genérico — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
+- [APK 3.9 NWD K2001N — entrega anterior ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [Código-fonte atualizado 4.0](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
 Os APKs históricos 3.3/3.4 não contêm os temas e as correções das revisões 3.6–3.8 nem a atualização das bibliotecas. O genérico 3.3 histórico não suporta páginas de memória de 16 KB.
 
-## Testar o DVR na NWD K2001N
+## Buscar a câmera na NWD K2001N — código 4.0
 
-1. Instale o **APK 3.9 NWD ARM32**, substituindo a versão anterior.
-2. Feche o outro aplicativo DVR para liberar a interface USB.
-3. Na LIVE, abra **CÂMERA → USB NATIVO • 3322:6655** e autorize o Android.
-4. Aguarde a imagem real. REC permanece desabilitado enquanto a captura não estiver conectada.
-5. Se surgir erro de endpoint/cartão/mode DVR ou de leitura, toque na mensagem de status para ver o texto completo e compartilhe o diagnóstico.
+Após gerar e instalar um novo APK NWD ARM32 a partir deste código (o APK 3.9 não recebe mudanças automaticamente):
 
-O diagnóstico mostra autorização USB por dispositivo e identifica o DVR do filtro original. Não tenta abrir armazenamento comum como câmera. O transporte usa SCSI/FAT32 e os nomes akfile/elene/kkfile/eefile/jrfile do SDK; procura arquivos existentes na raiz ou na pasta de dados do aplicativo original. Não cria arquivos nem formata o cartão. Implementação e limites em [proveniência nativa](referencias_nativas/PROVENIENCIA.md).
+1. Feche o outro aplicativo DVR para liberar a fonte.
+2. Abra **CÂMERA → Buscar DVR USB/volumes** ou **CONFIG → Câmera e gravação → Buscar DVR por USB e volumes**.
+3. Use **Volumes primeiro**. No Android 7/8, toque em **Permitir busca em volumes Android 7/8** e conceda o acesso solicitado.
+4. Toque em **Atualizar busca** e depois **Selecionar e autorizar câmera**. Se aparecer um marcador, escolha **VOLUME DVR**. Se somente o dispositivo 3322:6655 aparecer, escolha **USB NATIVO** e autorize o Android.
+5. Aguarde a imagem real. Se não houver fonte ou a captura falhar, use **Copiar relatório** ou **Compartilhar relatório**; o diagnóstico lista VID/PID, classe/subclasse/protocolo das interfaces, permissão e volumes/arquivos encontrados.
+
+O sistema original UCarDVR combina caminhos FILE e UFD; a 3.9 tinha somente UFD no projeto. FILE usa um marcador existente (akfile/elene/kkfile/eefile/jrfile) em volume removível; o scanner evita armazenamento primário e links para fora do volume. A busca não cria arquivos. A captura FILE passa JSON e transporte −1 ao SDK; UFD mantém os callbacks SCSI/FAT32 com transporte 0. Armazenamento comum, como 058F:6387 sem marcador, não é aberto como câmera.
+
+O relatório recebido descreve um módulo camerasearch, mas seus arquivos não foram anexados. A implementação aqui é própria e integrada ao package/serviço existentes, preservando minSdk 25 e o driver ARM32 restrito a Android 7/8. Não reproduz grantDevicePermission por reflexão nem exige app de sistema. [Análise e evidências](relatorios/camera-discovery-4_0/ANALISE_UCARDVR.md).
+
+## Pouca luz e operação da gravação — código 4.0
+
+Em **CONFIG → Câmera e gravação → Dia e noite**, selecione Automático, Dia ou Noite. Automático mede até 256 pixels por segundo, confirma escuro por 3 s e luz por 8 s. Câmera integrada recebe somente controles declarados: compensação de exposição de 0–2 EV limitada ao dispositivo, faixa de FPS suportada e redução de ruído rápida. Se rejeitados, a captura padrão é restaurada. Não há clareamento artificial dos pixels fornecidos às redes. O driver USB/FILE não expõe esses controles; a exposição continua na câmera.
+
+**CONFIG → Aparência → Reduzir brilho automaticamente em pouca luz** é opcional e acompanha o estado da imagem; o modo noturno manual continua disponível. Os banners de evento mantêm o vermelho aprovado.
+
+**Gravar automaticamente ao conectar a câmera** vem desligado. Ativá-lo inicia uma vez após receber imagem real de uma sessão autorizada. Parar manualmente mantém a gravação parada nessa conexão. Não inicia com ignição/boot nem elimina permissões do Android. A notificação oferece Gravar/Parar e Proteger clipe, além de Encerrar câmera.
+
+A página pública `com.pdt.cameraadas` indicada pelo usuário permaneceu bloqueada pelo proxy; nenhuma função foi atribuída a esse app sem leitura. Os domínios play.google.com e play-lh.googleusercontent.com foram salvos no rascunho do ambiente e ainda exigem ativação/publicação para concluir a comparação.
 
 ## Controles e painéis — correções 3.8
 

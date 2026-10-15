@@ -53,16 +53,18 @@ class MainActivity : ComponentActivity() {
     private var captureState=DashCamForegroundService.State()
     private val captureCallback=object:DashCamForegroundService.Callback {
         override fun onState(state:DashCamForegroundService.State) {
+            val lightingChanged=captureState.nightActive!=state.nightActive
             if(captureState.cameraId!=state.cameraId || captureState.previewRotation!=state.previewRotation){
                 latestVision=null;latestPreview=null;auxiliaryTimeline.reset()
                 auxiliaryOverlay.result=null;auxiliaryPreview.frame=null;auxiliaryPreview.focusBox=null
             }
             captureState=state;recording=state.recording
-            texture.requestDirectPreview(state.connected && state.cameraId.isNotEmpty() && !state.cameraId.startsWith("usb:") && !state.directPreviewUnavailable)
+            texture.requestDirectPreview(state.connected && state.cameraId.isNotEmpty() && !DvrSources.native(state.cameraId) && !state.directPreviewUnavailable)
             texture.showDirectPreview(state.directPreview,state.livePreviewWidth,state.livePreviewHeight,state.previewRotation)
             if(state.directPreview)laneOverlay.result=null
             updateRecordingControls()
-            updateHud();showStatus(state.message)
+            updateHud();showStatus(state.message+(if(state.connected)" · ${state.lightingMessage}" else ""))
+            if(lightingChanged)CommercialUi.applyAppearance(this@MainActivity)
             if(!state.connected || state.message.startsWith("Sem quadros")) {
                 previewTimeline.reset();auxiliaryTimeline.reset();latestPreview=null
                 texture.frame=null;laneOverlay.result=null;latestVision=null
@@ -236,7 +238,7 @@ class MainActivity : ComponentActivity() {
         }
         hud.update(speedMs?.times(3.6f),speedMs!=null,video,recording,latestVision)
         qualityTag.text=video
-        headerSurface.usbConnected=captureState.connected && captureState.cameraId.startsWith("usb:")
+        headerSurface.usbConnected=captureState.connected && DvrSources.native(captureState.cameraId)
         headerSurface.wifiConnected=try {
             val connectivity=getSystemService(android.net.ConnectivityManager::class.java)
             connectivity?.let { manager->manager.getNetworkCapabilities(manager.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)==true } ?: false
@@ -475,7 +477,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showCameraControls(){
-        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia","Sensibilidade e espessura das faixas","Restaurar orientação automática")
+        val options=arrayOf("Selecionar câmera","Girar imagem","Espelhar imagem","${if(laneEnabled)"Ocultar" else "Mostrar"} faixas","${if(recording)"Parar" else "Iniciar"} gravação","Proteger clipe","${if(cameraFullscreen)"Sair da" else "Abrir"} tela cheia","Sensibilidade e espessura das faixas","Restaurar orientação automática","Buscar DVR USB/volumes")
         NeonDialogs.Builder(this).setTitle("Câmera").setItems(options){_,which->when(which){
             0->chooseCamera()
             1->cycleCameraRotation()
@@ -486,6 +488,7 @@ class MainActivity : ComponentActivity() {
             6->toggleFullscreen()
             7->startActivity(Intent(this,SettingsActivity::class.java).putExtra("section","FAIXAS"))
             8->setCameraRotation(-1)
+            9->startActivity(Intent(this,NativeUsbActivity::class.java))
         }}.setNegativeButton("Fechar",null).show()
     }
 
@@ -530,7 +533,7 @@ class MainActivity : ComponentActivity() {
             val ids = availableCamera2Ids()
             val usbIds=availableNativeUsb()
             if(ids.isEmpty() && usbIds.isEmpty()){
-                showCompatibilityReport()
+                if(BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27)startActivity(Intent(this,NativeUsbActivity::class.java)) else showCompatibilityReport()
                 return
             }
             val cameraLabels=ids.map { id ->
@@ -543,11 +546,11 @@ class MainActivity : ComponentActivity() {
             val usbManager=getSystemService(android.hardware.usb.UsbManager::class.java)
             val labels=cameraLabels+usbIds.map{source->
                 val device=usbManager.deviceList.values.firstOrNull{it.deviceName==source.removePrefix("usb:")}
-                if(device==null) "USB NATIVO" else "USB NATIVO • %04X:%04X".format(device.vendorId,device.productId)
+                if(DvrSources.mounted(source))"VOLUME DVR • "+source.removePrefix(DvrSources.FILE) else if(device==null) "USB NATIVO" else "USB NATIVO • %04X:%04X".format(device.vendorId,device.productId)
             }
             NeonDialogs.Builder(this).setTitle("Selecionar câmera disponível").setItems(labels.toTypedArray()){_,which->
                 val id=all[which]
-                if(id.startsWith("usb:"))startActivity(Intent(this,NativeUsbActivity::class.java).putExtra("device_name",id.removePrefix("usb:")))
+                if(DvrSources.native(id))startActivity(Intent(this,NativeUsbActivity::class.java).putExtra("device_name",id.removePrefix("usb:")))
                 else {selectedId=id;openCamera(id);getSharedPreferences("camera",MODE_PRIVATE).edit().putString("preferred",id).apply()}
             }.setNeutralButton("Diagnóstico") { _, _ -> showCompatibilityReport() }
                 .setNegativeButton("Cancelar",null).show()
@@ -560,7 +563,11 @@ class MainActivity : ComponentActivity() {
     private fun availableNativeUsb():List<String>{
         if(!BuildConfig.K2000_NATIVE || Build.VERSION.SDK_INT !in 24..27)return emptyList()
         val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
-        return usb.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass},it.vendorId,it.productId,it.deviceSubclass)}.map{"usb:"+it.deviceName}
+        val sources=usb.deviceList.values.filter{NativeUsbPolicy.cameraCandidate(it.deviceClass,(0 until it.interfaceCount).map{i->it.getInterface(i).interfaceClass},it.vendorId,it.productId,it.deviceSubclass)}.map{"usb:"+it.deviceName}
+        val prefs=getSharedPreferences("camera",MODE_PRIVATE)
+        val preferred=prefs.getString("preferred",null)
+        val remembered=if(preferred!=null && DvrSources.mounted(preferred) && MountedDvrDiscovery.allowed(this) && java.io.File(preferred.removePrefix(DvrSources.FILE)).isFile)listOf(preferred) else emptyList()
+        return DvrSearchMode.read(prefs.getString("dvr_search_mode",null)).order(sources,MountedDvrDiscovery.cached+remembered)
     }
 
     private fun showCompatibilityReport() {
@@ -585,11 +592,18 @@ class MainActivity : ComponentActivity() {
         }
         try {
             val ids = availableCamera2Ids()
-            val preferred = getSharedPreferences("camera",MODE_PRIVATE).getString("preferred",null)
+            val prefs=getSharedPreferences("camera",MODE_PRIVATE)
+            var preferred=prefs.getString("preferred",null)
+            val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
+            if(preferred?.startsWith("usb:")==true && preferred !in availableNativeUsb()){
+                val matches=usb.deviceList.values.filter{it.vendorId==prefs.getInt("preferred_usb_vid",-1) && it.productId==prefs.getInt("preferred_usb_pid",-1)}
+                if(matches.size==1){preferred="usb:"+matches.single().deviceName;prefs.edit().putString("preferred",preferred).apply()}
+            }
             if(preferred!=null && preferred in availableNativeUsb()){
-                val usb=getSystemService(android.hardware.usb.UsbManager::class.java)
-                val device=usb.deviceList.values.first{it.deviceName==preferred.removePrefix("usb:")}
-                if(!usb.hasPermission(device)){showStatus("Selecione a câmera USB e autorize o Android");return}
+                if(!DvrSources.mounted(preferred)){
+                    val device=usb.deviceList.values.firstOrNull{it.deviceName==preferred!!.removePrefix("usb:")}
+                    if(device==null || !usb.hasPermission(device)){showStatus("Selecione a câmera USB e autorize o Android");return}
+                }
                 if(selectedId==preferred && captureState.connected && captureBound)return
                 openCamera(preferred);return
             }
@@ -616,7 +630,7 @@ class MainActivity : ComponentActivity() {
 
     private fun openCamera(id:String) {
         selectedId=id
-        if(id.startsWith("usb:"))cameraFacing=CameraCharacteristics.LENS_FACING_BACK
+        if(DvrSources.native(id))cameraFacing=CameraCharacteristics.LENS_FACING_BACK
         else {val chars=manager.getCameraCharacteristics(id);cameraFacing=chars.get(CameraCharacteristics.LENS_FACING) ?: CameraCharacteristics.LENS_FACING_BACK}
         loadOrientation(id)
         val display=when(windowManager.defaultDisplay.rotation){Surface.ROTATION_90->90;Surface.ROTATION_180->180;Surface.ROTATION_270->270;else->0}

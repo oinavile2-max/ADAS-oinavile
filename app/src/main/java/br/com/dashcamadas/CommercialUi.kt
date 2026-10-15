@@ -88,7 +88,9 @@ object CommercialUi {
         visit(root)
     }
     fun applyAppearance(activity: Activity) {
-        val night = activity.getSharedPreferences("ui_appearance", Activity.MODE_PRIVATE).getBoolean("night", false)
+        val appearance=activity.getSharedPreferences("ui_appearance",Activity.MODE_PRIVATE)
+        val night=appearance.getBoolean("night",false) || (appearance.getBoolean("automatic_brightness",false) &&
+            activity.getSharedPreferences("camera_runtime",Activity.MODE_PRIVATE).getBoolean("night",false))
         activity.findViewById<ViewGroup>(android.R.id.content)?.let { refreshTheme(it) }
         activity.window.attributes = activity.window.attributes.apply {
             screenBrightness = if (night) .22f else WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE

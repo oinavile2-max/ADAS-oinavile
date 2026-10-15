@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-15",
+  "version": "4.0-source",
+  "source_parent_revision": "88b16b92dd987ed307b08476fdfbe5e9057d66ef",
+  "product_source_sha256": "df376f716ffc4716ad1edbee2fcc9a0301260b99e92fb4d2922d73184c0565fe",
+  "input_report_sha256": "f88865be62ef22992df2294ae63b7bc941a7cff8065b82016c4791fcca53643f",
+  "profiles": {
+    "generic": {
+      "tests": {
+        "tests": 134,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "apk_packaged": false,
+      "real_yolop_test_threads": [
+        1,
+        2
+      ],
+      "elf64_16kb_check": true
+    },
+    "native": {
+      "tests": {
+        "tests": 134,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "apk_packaged": false,
+      "real_yolop_test_threads": [
+        1,
+        2
+      ],
+      "elf64_16kb_check": true
+    }
+  },
+  "min_sdk": 25,
+  "target_sdk": 37,
+  "apk_packaged": false,
+  "published_3_9_apks_unchanged": true,
+  "models_sha256": {
+    "road_lanes_yolop_320.onnx": "f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe",
+    "vehicles_ssd_mobilenet_v2.tflite": "42fb3d70ffb7bb37dd518f730f7be784b831c2078f30c497d0019cc2e987fa26"
+  },
+  "native_driver_sha256": "fa9d9a7936f2ae12ca8f6540f214bb581c0b26ac5222c1b76384dcf4f2795bd9",
+  "physical_android_connected": false,
+  "physical_dvr_image_confirmed": false,
+  "physical_dvr_recording_confirmed": false,
+  "mounted_transport": "nativeConnect endpoint JSON / transport -1",
+  "ufd_transport": "nativeConnect endpoint JSON / transport 0 / UMsd callbacks",
+  "storage_permissions_max_sdk": 27,
+  "usb_permission_timeout_ms": 20000,
+  "play_reference_access": "blocked by environment proxy; draft domains saved, not activated",
+  "vendor_mount_discovery": true
+}
