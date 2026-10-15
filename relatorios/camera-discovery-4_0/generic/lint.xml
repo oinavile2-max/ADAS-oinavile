@@ -671,7 +671,7 @@
         errorLine2="                       ~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="483"
+            line="484"
             column="24"/>
     </issue>
 
@@ -831,7 +831,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="283"
+            line="284"
             column="43"/>
     </issue>
 
@@ -847,7 +847,7 @@
         errorLine2="                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="339"
+            line="340"
             column="62"/>
     </issue>
 
@@ -863,7 +863,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="405"
+            line="406"
             column="9"/>
     </issue>
 
@@ -879,7 +879,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="413"
+            line="414"
             column="13"/>
     </issue>
 
@@ -895,7 +895,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="/workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt"
-            line="628"
+            line="629"
             column="9"/>
     </issue>
 

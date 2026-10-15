@@ -34,3 +34,5 @@ Compilação, testes JVM (incluindo os pesos YOLOP reais), lint e alinhamento de
 O relatório fornecido é análise estática. O protocolo interno do binário não foi inteiramente auditado, e a presença de marcador/USB não é prova de vídeo. Se o firmware não expuser volume acessível, UFD é a alternativa; se nenhum USB for enumerado, o aplicativo não pode corrigir porta, cabo ou alimentação por software.
 
 A referência pública com.pdt.cameraadas permanece bloqueada pelo proxy. Nenhum recurso desse outro app foi apresentado como verificado. Domínios salvos no rascunho do ambiente: play.google.com e play-lh.googleusercontent.com; ativação/publicação ainda pendente.
+
+A revisão final também corrige uma troca de fonte descartada durante a inicialização: pedidos duplicados da mesma câmera aguardam a tentativa atual; uma fonte diferente encerra a tentativa antiga e invalida seus callbacks pela geração de captura. Assim, selecionar FILE enquanto UFD ainda está abrindo não é ignorado. Esse fluxo foi revisado e compilado; não foi reproduzido em hardware.

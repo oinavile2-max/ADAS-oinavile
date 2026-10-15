@@ -37,9 +37,9 @@ Unable to initialize metrics, ensure /home/agent/.android is writable, details: 
 
 > Task :app:compileDebugKotlin
 w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:252:104 'constructor(p0: Context!): Notification.Builder' is deprecated. Deprecated in Java.
-w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:439:20 'fun createCaptureSession(p0: (Mutable)List<Surface!>, p1: CameraCaptureSession.StateCallback, p2: Handler?): Unit' is deprecated. Deprecated in Java.
-w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:485:72 'constructor(): MediaRecorder' is deprecated. Deprecated in Java.
-w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:569:31 Condition is always 'true'.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:440:20 'fun createCaptureSession(p0: (Mutable)List<Surface!>, p1: CameraCaptureSession.StateCallback, p2: Handler?): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:486:72 'constructor(): MediaRecorder' is deprecated. Deprecated in Java.
+w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/DashCamForegroundService.kt:570:31 Condition is always 'true'.
 w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:26 'var systemUiVisibility: Int' is deprecated. Deprecated in Java.
 w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:52 'static field SYSTEM_UI_FLAG_FULLSCREEN: Int' is deprecated. Deprecated in Java.
 w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/MainActivity.kt:304:86 'static field SYSTEM_UI_FLAG_HIDE_NAVIGATION: Int' is deprecated. Deprecated in Java.
@@ -69,19 +69,20 @@ w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/Settings
 w: file:///workspace/ADAS-oinavile/app/src/main/java/br/com/dashcamadas/SettingsActivity.kt:200:130 'constructor(p0: String!, p1: String!): Locale' is deprecated. Deprecated in Java.
 
 > Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToCompileJar
 > Task :app:bundleDebugClassesToRuntimeJar
 > Task :app:processDebugJavaRes UP-TO-DATE
-> Task :app:bundleDebugClassesToCompileJar
-> Task :app:generateDebugLintReportModel
 > Task :app:generateDebugAndroidTestLintModel
-> Task :app:generateDebugUnitTestLintModel
 > Task :app:compileDebugUnitTestKotlin
+> Task :app:generateDebugLintReportModel
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugUnitTestJavaRes UP-TO-DATE
-[0;93m2026-10-15 11:00:38.990449798 [W:onnxruntime:ort-java, telemetry_1ds.cc:600 operator()] Failed to persist telemetry device ID; using an in-memory identifier[m
+[0;93m2026-10-15 11:06:46.247660533 [W:onnxruntime:ort-java, telemetry_1ds.cc:600 operator()] Failed to persist telemetry device ID; using an in-memory identifier[m
 
 > Task :app:testDebugUnitTest
 Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/workspace/toolchains/cacerts -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :app:generateDebugUnitTestLintModel
 
 > Task :app:lintAnalyzeDebugAndroidTest
 Warning: Unable to initialize metrics, ensure /home/agent/.android is writable, details: /home/agent/.android/analytics.settings (Read-only file system)
@@ -95,6 +96,6 @@ Wrote SARIF report to file:///workspace/ADAS-oinavile/app/build/reports/lint-res
 
 > Task :app:lintDebug
 
-BUILD SUCCESSFUL in 1m 2s
+BUILD SUCCESSFUL in 1m 5s
 39 actionable tasks: 24 executed, 15 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

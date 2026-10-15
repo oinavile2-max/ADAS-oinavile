@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="br.com.dashcamadas.DvrDiscoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:00:38.498Z" hostname="8a60e457805d" time="0.017">
+<testsuite name="br.com.dashcamadas.DvrDiscoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:06:45.801Z" hostname="8a60e457805d" time="0.012">
   <properties/>
-  <testcase name="permissionMustBeCurrentAndConfirmedByAndroid" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.001"/>
-  <testcase name="discoveryDoesNotFollowAMarkerOrDirectoryLinkOutsideRemovableVolume" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.004"/>
-  <testcase name="vendorMountsHavePublicAliasesAndPrimaryOrSystemMountsAreExcluded" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.008"/>
+  <testcase name="permissionMustBeCurrentAndConfirmedByAndroid" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.0"/>
+  <testcase name="discoveryDoesNotFollowAMarkerOrDirectoryLinkOutsideRemovableVolume" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.002"/>
+  <testcase name="vendorMountsHavePublicAliasesAndPrimaryOrSystemMountsAreExcluded" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.006"/>
   <testcase name="explicitSearchModesPreservePriorityAndExcludeOtherTransport" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.0"/>
   <testcase name="mountedMarkersAreFoundInRootOriginalAppDirectoryAndImmediateChild" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.002"/>
   <testcase name="expiredOrReplacedRequestsCannotOpenACameraAfterResume" classname="br.com.dashcamadas.DvrDiscoveryTest" time="0.0"/>

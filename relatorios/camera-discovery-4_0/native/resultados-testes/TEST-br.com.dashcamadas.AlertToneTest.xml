@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="br.com.dashcamadas.AlertToneTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:00:38.396Z" hostname="8a60e457805d" time="0.041">
+<testsuite name="br.com.dashcamadas.AlertToneTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:06:45.726Z" hostname="8a60e457805d" time="0.033">
   <properties/>
-  <testcase name="gapsBetweenNotesAreActuallySilent" classname="br.com.dashcamadas.AlertToneTest" time="0.01"/>
-  <testcase name="invalidFrequencyIsRejected" classname="br.com.dashcamadas.AlertToneTest" time="0.001"/>
-  <testcase name="sixPatternsHaveDifferentWaveforms" classname="br.com.dashcamadas.AlertToneTest" time="0.012"/>
+  <testcase name="gapsBetweenNotesAreActuallySilent" classname="br.com.dashcamadas.AlertToneTest" time="0.008"/>
+  <testcase name="invalidFrequencyIsRejected" classname="br.com.dashcamadas.AlertToneTest" time="0.0"/>
+  <testcase name="sixPatternsHaveDifferentWaveforms" classname="br.com.dashcamadas.AlertToneTest" time="0.009"/>
   <testcase name="unknownPreferenceFallsBackToSoftTone" classname="br.com.dashcamadas.AlertToneTest" time="0.0"/>
   <testcase name="silenceAndGainAreRespected" classname="br.com.dashcamadas.AlertToneTest" time="0.008"/>
-  <testcase name="toneFrequencyIsMeasuredFromZeroCrossings" classname="br.com.dashcamadas.AlertToneTest" time="0.003"/>
-  <testcase name="allTonesFitShortPcmWithoutClipping" classname="br.com.dashcamadas.AlertToneTest" time="0.007"/>
+  <testcase name="toneFrequencyIsMeasuredFromZeroCrossings" classname="br.com.dashcamadas.AlertToneTest" time="0.002"/>
+  <testcase name="allTonesFitShortPcmWithoutClipping" classname="br.com.dashcamadas.AlertToneTest" time="0.005"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

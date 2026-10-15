@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="br.com.dashcamadas.DvrByteChannelTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-15T10:58:36.529Z" hostname="8a60e457805d" time="0.012">
+<testsuite name="br.com.dashcamadas.DvrByteChannelTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:05:15.170Z" hostname="8a60e457805d" time="0.009">
   <properties/>
-  <testcase name="aliasesSelectTheirOriginalProtocolAndOrdinaryFilesAreRejected" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.001"/>
-  <testcase name="cancellationStopsAnInFlightChunkedRead" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.008"/>
+  <testcase name="aliasesSelectTheirOriginalProtocolAndOrdinaryFilesAreRejected" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.0"/>
+  <testcase name="cancellationStopsAnInFlightChunkedRead" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.006"/>
   <testcase name="commandWriteDoesNotAdvanceAndCannotExtendEndpoint" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.002"/>
   <testcase name="invalidNativeReadArgumentsDoNotTouchUsb" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.0"/>
   <testcase name="disconnectAndEndOfEndpointDoNotSpinOrInventBytes" classname="br.com.dashcamadas.DvrByteChannelTest" time="0.0"/>

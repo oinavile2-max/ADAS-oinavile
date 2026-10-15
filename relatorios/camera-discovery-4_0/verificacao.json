@@ -1,8 +1,8 @@
 {
   "date": "2026-10-15",
   "version": "4.0-source",
-  "source_parent_revision": "88b16b92dd987ed307b08476fdfbe5e9057d66ef",
-  "product_source_sha256": "df376f716ffc4716ad1edbee2fcc9a0301260b99e92fb4d2922d73184c0565fe",
+  "source_parent_revision": "21dee876f993b6a1ac2a500c5c90230290ff3e99",
+  "product_source_sha256": "6da9c04a7a9415aab0a9f8902ee7482595c78a9e38cab84a83adf86ae80eb6ee",
   "input_report_sha256": "f88865be62ef22992df2294ae63b7bc941a7cff8065b82016c4791fcca53643f",
   "profiles": {
     "generic": {
@@ -57,5 +57,8 @@
   "storage_permissions_max_sdk": 27,
   "usb_permission_timeout_ms": 20000,
   "play_reference_access": "blocked by environment proxy; draft domains saved, not activated",
-  "vendor_mount_discovery": true
+  "vendor_mount_discovery": true,
+  "source_base_revision": "88b16b92dd987ed307b08476fdfbe5e9057d66ef",
+  "source_switch_during_initialization_reviewed": true,
+  "physical_source_switch_tested": false
 }

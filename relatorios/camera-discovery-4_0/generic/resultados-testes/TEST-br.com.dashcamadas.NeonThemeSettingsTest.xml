@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="br.com.dashcamadas.NeonThemeSettingsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-15T10:58:36.572Z" hostname="8a60e457805d" time="0.001">
+<testsuite name="br.com.dashcamadas.NeonThemeSettingsTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:05:15.210Z" hostname="8a60e457805d" time="0.001">
   <properties/>
   <testcase name="corruptedStoredRangesNormalizeBeforeRendering" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.001"/>
   <testcase name="existingPreferencesKeepCyanAndRedPopupDefaults" classname="br.com.dashcamadas.NeonThemeSettingsTest" time="0.0"/>

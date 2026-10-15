@@ -276,7 +276,8 @@ class DashCamForegroundService:Service() {
     }
     @SuppressLint("MissingPermission")
     private fun open(id:String,preserveRecording:Boolean=false) {
-        if(closing || !running || opening) return
+        // A duplicate open waits for its existing attempt; a different source cancels that attempt.
+        if(closing || !running || (opening && currentId==id)) return
         if(DvrSources.native(id)){openNative(id);return}
         if(camera!=null && currentId==id) {
             val before=analysisRotation;updateRotation(manager.getCameraCharacteristics(id))

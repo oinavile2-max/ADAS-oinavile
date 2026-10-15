@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="br.com.dashcamadas.AdasSettingsValuesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-15T10:58:36.372Z" hostname="8a60e457805d" time="0.05">
+<testsuite name="br.com.dashcamadas.AdasSettingsValuesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-15T11:05:15.068Z" hostname="8a60e457805d" time="0.021">
   <properties/>
-  <testcase name="brazilianDecimalAndExistingDefaultsRemainValid" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.029"/>
-  <testcase name="outOfRangeHiddenAdvancedValueCannotProducePartialSettings" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.0"/>
-  <testcase name="malformedNonfiniteOrOverflowValueRejectsWholeForm" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.018"/>
+  <testcase name="brazilianDecimalAndExistingDefaultsRemainValid" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.007"/>
+  <testcase name="outOfRangeHiddenAdvancedValueCannotProducePartialSettings" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.001"/>
+  <testcase name="malformedNonfiniteOrOverflowValueRejectsWholeForm" classname="br.com.dashcamadas.AdasSettingsValuesTest" time="0.011"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
