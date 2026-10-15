@@ -104,3 +104,9 @@ O relatório UCarDVR recebido revelou a ausência do caminho FILE da câmera mon
 As alterações de pouca luz/gravação iniciadas antes do relatório foram concluídas: perfis Auto/Dia/Noite com histerese e parâmetros Camera2 suportados, fallback de controles rejeitados, brilho automático opcional, início automático opcional após imagem real e ações na notificação. Exposição DVR permanece controlada pela câmera. Modelos, limiares críticos e identidade neon preservados. Nenhum APK novo empacotado; a revisão está entregue em código-fonte. Evidências e limitações: relatorios/camera-discovery-4_0/ANALISE_UCARDVR.md e verificacao.json.
 
 Resultado final 4.0: 134 testes aprovados por perfil, zero falhas/erros/skips, lint sem erros e 117 avisos em ambos. Hashes dos modelos/driver e alinhamento de seis bibliotecas ELF64 verificados; compilação dos perfis genérico e NWD concluída. Nenhum APK novo produzido e nenhum Android físico conectado.
+
+## Empacotamento 4.0 — 15/10/2026
+
+Continuação após a entrega do código: APKs debug genérico e NWD K2001N ARM32 gerados a partir do código de produto d2c887ca9ec710493b6ecca29425a8715e718fc7. Incluem a descoberta USB/FILE, os ajustes de pouca luz Camera2, a gravação automática opcional e as ações de gravação na notificação. Não houve nova mudança da lógica de produto neste empacotamento. Os APKs históricos permanecem preservados.
+
+134 testes por perfil, incluindo inferência YOLOP real com uma e duas threads, sem falhas/erros/skips; lint sem erros e 117 avisos. APKs conferidos quanto a assinaturas V1/V2, certificado anterior, API25/API37, conteúdo dos modelos, driver NWD, permissões, ABI, integridade ZIP e alinhamento de 16 KB das seis bibliotecas ELF64 no genérico. Valores e evidências em relatorios/build-4_0. Permissões de volumes mantêm maxSdk27; não há permissão INTERNET. Nenhum teste de instalação ou captura física foi realizado. Comparação com o app com.pdt.cameraadas ainda bloqueada pelo proxy (CONNECT 403).

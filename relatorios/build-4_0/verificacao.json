@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-15",
+  "version": "4.0",
+  "source_parent_revision": "d2c887ca9ec710493b6ecca29425a8715e718fc7",
+  "product_source_sha256": "6da9c04a7a9415aab0a9f8902ee7482595c78a9e38cab84a83adf86ae80eb6ee",
+  "profiles": {
+    "generic": {
+      "tests": {
+        "tests": 134,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ],
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_4_0_NEURAL_GENERIC_DEBUG.apk",
+        "profile": "generic",
+        "bytes": 99442625,
+        "sha256": "7e3f88a60e9ad3b3111ceb9ba40e1db71a4de9c03f66cf7e3dcde702c85eb65c",
+        "version_code": 40,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "arm64-v8a",
+          "armeabi-v7a",
+          "x86",
+          "x86_64"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 6,
+        "discovery_storage_permissions_max_sdk": 27,
+        "physical_installation_tested": false
+      }
+    },
+    "native": {
+      "tests": {
+        "tests": 134,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ],
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_4_0_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+        "profile": "native",
+        "bytes": 44881129,
+        "sha256": "3f07ce974620515a880279fd6a870834dfd80f5887189c50320ad7cd5759e392",
+        "version_code": 40,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "armeabi-v7a"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 0,
+        "discovery_storage_permissions_max_sdk": 27,
+        "physical_installation_tested": false
+      }
+    }
+  },
+  "physical_android_connected": false,
+  "physical_dvr_frames_confirmed": false,
+  "physical_dvr_recording_confirmed": false,
+  "play_reference_access": "CONNECT 403 from environment proxy; comparison pending",
+  "models_sha256": {
+    "road_lanes_yolop_320.onnx": "f93ced8254ccbb532ff9f9593e7b7d0022f28210831b615f5039066c9f5222fe",
+    "vehicles_ssd_mobilenet_v2.tflite": "42fb3d70ffb7bb37dd518f730f7be784b831c2078f30c497d0019cc2e987fa26"
+  },
+  "native_driver_sha256": "fa9d9a7936f2ae12ca8f6540f214bb581c0b26ac5222c1b76384dcf4f2795bd9"
+}

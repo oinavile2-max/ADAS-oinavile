@@ -1,0 +1,25 @@
+{
+  "apk": "APKS/DashCam_ADAS_PRO_4_0_NEURAL_GENERIC_DEBUG.apk",
+  "profile": "generic",
+  "bytes": 99442625,
+  "sha256": "7e3f88a60e9ad3b3111ceb9ba40e1db71a4de9c03f66cf7e3dcde702c85eb65c",
+  "version_code": 40,
+  "min_sdk": 25,
+  "target_sdk": 37,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+  "signature_api25_verified": true,
+  "signature_api37_verified": true,
+  "v1_forced_api23_verified": true,
+  "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+  "zipalign_verified": true,
+  "packaged_models_hashes_verified": true,
+  "packaged_elf64_16kb_verified": 6,
+  "discovery_storage_permissions_max_sdk": 27,
+  "physical_installation_tested": false
+}

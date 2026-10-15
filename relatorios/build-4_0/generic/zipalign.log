@@ -1,0 +1,2 @@
+Command: zipalign -c -P 16 4 APKS/DashCam_ADAS_PRO_4_0_NEURAL_GENERIC_DEBUG.apk
+Exit code: 0

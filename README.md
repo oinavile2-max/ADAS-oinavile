@@ -1,18 +1,20 @@
-# DashCam ADAS PRO — código 4.0, descoberta DVR e pouca luz
+# DashCam ADAS PRO — 4.0, descoberta DVR e pouca luz
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**Código 4.0 integrado; nenhum APK 4.0 foi gerado.** O relatório UCarDVR enviado pelo usuário revelou a ausência da descoberta por arquivo-marcador em volumes montados. A busca agora oferece USB primeiro, volumes primeiro e modos exclusivos; mostra todos os USBs, trata conexão/desconexão e limita o pedido de autorização a 20 segundos. A fonte de volume alimenta o mesmo serviço de captura, gravação e redes neurais. Reconhecer o dispositivo/marcador ainda não comprova imagem no hardware.
+**APKs experimentais 4.0 disponíveis para celular/tablet e NWD K2001N.** O relatório UCarDVR enviado pelo usuário revelou a ausência da descoberta por arquivo-marcador em volumes montados. A busca agora oferece USB primeiro, volumes primeiro e modos exclusivos; mostra todos os USBs, trata conexão/desconexão e limita o pedido de autorização a 20 segundos. A fonte de volume alimenta o mesmo serviço de captura, gravação e redes neurais. Reconhecer o dispositivo/marcador ainda não comprova imagem no hardware.
 
 As configurações também recebem perfis Automático/Dia/Noite, compensação noturna limitada à câmera integrada, brilho automático opcional, gravação automática opcional e controles de gravar/parar/proteger na notificação. USB/FILE NWD não recebem comandos de exposição presumidos. Aparência neon, modelos e limiares ADAS permanecem preservados.
 
-As alterações são de código-fonte. **Os APKs 3.9 abaixo são entregas anteriores e não contêm a revisão 4.0.** 134 testes passaram em cada perfil, com zero falhas/erros/skips; lint sem erros (117 avisos por perfil), pesos reais e alinhamento ELF64 verificados. Validação e limites em `relatorios/camera-discovery-4_0`; versão de fonte com versionCode 40, minSdk 25 e targetSdk 37. O driver original mantém seu hash. Instalação, primeira imagem, gravação e desempenho na NWD continuam pendentes de teste físico.
+**Use o APK 4.0 para testar as mudanças; os APKs 3.9 são entregas anteriores.** 134 testes passaram em cada perfil, com zero falhas/erros/skips; lint sem erros (117 avisos por perfil). Assinaturas V1/V2, certificado anterior, modelos dentro dos APKs e alinhamento ELF64 foram conferidos. Evidências de empacotamento em [relatorios/build-4_0](relatorios/build-4_0/LEIA-ME.md); análise da descoberta em `relatorios/camera-discovery-4_0`. VersionCode 40, minSdk 25 e targetSdk 37. O driver original mantém seu hash. Instalação, primeira imagem, gravação e desempenho na NWD continuam pendentes de teste físico.
 
 ## Downloads
 
-- [APK 3.9 genérico — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
-- [APK 3.9 NWD K2001N — entrega anterior ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [APK 4.0 NWD K2001N — Android 7.1.1 / ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_0_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [APK 4.0 genérico — celular/tablet, Android 7.1 ou superior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_0_NEURAL_GENERIC_DEBUG.apk)
 - [Código-fonte atualizado 4.0](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 3.9 NWD K2001N — entrega anterior ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [APK 3.9 genérico — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK genérico 3.3 — histórico](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_3_NEURAL_GENERIC_DEBUG.apk)
 
@@ -20,7 +22,7 @@ Os APKs históricos 3.3/3.4 não contêm os temas e as correções das revisões
 
 ## Buscar a câmera na NWD K2001N — código 4.0
 
-Após gerar e instalar um novo APK NWD ARM32 a partir deste código (o APK 3.9 não recebe mudanças automaticamente):
+Após instalar o APK **4.0 NWD ARM32** acima (o APK 3.9 não recebe mudanças automaticamente):
 
 1. Feche o outro aplicativo DVR para liberar a fonte.
 2. Abra **CÂMERA → Buscar DVR USB/volumes** ou **CONFIG → Câmera e gravação → Buscar DVR por USB e volumes**.
@@ -70,7 +72,7 @@ Diagnóstico debug registra quadros recebidos, atualizações efetivamente desen
 python3 build-tools/test_android_device.py --serial SERIAL --live-only --min-preview-fps 12 --min-auxiliary-fps 12 --output resultados-live
 ```
 
-Exige o APK 3.8 instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
+Exige o APK 3.8 ou superior instalado e um aparelho físico autorizado por ADB. Nenhum aparelho está conectado nesta nuvem; taxa de quadros, estabilidade da SurfaceTexture, precisão em estrada e gravação durante transições ainda precisam de validação real. As versões 3.3/3.4 publicadas não recebem essas mudanças automaticamente.
 
 ## Temas neon
 

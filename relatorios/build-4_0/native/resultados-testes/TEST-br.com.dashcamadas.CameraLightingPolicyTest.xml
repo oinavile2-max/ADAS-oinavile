@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.CameraLightingPolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-15T15:07:08.537Z" hostname="da9b510905e7" time="0.004">
+  <properties/>
+  <testcase name="manualProfilesOverrideOnlyTheDecision" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.0"/>
+  <testcase name="exposureIsBoundedByDeviceRangeAndReturnsToZeroByDay" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.001"/>
+  <testcase name="shortShadowsDoNotActivateNightAndHeadlightsDoNotCancelIt" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.0"/>
+  <testcase name="rgbaSamplingUsesRgbInsteadOfAlphaOrPadding" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.001"/>
+  <testcase name="missingAndBackwardsFramesCannotCompleteAConfirmation" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.0"/>
+  <testcase name="yuvLightSamplingHonorsCropPositionAndPaddedStridesWithoutMutatingBuffer" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.0"/>
+  <testcase name="fpsAlwaysComesFromSupportedDeviceRanges" classname="br.com.dashcamadas.CameraLightingPolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
