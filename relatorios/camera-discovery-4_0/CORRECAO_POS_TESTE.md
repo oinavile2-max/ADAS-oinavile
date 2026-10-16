@@ -14,3 +14,5 @@ Dois testes de regressão cobrem diretórios cheios e marcadores em Android/data
 Esta branch contém uma correção de código e testes. Os APKs 4.0 e o ZIP publicados na main permanecem os artefatos da entrega anterior; não incluem automaticamente esta alteração. Nenhum novo APK foi empacotado nesta investigação. Evidências desta revisão estão em verificacao-pos-teste.json e validacao-pos-teste.log.
 
 Não há comprovação de que as falhas acima expliquem a central do usuário. O relatório de Buscar DVR USB/volumes e a mensagem da LIVE são necessários para distinguir detecção, autorização, transporte e primeira imagem. Nenhum teste de instalação/captura física foi realizado nesta nuvem.
+
+Atualização posterior no mesmo dia: as fotos recebidas confirmaram o USB autorizado e o marcador encontrado; o usuário informou LIVE sem imagem após selecionar FILE. A investigação avançou para a ordem de registro da superfície, corrigida no APK NWD 4.1. Esta nota registra a etapa anterior às fotos; a entrega posterior e suas evidências estão em [relatorios/build-4_1](../build-4_1/LEIA-ME.md).

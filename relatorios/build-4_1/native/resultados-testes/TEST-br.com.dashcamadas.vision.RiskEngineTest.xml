@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.vision.RiskEngineTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:49:51.455Z" hostname="da9b510905e7" time="0.005">
+  <properties/>
+  <testcase name="upperStripeCannotArmDepartureByExtrapolatingBelowObservedPixels" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="stationaryGpsCannotTriggerCollision" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.001"/>
+  <testcase name="objectSwitchDoesNotInheritPreviousApproach" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="configuredDepartureSpeedIsRespected" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.001"/>
+  <testcase name="lostTargetImmediatelySuspendsFcw" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="missingGpsAndUncalibratedCameraCannotAlarm" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.001"/>
+  <testcase name="closeButStableVehicleDoesNotTriggerFcw" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.001"/>
+  <testcase name="configuredConfirmationCannotBeBypassed" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="frameGapDoesNotCountAsRiskConfirmation" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="alertCooldownSurvivesConfidenceReset" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="confirmedExpansionTriggersFcwAndShrinkingEndsIt" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="invalidPhysicalMeasuresDisableCalibration" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <testcase name="confidenceLossImmediatelyCancelsCriticalOutput" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.001"/>
+  <testcase name="departureNeedsTemporalConfirmationAndStopsOnRecovery" classname="br.com.dashcamadas.vision.RiskEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-16",
+  "version": "4.1",
+  "product_source_revision": "b827e533366957f110a3453dba09a1683fc668e0",
+  "product_source_sha256": "bab34e63dbf18474716c23b5c423fe7010fc880ddb4c48f24047ebfd3ff53b78",
+  "profiles": {
+    "native": {
+      "tests": {
+        "tests": 140,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ],
+      "apk_packaged": true,
+      "apk_verification": {
+        "apk": "APKS/DashCam_ADAS_PRO_4_1_NWD_K2001N_ARM32_NEON_DEBUG.apk",
+        "profile": "native",
+        "bytes": 44884725,
+        "sha256": "aabeeb42caaee209bcd81625006458d6bcc0539e17ddc0677b9e7537228edd97",
+        "version_code": 41,
+        "min_sdk": 25,
+        "target_sdk": 37,
+        "abis": [
+          "armeabi-v7a"
+        ],
+        "certificate_sha256": "6b7459556adedfac6a298c4305a55c3f8709770c38bdf9dc21ba7d38c8162dd8",
+        "signature_api25_verified": true,
+        "signature_api37_verified": true,
+        "v1_forced_api23_verified": true,
+        "v1_note": "API23 only exercises V1 signature verification; app requires API25 or newer.",
+        "zipalign_verified": true,
+        "packaged_models_hashes_verified": true,
+        "packaged_elf64_16kb_verified": 0,
+        "discovery_storage_permissions_max_sdk": 27,
+        "physical_installation_tested": false
+      }
+    },
+    "generic": {
+      "tests": {
+        "tests": 140,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "lint": {
+        "Warning": 117
+      },
+      "real_yolop_inference_test_threads": [
+        1,
+        2
+      ],
+      "apk_packaged": false
+    }
+  },
+  "physical_detection_confirmed_by_user": true,
+  "user_reported_usb": "3322:6655",
+  "user_reported_usb_permission": true,
+  "user_reported_marker": "/storage/udisk3/akfile",
+  "user_reported_4_0_video": false,
+  "native_preview_order_defect_confirmed_by_static_inspection": true,
+  "physical_4_1_installation_tested": false,
+  "physical_4_1_frames_confirmed": false,
+  "physical_4_1_recording_confirmed": false,
+  "native_driver_sha256": "fa9d9a7936f2ae12ca8f6540f214bb581c0b26ac5222c1b76384dcf4f2795bd9"
+}

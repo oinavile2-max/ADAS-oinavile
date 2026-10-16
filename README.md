@@ -1,18 +1,19 @@
-# DashCam ADAS PRO — 4.0, descoberta DVR e pouca luz
+# DashCam ADAS PRO — 4.1, correção da prévia NWD
 
 Conceito aprovado aplicado ao código Android: cards em vidro escuro, tipografia legível, controles em cores neon e banners de evento com neon vermelho. Configurações em quatro abas; mídia, eventos e câmera USB seguem a mesma identidade. Novo ícone profissional com versões clássica, adaptativa e monocromática.
 
-**APKs experimentais 4.0 disponíveis para celular/tablet e NWD K2001N.** O relatório UCarDVR enviado pelo usuário revelou a ausência da descoberta por arquivo-marcador em volumes montados. A busca agora oferece USB primeiro, volumes primeiro e modos exclusivos; mostra todos os USBs, trata conexão/desconexão e limita o pedido de autorização a 20 segundos. A fonte de volume alimenta o mesmo serviço de captura, gravação e redes neurais. Reconhecer o dispositivo/marcador ainda não comprova imagem no hardware.
+**APK experimental NWD 4.1 disponível; o genérico para celular/tablet continua 4.0.** As fotos da central confirmaram USB 3322:6655 autorizado e o marcador /storage/udisk3/akfile encontrado. A abertura da 4.0 registrava a superfície antes de conectar o SDK. A biblioteca fornecida ignora esse registro enquanto seu objeto de prévia é nulo; agora a sequência é conectar → aguardar conexão/inicialização → registrar a superfície → iniciar a prévia. Isso corrige um defeito concreto do código; imagem na central ainda exige teste físico.
 
 As configurações também recebem perfis Automático/Dia/Noite, compensação noturna limitada à câmera integrada, brilho automático opcional, gravação automática opcional e controles de gravar/parar/proteger na notificação. USB/FILE NWD não recebem comandos de exposição presumidos. Aparência neon, modelos e limiares ADAS permanecem preservados.
 
-**Use o APK 4.0 para testar as mudanças; os APKs 3.9 são entregas anteriores.** 134 testes passaram em cada perfil, com zero falhas/erros/skips; lint sem erros (117 avisos por perfil). Assinaturas V1/V2, certificado anterior, modelos dentro dos APKs e alinhamento ELF64 foram conferidos. Evidências de empacotamento em [relatorios/build-4_0](relatorios/build-4_0/LEIA-ME.md); análise da descoberta em `relatorios/camera-discovery-4_0`. VersionCode 40, minSdk 25 e targetSdk 37. O driver original mantém seu hash. Instalação, primeira imagem, gravação e desempenho na NWD continuam pendentes de teste físico.
+**Na K2001N, use o APK NWD 4.1 para testar a correção.** O relatório copiável inclui versão, estado da captura, etapa de abertura e detalhes dos callbacks do SDK. A busca também corrige marcadores ocultos por arquivos comuns e consulta Android/data dentro de subvolumes. 140 testes passaram por perfil, com zero falhas/erros/skips; lint sem erros (117 avisos por perfil). O perfil genérico 4.1 foi validado em código, sem gerar outro APK. Assinaturas V1/V2, certificado anterior, modelos e driver dentro do APK NWD 4.1 foram conferidos. Evidências em [relatorios/build-4_1](relatorios/build-4_1/LEIA-ME.md). VersionCode 41, minSdk 25 e targetSdk 37. Instalação, primeira imagem, gravação e desempenho na NWD continuam pendentes de teste físico.
 
 ## Downloads
 
-- [APK 4.0 NWD K2001N — Android 7.1.1 / ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_0_NWD_K2001N_ARM32_NEON_DEBUG.apk)
+- [APK 4.1 NWD K2001N — Android 7.1.1 / ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_1_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK 4.0 genérico — celular/tablet, Android 7.1 ou superior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_0_NEURAL_GENERIC_DEBUG.apk)
-- [Código-fonte atualizado 4.0](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [Código-fonte atualizado 4.1](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/DashCam_Fonte.zip)
+- [APK 4.0 NWD K2001N — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_4_0_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK 3.9 NWD K2001N — entrega anterior ARM32](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NWD_K2001N_ARM32_NEON_DEBUG.apk)
 - [APK 3.9 genérico — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_9_NEURAL_GENERIC_DEBUG.apk)
 - [APK 3.4 NWD K2001N ARM32 — entrega anterior](https://github.com/oinavile2-max/ADAS-oinavile/raw/refs/heads/main/APKS/DashCam_ADAS_PRO_3_4_NWD_K2001N_ARM32_NEON_DEBUG.apk)
@@ -22,12 +23,12 @@ Os APKs históricos 3.3/3.4 não contêm os temas e as correções das revisões
 
 ## Buscar a câmera na NWD K2001N — código 4.0
 
-Após instalar o APK **4.0 NWD ARM32** acima (o APK 3.9 não recebe mudanças automaticamente):
+Após instalar o APK **4.1 NWD ARM32** acima (os APKs anteriores não recebem mudanças automaticamente):
 
 1. Feche o outro aplicativo DVR para liberar a fonte.
 2. Abra **CÂMERA → Buscar DVR USB/volumes** ou **CONFIG → Câmera e gravação → Buscar DVR por USB e volumes**.
 3. Use **Volumes primeiro**. No Android 7/8, toque em **Permitir busca em volumes Android 7/8** e conceda o acesso solicitado.
-4. Toque em **Atualizar busca** e depois **Selecionar e autorizar câmera**. Se aparecer um marcador, escolha **VOLUME DVR**. Se somente o dispositivo 3322:6655 aparecer, escolha **USB NATIVO** e autorize o Android.
+4. Toque em **Atualizar busca** e depois **Selecionar e autorizar câmera**. Na central fotografada, escolha **VOLUME DVR • /storage/udisk3/akfile**. Se somente o dispositivo 3322:6655 aparecer, escolha **USB NATIVO** e autorize o Android.
 5. Aguarde a imagem real. Se não houver fonte ou a captura falhar, use **Copiar relatório** ou **Compartilhar relatório**; o diagnóstico lista VID/PID, classe/subclasse/protocolo das interfaces, permissão e volumes/arquivos encontrados.
 
 O sistema original UCarDVR combina caminhos FILE e UFD; a 3.9 tinha somente UFD no projeto. FILE usa um marcador existente (akfile/elene/kkfile/eefile/jrfile) em volume removível; o scanner evita armazenamento primário e links para fora do volume. A busca não cria arquivos. A captura FILE passa JSON e transporte −1 ao SDK; UFD mantém os callbacks SCSI/FAT32 com transporte 0. Armazenamento comum, como 058F:6387 sem marcador, não é aberto como câmera.

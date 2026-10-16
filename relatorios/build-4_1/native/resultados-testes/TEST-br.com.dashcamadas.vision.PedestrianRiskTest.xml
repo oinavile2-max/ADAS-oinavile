@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.dashcamadas.vision.PedestrianRiskTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-16T12:49:51.452Z" hostname="da9b510905e7" time="0.002">
+  <properties/>
+  <testcase name="pedestrianCannotWarnWithoutGpsOrCalibration" classname="br.com.dashcamadas.vision.PedestrianRiskTest" time="0.0"/>
+  <testcase name="pedestrianNeedsConfirmationAndIsRemovedWhenLost" classname="br.com.dashcamadas.vision.PedestrianRiskTest" time="0.0"/>
+  <testcase name="anotherPersonDoesNotInheritConfirmation" classname="br.com.dashcamadas.vision.PedestrianRiskTest" time="0.0"/>
+  <testcase name="higherSensitivityChangesProximityMarginWithoutRemovingConfidenceGate" classname="br.com.dashcamadas.vision.PedestrianRiskTest" time="0.0"/>
+  <testcase name="personOutsideRoadMaskCannotWarn" classname="br.com.dashcamadas.vision.PedestrianRiskTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
