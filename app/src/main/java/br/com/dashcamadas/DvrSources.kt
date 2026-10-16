@@ -13,7 +13,7 @@ enum class DvrSearchMode(val label:String){
     companion object{fun read(value:String?)=entries.firstOrNull{it.name==value} ?: USB_FIRST}
 }
 
-/** Bounded marker search. Never follows links outside the chosen removable volume or creates files. */
+/** Shallow marker search. Never follows links outside the chosen removable volume or creates files. */
 object DvrMarkerSearch {
     fun find(root:File,packageName:String):List<File>{
         val base=try{root.canonicalFile}catch(_:Exception){return emptyList()}
@@ -21,15 +21,19 @@ object DvrMarkerSearch {
         fun inspect(dir:File){
             val canonical=try{dir.canonicalFile}catch(_:Exception){return}
             if(canonical!=base && !canonical.path.startsWith(base.path+File.separator))return
-            val items=canonical.listFiles() ?: return
-            for(file in items.take(64))try{
+            // Filter names before limiting directory traversal: recordings must not hide a marker.
+            val items=canonical.listFiles{_,name->DvrProtocol.type(name)!=null} ?: return
+            for(file in items)try{
                 val actual=file.canonicalFile
                 if(actual.path.startsWith(base.path+File.separator) && actual.isFile && actual.length()>0 && DvrProtocol.type(actual.name)!=null)found+=actual
             }catch(_:Exception){}
         }
-        inspect(base)
-        inspect(File(base,"Android/data/com.ankai.cardvr"));inspect(File(base,"Android/data/$packageName"))
-        base.listFiles()?.take(64)?.filter{it.isDirectory && !it.name.equals("Android",true)}?.forEach{inspect(it)}
+        fun inspectContainer(dir:File){
+            inspect(dir)
+            inspect(File(dir,"Android/data/com.ankai.cardvr"));inspect(File(dir,"Android/data/$packageName"))
+        }
+        inspectContainer(base)
+        base.listFiles{file->file.isDirectory && !file.name.equals("Android",true)}?.take(64)?.forEach{inspectContainer(it)}
         return found.toList()
     }
     fun inside(file:File,root:File)=try{file.canonicalPath.startsWith(root.canonicalPath+File.separator)}catch(_:Exception){false}

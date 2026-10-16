@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-16",
+  "base_revision": "d7a030eadc13388ae8ebdc7bb4657e965b400153",
+  "profile": "NWD ARM32 (-Pk2000Native=true)",
+  "command": "./gradlew --no-daemon --max-workers=2 -Pk2000Native=true :app:testDebugUnitTest :app:compileDebugKotlin :app:lintDebug",
+  "tests": {
+    "tests": 136,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "Warning": 117
+  },
+  "changed_source_sha256": {
+    "app/src/main/java/br/com/dashcamadas/DvrSources.kt": "96d69501b87b33d5e5daa2e81c57d4e072922904d15ab5bd7b2ea8b74d7787fa",
+    "app/src/test/java/br/com/dashcamadas/DvrDiscoveryTest.kt": "384f5db12c90cf8605bc5b920119438b97a92588728d8c2f1a7b58f74b36a320"
+  },
+  "new_apk_packaged": false,
+  "physical_root_cause_confirmed": false,
+  "current_device_report_received": false,
+  "physical_capture_confirmed": false
+}

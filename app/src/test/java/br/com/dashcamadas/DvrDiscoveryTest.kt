@@ -6,6 +6,19 @@ import java.nio.file.Files
 import java.io.File
 
 class DvrDiscoveryTest {
+    @Test fun unrelatedFilesCannotHideKnownMarkerNames(){
+        val root=Files.createTempDirectory("dvr-full").toFile()
+        try{
+            repeat(160){File(root,"recording-$it.mp4").writeText("video")}
+            val expected=mutableSetOf<File>()
+            // More than 64 distinct recognized names, independent of filesystem enumeration order.
+            for(name in listOf("akfile","kkfile"))repeat(64){mask->
+                val variant=name.mapIndexed{index,c->if(mask and (1 shl index)!=0)c.uppercaseChar() else c}.joinToString("")
+                expected+=File(root,variant).apply{writeText("endpoint")}.canonicalFile
+            }
+            assertEquals(expected,DvrMarkerSearch.find(root,"br.com.dashcamadas").toSet())
+        }finally{root.deleteRecursively()}
+    }
     @Test fun vendorMountsHavePublicAliasesAndPrimaryOrSystemMountsAreExcluded(){
         val entries="""
             /dev/block/vold/public:8,1 /mnt/media_rw/DVR vfat rw 0 0
@@ -26,6 +39,16 @@ class DvrDiscoveryTest {
             File(root,"video.mp4").writeText("not a marker")
             assertEquals(expected.map{it.canonicalFile}.toSet(),DvrMarkerSearch.find(root,"br.com.dashcamadas").toSet())
             assertEquals(5,root.walkTopDown().filter{it.isFile}.count())
+        }finally{root.deleteRecursively()}
+    }
+    @Test fun nestedVolumeContainersAlsoCheckOriginalAndCurrentAppDirectories(){
+        val root=Files.createTempDirectory("dvr-container").toFile()
+        try{
+            repeat(100){File(root,"clip-$it.mp4").writeText("video")}
+            val expected=listOf(File(root,"disk/Android/data/com.ankai.cardvr/akfile"),
+                File(root,"disk/Android/data/br.com.dashcamadas/jrfile"))
+            expected.forEach{requireNotNull(it.parentFile).mkdirs();it.writeText("endpoint")}
+            assertEquals(expected.map{it.canonicalFile}.toSet(),DvrMarkerSearch.find(root,"br.com.dashcamadas").toSet())
         }finally{root.deleteRecursively()}
     }
     @Test fun discoveryDoesNotFollowAMarkerOrDirectoryLinkOutsideRemovableVolume(){
