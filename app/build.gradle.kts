@@ -14,8 +14,8 @@ android {
   enableV2Signing = true
  }
  defaultConfig {
-  applicationId = "br.com.dashcamadas"; minSdk = 25; targetSdk = 37; versionCode = 40
-  versionName = if(k2000Native) "4.0.0-lighting-recording-neural-nwd-k2001n-experimental" else "4.0.0-lighting-recording-neural-experimental"
+  applicationId = "br.com.dashcamadas"; minSdk = 25; targetSdk = 37; versionCode = 41
+  versionName = if(k2000Native) "4.1.0-native-preview-neural-nwd-k2001n-experimental" else "4.1.0-native-preview-neural-experimental"
   buildConfigField("boolean", "K2000_NATIVE", k2000Native.toString())
   if(k2000Native) ndk { abiFilters += "armeabi-v7a" }
  }

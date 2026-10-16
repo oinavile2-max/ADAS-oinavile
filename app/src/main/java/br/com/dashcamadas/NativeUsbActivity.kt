@@ -100,7 +100,7 @@ class NativeUsbActivity:Activity(){
         scanning=true;choices=emptyList()
         status.text=if(permissionRequest.device==null)"Atualizando descoberta…" else "Aguardando autorização USB do Android"
         io.execute{
-            val text=StringBuilder("DASHCAM ADAS PRO — BUSCA DVR\nModo: ${selectedMode.label}\nPerfil nativo: ${nativeSupported()} | API ${Build.VERSION.SDK_INT}\n")
+            val text=StringBuilder("DASHCAM ADAS PRO — BUSCA DVR\nVersão: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nModo: ${selectedMode.label}\nPerfil nativo: ${nativeSupported()} | API ${Build.VERSION.SDK_INT}\n")
             val usb=mutableListOf<String>();var files=emptyList<String>()
             try{
                 val devices=manager.deviceList.values.toList()
@@ -121,6 +121,16 @@ class NativeUsbActivity:Activity(){
                     text.append("Marcadores encontrados (${files.size}):\n${files.joinToString("\n")}\n")
                 }
             }catch(e:Exception){text.append("Falha de busca: ${e.javaClass.simpleName}: ${e.message}\n")}
+            val last=getSharedPreferences("native_dvr_last",MODE_PRIVATE)
+            if(last.contains("diagnostic"))text.append("ÚLTIMA CAPTURA NATIVA (${java.util.Date(last.getLong("time",0))}):\nFonte: ${last.getString("source","")}\n${last.getString("diagnostic","")}\n")
+            try{
+                val file=java.io.File(filesDir,"capture-diagnostics.json")
+                if(file.isFile && file.length()<=32768){
+                    val capture=org.json.JSONObject(file.readText())
+                    text.append("CAPTURA — fonte: ${capture.optString("camera_id")}; conectada: ${capture.optBoolean("connected")}; quadros: ${capture.optLong("camera_received_frames")}\n")
+                    text.append("Estado: ${capture.optString("state_message")}\nSDK: ${capture.optString("native_sdk_diagnostic")}\n")
+                }
+            }catch(e:Exception){text.append("Diagnóstico de captura indisponível: ${e.javaClass.simpleName}\n")}
             text.append("Marcadores: akfile, elene, kkfile, eefile, jrfile. Dispositivo/marcador não confirma decodificação ou vídeo.\n")
             main.post{
                 if(isDestroyed || isFinishing || token!=scanGeneration)return@post

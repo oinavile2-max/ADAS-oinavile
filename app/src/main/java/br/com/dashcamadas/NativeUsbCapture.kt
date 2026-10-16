@@ -17,6 +17,15 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
     private var connection:UsbDeviceConnection?=null
     @Volatile private var storage:DvrUsbStorage?=null
     private var reader:ImageReader?=null
+    private var startup:NativePreviewStartup?=null
+    @Volatile private var stage="não iniciado"
+    @Volatile private var lastNativeEvent="sem callback"
+    fun diagnosticSummary()="etapa=$stage; SDK: $lastNativeEvent"
+    private fun nativeDetail(text:String){
+        if(closed)return
+        lastNativeEvent=text.replace(Regex("[\\p{Cntrl}]")," ").take(240)
+        android.util.Log.d("DashCamUSB",lastNativeEvent)
+    }
     private var name=""
     private var registered=false
     private var mountRegistered=false
@@ -33,9 +42,9 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
     }}
     private val callback=object:MyCamera.NativeCameraCallback {
         override fun event2String(a:Int,b:Int)="USB $a/$b"
-        override fun onLog(level:Int,message:String?){android.util.Log.d("DashCamUSB","Log nativo nível $level")}
-        override fun onCallback(event:Int,value:Int,message:String?){android.util.Log.d("DashCamUSB","Evento $event / $value")}
-        override fun onPostedCallback(action:Int,notify:Int,a:Int,b:Int,message:String?){android.util.Log.d("DashCamUSB","Ação $action / retorno $notify")}
+        override fun onLog(level:Int,message:String?){nativeDetail("Log $level: ${message.orEmpty()}")}
+        override fun onCallback(event:Int,value:Int,message:String?){nativeDetail("Evento 0x${event.toUInt().toString(16)} / $value: ${message.orEmpty()}")}
+        override fun onPostedCallback(action:Int,notify:Int,a:Int,b:Int,message:String?){nativeDetail("Ação $action / retorno $notify / $a,$b: ${message.orEmpty()}")}
         override fun onSharedSrcOpened(file:MemoryFile?,header:Int,data:Int){}
         override fun onSharedSrcClosed(){}
         override fun onSharedSrcUpdated(){}
@@ -70,6 +79,7 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
         if(!closed && transportFailure.compareAndSet(false,true))handler.post{if(!closed)onFailure(message)}
     }
     fun open(deviceName:String){
+        stage="abrindo fonte"
         if(DvrSources.mounted(deviceName)){openMounted(deviceName);return}
         check(BuildConfig.K2000_NATIVE && Build.VERSION.SDK_INT in 24..27){"Driver legado exige APK ARM32 e Android 7/8"}
         check(handle==0L && !closed)
@@ -106,6 +116,7 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
         startPreview(json,-1,false)
     }
     private fun startPreview(connectName:String,connectTransport:Int,uvc:Boolean){
+        stage="criando sessão nativa"
         native=MyCamera()
         handle=if(uvc)MyCamera.nativeCreateUVC(callback) else MyCamera.nativeCreateUFD(callback)
         check(handle!=0L){"Driver não criou sessão USB"}
@@ -116,25 +127,30 @@ class NativeUsbCapture(private val context:Context,private val handler:Handler,
             },handler)
         }
         check(native!!.nativePost(handle,18,0,0,"{\"isDebug\":false,\"isDebugData\":false,\"debugLevel\":0,\"debugTypes\":0,\"isTest\":false}")>=0)
-        val preview=reader!!.surface
-        // Original SDK view type=0, identity=surface hash.
-        native!!.nativeAddPreview(handle,0,preview.hashCode(),preview)
-        native!!.nativeConnect(handle,connectName,connectTransport)
-        awaitInitialization(0)
+        val sdk=native!!;val sessionHandle=handle;val preview=reader!!.surface
+        startup=NativePreviewStartup(object:NativePreviewStartup.Driver {
+            override fun connect(){stage="conectando SDK (transporte $connectTransport)";sdk.nativeConnect(sessionHandle,connectName,connectTransport)}
+            override fun initialized()=sdk.nativeIsInitialized(sessionHandle)
+            override fun connected()=sdk.nativeIsConnected(sessionHandle)
+            // The native preview pointer is null before connect; early registration is silently lost.
+            override fun attachPreview(){stage="registrando superfície após conexão";sdk.nativeAddPreview(sessionHandle,0,preview.hashCode(),preview)}
+            override fun startPreview():Int{stage="iniciando prévia";return sdk.nativePost(sessionHandle,6,0,0,"")}
+        }).also{it.begin(SystemClock.elapsedRealtime())}
+        awaitInitialization()
     }
-    private fun awaitInitialization(attempt:Int){
+    private fun awaitInitialization(){
         if(closed || handle==0L)return
         try{
-            if(native!!.nativeIsInitialized(handle)){
-                check(native!!.nativePost(handle,6,0,0,"")>=0){"Driver rejeitou iniciar prévia"}
+            if(startup?.poll(SystemClock.elapsedRealtime())==true){
+                stage="prévia iniciada; aguardando quadros"
                 ready=true;onReady()
-            }else if(attempt<20)handler.postDelayed({awaitInitialization(attempt+1)},250)
-            else{close();onFailure("USB não inicializou em 5 segundos")}
-        }catch(e:Exception){close();onFailure("Inicialização USB: ${e.message}")}
+            }else handler.postDelayed({awaitInitialization()},250)
+        }catch(e:Exception){val detail=diagnosticSummary();close();onFailure("Inicialização USB: ${e.message}; $detail")}
     }
     override fun close(){
         if(closed)return
         closed=true;ready=false
+        startup?.close();startup=null
         storage?.channel?.cancel()
         if(registered){context.unregisterReceiver(receiver);registered=false}
         if(mountRegistered){context.unregisterReceiver(mountReceiver);mountRegistered=false}

@@ -1,0 +1,58 @@
+Static inspection of the user-supplied ARM32 driver; no physical execution.
+SHA256: fa9d9a7936f2ae12ca8f6540f214bb581c0b26ac5222c1b76384dcf4f2795bd9
+JNI registration: nativeAddPreview (JIILandroid/view/Surface;)V -> Thumb 0x24309.
+PLT relocation: 0xe704 -> MyPreview::MyPreview(int,int,IPreviewCallback*).
+
+AbstractCamera constructor initializes preview pointer to null
+000126f6: movs      r3, #0
+000126f8: movs      r0, #0
+000126fa: movs      r1, #0
+000126fc: str.w     r3, [r4, #0x98]
+00012700: strd      r0, r1, [r4, #0x88]
+00012704: strd      r0, r1, [r4, #0x90]
+00012708: mov       r0, r4
+0001270a: str.w     r3, [r4, #0x9c]
+0001270e: str.w     r3, [r4, #0xa0]
+00012712: str.w     r3, [r4, #0xa4]
+
+JNI nativeAddPreview directly invokes the camera virtual method
+00024308: push.w    {r4, r5, r6, r7, r8, lr}
+0002430c: ldr       r6, [sp, #0x18]
+0002430e: ldr       r5, [sp, #0x1c]
+00024310: ldr       r1, [sp, #0x20]
+00024312: cbz       r2, #0x2432e
+00024314: ldr       r3, [r2]
+00024316: mov       r4, r2
+00024318: ldr       r7, [r3, #0xc]
+0002431a: blx       #0xece0
+0002431e: mov       r1, r6
+00024320: mov       r2, r5
+00024322: mov       ip, r7
+00024324: mov       r3, r0
+00024326: mov       r0, r4
+00024328: pop.w     {r4, r5, r6, r7, r8, lr}
+0002432c: bx        ip
+
+MyCamera::addPreview ignores a null preview pointer
+000163e8: cbnz      r1, #0x16400
+000163ea: ldr.w     r0, [r0, #0xa4]
+000163ee: cbz       r0, #0x16400
+000163f0: push      {r4}
+000163f2: mov       r1, r2
+000163f4: ldr       r4, [r0]
+000163f6: mov       r2, r3
+000163f8: ldr       r3, [r4, #0xc]
+000163fa: ldr       r4, [sp], #4
+000163fe: bx        r3
+00016400: bx        lr
+
+MyCamera::connect allocates and assigns the preview pointer
+0002188c: movs      r0, #0x64
+0002188e: blx       #0xdccc
+00021892: movs      r1, #2
+00021894: add.w     r3, r5, #0x40
+00021898: mov       r2, r1
+0002189a: mov       r6, r0
+0002189c: blx       #0xe704
+000218a0: str.w     r6, [r5, #0xa4]
+000218a4: b         #0x2170e

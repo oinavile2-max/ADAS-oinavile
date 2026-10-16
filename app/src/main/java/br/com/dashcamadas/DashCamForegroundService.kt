@@ -159,6 +159,7 @@ class DashCamForegroundService:Service() {
         val preview=previewMetrics()
         val auxiliary=auxiliaryMeter.snapshot(SystemClock.elapsedRealtime())
         val value=JSONObject().put("camera_id",currentId).put("connected",state.connected).put("recording",isRecording)
+            .put("state_message",state.message).put("native_sdk_diagnostic",nativeCapture?.diagnosticSummary() ?: getSharedPreferences("native_dvr_last",MODE_PRIVATE).getString("diagnostic",""))
             .put("processed_frames",processedFrames).put("recording_capture_frames",recordingFrames).put("completed_segments",completedSegments)
             .put("last_frame_elapsed_ms",lastFrame).put("observed_elapsed_ms",SystemClock.elapsedRealtime())
             .put("last_completed_clip",lastCompletedClip).put("model_loaded",detector!=null && laneNetwork!=null).put("gps_speed_available",DrivingContext.speed()!=null)
@@ -183,7 +184,8 @@ class DashCamForegroundService:Service() {
     private val watchdog=object:Runnable {
         override fun run() {
             if(running && opening.not() && !state.connected && captureStartDeadline>0 && SystemClock.elapsedRealtime()>=captureStartDeadline){
-                captureStartDeadline=0;recordWanted=false;closeCapture();publish(State(cameraId=currentId,message="Câmera sem quadros utilizáveis; confira compatibilidade do driver"))
+                val detail=nativeCapture?.diagnosticSummary().orEmpty()
+                captureStartDeadline=0;recordWanted=false;closeCapture();publish(State(cameraId=currentId,message="Câmera sem quadros utilizáveis; $detail"))
             }
             if(running && lastFrame>0 && SystemClock.elapsedRealtime()-lastFrame>1800) {
                 lastFrame=0
@@ -629,7 +631,13 @@ class DashCamForegroundService:Service() {
         getSharedPreferences("camera_runtime",MODE_PRIVATE).edit().putBoolean("night",false).apply()
         captureStartDeadline=0
         if(wakeLock.isHeld)wakeLock.release();wakeDeadline=0
-        finishRecorder();directActive=false;liveSurface?.release();liveSurface=null;nativeCapture?.close();nativeCapture=null;camera?.close();camera=null
+        finishRecorder();directActive=false;liveSurface?.release();liveSurface=null
+        nativeCapture?.let{capture->
+            getSharedPreferences("native_dvr_last",MODE_PRIVATE).edit().putString("source",currentId)
+                .putString("diagnostic",capture.diagnosticSummary()).putLong("time",System.currentTimeMillis()).apply()
+            capture.close()
+        }
+        nativeCapture=null;camera?.close();camera=null
         reader?.setOnImageAvailableListener(null,null);reader?.close();reader=null
         lastFrame=0;processedFrames=0;recordingFrames=0;nativeFrames=0
         capturedFrames=0;maxSourceGap=0;cadence.reset();previewMeter.reset();auxiliaryMeter.reset();sessionStartedAt=SystemClock.elapsedRealtime()
